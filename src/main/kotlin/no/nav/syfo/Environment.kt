@@ -6,11 +6,13 @@ data class Environment(
 )
 
 data class VaultCredentials(
-    val serviceuserUsername: String,
-    val serviceuserPassword: String,
     val databaseUsername: String,
     val databasePassword: String
+)
 
+data class VaultServiceUser(
+    val serviceuserUsername: String,
+    val serviceuserPassword: String
 )
 
 fun getEnvVar(varName: String, defaultValue: String? = null) =

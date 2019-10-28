@@ -8,6 +8,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.util.KtorExperimentalAPI
 import java.nio.file.Paths
+import no.nav.syfo.aksessering.db.hentSykmeldinger
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
@@ -22,14 +23,20 @@ val objectMapper: ObjectMapper = ObjectMapper().apply {
     configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
 }
 
-val log: Logger = LoggerFactory.getLogger("no.nav.syfo.behandlerElektroniskKommunikasjon")
+val log: Logger = LoggerFactory.getLogger("no.nav.syfo.syfoservicedatasyfosmregister")
 
 @KtorExperimentalAPI
 fun main() {
     val environment = Environment()
 
+    val vaultSecrets = objectMapper.readValue<VaultCredentials>(Paths.get("/var/run/secrets/nais.io/vault/credentials/credentials.json").toFile())
 
-    val vaultSecrets = objectMapper.readValue<VaultCredentials>(Paths.get("/var/run/secrets/nais.io/vault/credentials.json").toFile())
+    /* val vaultServiceuser = VaultServiceUser(
+        serviceuserPassword = objectMapper.readValue<VaultServiceUser>(Paths.get("/var/run/secrets/nais.io/vault/serviceuser/password").toFile()),
+        serviceuserUsername = objectMapper.readValue<VaultServiceUser>(Paths.get("/var/run/secrets/nais.io/vault/serviceuser/username").toFile())
+    )
+
+     */
 
     val applicationState = ApplicationState()
 
@@ -39,6 +46,7 @@ fun main() {
     val applicationServer = ApplicationServer(applicationEngine, applicationState)
 
     applicationServer.start()
-
     applicationState.ready = true
+
+    val hentsykmedlinger = database.hentSykmeldinger()
 }

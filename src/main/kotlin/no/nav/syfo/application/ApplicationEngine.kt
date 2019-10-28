@@ -1,6 +1,5 @@
 package no.nav.syfo.application
 
-
 import io.ktor.routing.routing
 import io.ktor.server.engine.ApplicationEngine
 import io.ktor.server.engine.embeddedServer

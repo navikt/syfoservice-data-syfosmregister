@@ -7,7 +7,10 @@ import java.sql.ResultSet
 import no.nav.syfo.Environment
 import no.nav.syfo.VaultCredentials
 
-class Database(private val env: Environment, private val vaultCredentialService: VaultCredentials) : DatabaseInterface {
+class Database(
+    private val env: Environment,
+    private val vaultCredentialService: VaultCredentials
+) : DatabaseInterface {
 
     private val dataSource: HikariDataSource
 
