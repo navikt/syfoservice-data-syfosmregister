@@ -1,0 +1,43 @@
+apiVersion: "nais.io/v1alpha1"
+kind: "Application"
+metadata:
+  name: syfoservice-data-syfosmregister
+  namespace: default
+  labels:
+    team: {{team}}
+spec:
+  image: "docker.pkg.github.com/navikt/syfoservice-data-syfosmregister:{{tag}}"
+  replicas:
+    min: 1
+    max: 2
+    cpuThresholdPercentage: 90
+  port: 8080
+  liveness:
+    path: /is_alive
+    initialDelay: 10
+    timeout: 5
+    periodSeconds: 5
+    failureThreshold: 30
+  readiness:
+    path: /is_ready
+    initialDelay: 30
+    periodSeconds: 5
+    timeout: 5
+  prometheus:
+    enabled: true
+    path: /prometheus
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  vault:
+    enabled: true
+  webproxy: true
+  ingresses:
+    - "https://syfoservice-data-syfosmregister.nais.preprod.local"
+  env:
+    - name: DATABASE_URL
+      value: jdbc:oracle:thin:@(DESCRIPTION=(FAILOVER=on)(CONNECT_TIMEOUT= 15)(RETRY_COUNT=20)(RETRY_DELAY=3)(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=a01dbfl033.adeo.no)(PORT=1521))(ADDRESS=(PROTOCOL=TCP)(HOST=a01dbfl034.adeo.no)(PORT=1521)))(CONNECT_DATA=(SERVICE_NAME=syfoservice_q1_ha)))
