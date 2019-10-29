@@ -35,7 +35,6 @@ plugins {
 
 repositories {
     mavenCentral()
-    mavenCentral()
     jcenter()
     maven(url = "https://dl.bintray.com/kotlin/ktor")
     maven(url = "https://dl.bintray.com/spekframework/spek-dev")

@@ -13,6 +13,7 @@ import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
 import no.nav.syfo.db.Database
+import no.nav.syfo.utils.getFileAsString
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -31,12 +32,10 @@ fun main() {
 
     val vaultSecrets = objectMapper.readValue<VaultCredentials>(Paths.get("/var/run/secrets/nais.io/vault/credentials/credentials.json").toFile())
 
-    /* val vaultServiceuser = VaultServiceUser(
-        serviceuserPassword = objectMapper.readValue<VaultServiceUser>(Paths.get("/var/run/secrets/nais.io/vault/serviceuser/password").toFile()),
-        serviceuserUsername = objectMapper.readValue<VaultServiceUser>(Paths.get("/var/run/secrets/nais.io/vault/serviceuser/username").toFile())
+    val vaultServiceuser = VaultServiceUser(
+        serviceuserPassword = getFileAsString("/var/run/secrets/nais.io/vault/serviceuser/password"),
+        serviceuserUsername = getFileAsString("/var/run/secrets/nais.io/vault/serviceuser/username")
     )
-
-     */
 
     val applicationState = ApplicationState()
 
