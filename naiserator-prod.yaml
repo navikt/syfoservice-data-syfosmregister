@@ -37,7 +37,7 @@ spec:
     enabled: true
     paths:
       - mountPath: "/var/run/secrets/nais.io/vault/serviceuser"
-        kvPath: "serviceuser/data/prod/srvsyfoservice-dat"
+        kvPath: "serviceuser/prod/srvsyfoservice-dat"
       - mountPath: "/var/run/secrets/nais.io/vault/credentials"
         kvPath: "kv/prod/fss/syfoservice-data-syfosmregister/default"
   webproxy: true
