@@ -32,10 +32,11 @@ fun main() {
 
     val vaultSecrets = objectMapper.readValue<VaultCredentials>(Paths.get("/var/run/secrets/nais.io/vault/credentials/credentials.json").toFile())
 
-    val vaultServiceuser = VaultServiceUser(
+    /* val vaultServiceuser = VaultServiceUser(
         serviceuserPassword = getFileAsString("/var/run/secrets/nais.io/vault/serviceuser/password"),
         serviceuserUsername = getFileAsString("/var/run/secrets/nais.io/vault/serviceuser/username")
     )
+     */
 
     val applicationState = ApplicationState()
 
