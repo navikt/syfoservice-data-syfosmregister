@@ -29,11 +29,11 @@ val log: Logger = LoggerFactory.getLogger("no.nav.syfo.syfoservicedatasyfosmregi
 fun main() {
     val environment = Environment()
 
-    val vaultSecrets = objectMapper.readValue<VaultCredentials>(Paths.get("/var/run/secrets/nais.io/vault/credentials/credentials.json").toFile())
+    val vaultSecrets = objectMapper.readValue<VaultCredentials>(Paths.get("/secrets/credentials/credentials.json").toFile())
 
     val vaultServiceuser = VaultServiceUser(
         serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
-        serviceuserUsername = getFileAsString("/secrets/credentials/username")
+        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
     )
     val database = Database(environment, vaultSecrets)
 
