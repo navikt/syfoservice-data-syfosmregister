@@ -11,7 +11,6 @@ import java.nio.file.Paths
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
-import no.nav.syfo.db.Database
 import no.nav.syfo.utils.getFileAsString
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -35,7 +34,8 @@ fun main() {
         serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
         serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
     )
-    val database = Database(environment, vaultSecrets)
+
+   // val database = Database(environment, vaultSecrets)
 
     val applicationState = ApplicationState()
     val applicationEngine = createApplicationEngine(environment, applicationState)
