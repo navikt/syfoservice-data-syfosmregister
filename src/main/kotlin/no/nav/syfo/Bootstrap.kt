@@ -34,8 +34,6 @@ fun main() {
         databaseUsername = getFileAsString("/secrets/serviceuser/username")
     )
 
-        objectMapper.readValue<VaultCredentials>(Paths.get("/secrets/credentials/credentials.json").toFile())
-
     val vaultServiceuser = VaultServiceUser(
         serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
         serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
