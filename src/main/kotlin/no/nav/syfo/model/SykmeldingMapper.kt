@@ -116,13 +116,17 @@ fun HelseOpplysningerArbeidsuforhet.Prognose.toPrognose() = Prognose(
 fun HelseOpplysningerArbeidsuforhet.UtdypendeOpplysninger.toMap() =
         spmGruppe.map { spmGruppe ->
             spmGruppe.spmGruppeId to spmGruppe.spmSvar
-                    .map { svar -> svar.spmId to SporsmalSvar(sporsmal = svar.spmTekst, svar = svar.svarTekst, restriksjoner = svar.restriksjon?.restriksjonskode?.mapNotNull(CS::toSvarRestriksjon) ?: listOf()) }
+                    .map { svar -> svar.spmId to SporsmalSvar(
+                            sporsmal = svar.spmTekst,
+                            svar = svar.svarTekst,
+                            restriksjoner = listOf(SvarRestriksjon.SKJERMET_FOR_ARBEIDSGIVER)) }
                     .toMap()
         }.toMap()
 
 // TODO: Remove if-wrapping whenever the EPJ systems stops sending garbage data
 fun CS.toSvarRestriksjon() =
-        if (v.isNullOrBlank()) { null } else { SvarRestriksjon.values().first { it.codeValue == v } }
+        if (v.isNullOrBlank()) { null } else
+        { SvarRestriksjon.values().first { it.codeValue == v } }
 
 fun Address.toAdresse() = Adresse(
         gate = streetAdr,
