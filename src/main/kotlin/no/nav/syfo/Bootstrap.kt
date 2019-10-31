@@ -4,10 +4,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.util.KtorExperimentalAPI
-import java.nio.file.Paths
+import no.nav.syfo.aksessering.db.hentSykmeldinger
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
@@ -48,5 +47,7 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-    // val hentsykmedlinger = database.hentSykmeldinger()
+    val hentetSykmeldinger = database.hentSykmeldinger("1191250828148")
+
+    log.info("Aktor id pasient: ${hentetSykmeldinger.first().sykmelding.pasientAktoerId}")
 }
