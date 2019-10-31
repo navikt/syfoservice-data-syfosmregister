@@ -30,8 +30,8 @@ fun main() {
     val environment = Environment()
 
     val vaultSecrets = VaultCredentials(
-        databasePassword = getFileAsString("/secrets/serviceuser/password"),
-        databaseUsername = getFileAsString("/secrets/serviceuser/username")
+        databasePassword = getFileAsString("/secrets/credentials/password"),
+        databaseUsername = getFileAsString("/secrets/credentials/username")
     )
 
     val vaultServiceuser = VaultServiceUser(

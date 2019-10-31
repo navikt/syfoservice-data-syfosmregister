@@ -38,7 +38,7 @@ spec:
     paths:
       - kvPath: serviceuser/data/dev/srvsyfoservice-dat
         mountPath: /secrets/serviceuser
-      - kvPath: kv/preprod/fss/syfoservice-data-syfosmregister/default
+      - kvPath: oracle/data/dev/creds/syfoservice_q1-user
         mountPath: /secrets/credentials
   webproxy: true
   ingresses:
