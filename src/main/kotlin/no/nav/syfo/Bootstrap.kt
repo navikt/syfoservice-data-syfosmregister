@@ -29,7 +29,12 @@ val log: Logger = LoggerFactory.getLogger("no.nav.syfo.syfoservicedatasyfosmregi
 fun main() {
     val environment = Environment()
 
-    val vaultSecrets = objectMapper.readValue<VaultCredentials>(Paths.get("/secrets/credentials/credentials.json").toFile())
+    val vaultSecrets = VaultCredentials(
+        databasePassword = getFileAsString("/secrets/serviceuser/password"),
+        databaseUsername = getFileAsString("/secrets/serviceuser/username")
+    )
+
+        objectMapper.readValue<VaultCredentials>(Paths.get("/secrets/credentials/credentials.json").toFile())
 
     val vaultServiceuser = VaultServiceUser(
         serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
