@@ -49,5 +49,5 @@ fun main() {
 
     val hentetSykmeldinger = database.hentSykmeldinger("1191250828148")
 
-    log.info("MsgId: {}", hentetSykmeldinger.first().sykmelding.msgId)
+    log.info("PasientAktoerId: {}", hentetSykmeldinger.first().sykmelding.pasientAktoerId)
 }
