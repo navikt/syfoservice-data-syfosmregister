@@ -28,23 +28,23 @@ fun DatabaseInterface.hentSykmeldinger(aktor_id: String): List<ReceivedSykmeldin
 fun ResultSet.toReceivedSykmelding(): ReceivedSykmelding =
     ReceivedSykmelding(
         sykmelding = unmarshallerToHealthInformation(getString("dokument")).toSykmelding(
-            sykmeldingId = UUID.randomUUID().toString(),
+            sykmeldingId = getString("melding_id"),
             pasientAktoerId = getString("aktor_id"),
             legeAktoerId = "",
             msgId = "",
             signaturDato = LocalDateTime.now()
         ),
-        personNrPasient = "",
-        tlfPasient = "",
+        personNrPasient = unmarshallerToHealthInformation(getString("dokument")).pasient.fodselsnummer.id,
+        tlfPasient = unmarshallerToHealthInformation(getString("dokument")).pasient.kontaktInfo.firstOrNull()?.teleAddress?.v,
         personNrLege = "",
-        navLogId = "",
+        navLogId = getString("mottak_id"),
         msgId = "",
         legekontorOrgNr = "",
         legekontorOrgName = "",
         legekontorHerId = "",
         legekontorReshId = "",
         mottattDato = LocalDateTime.now(),
-        rulesetVersion = null,
+        rulesetVersion = unmarshallerToHealthInformation(getString("dokument")).regelSettVersjon,
         fellesformat = "",
         tssid = ""
     )
