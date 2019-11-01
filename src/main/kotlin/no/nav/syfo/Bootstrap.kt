@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.syfo.aksessering.db.hentAntallSykmeldinger
 import no.nav.syfo.aksessering.db.hentSykmeldinger
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
@@ -47,7 +48,9 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
+    val hentantallSykmeldinger = database.hentAntallSykmeldinger()
     val hentetSykmeldinger = database.hentSykmeldinger()
 
+    log.info("Antall sykmeldinger som finnes i databasen:  {}", hentantallSykmeldinger.first())
     log.info("Antall sykmeldinger som er mappet over:  {}", hentetSykmeldinger.size)
 }
