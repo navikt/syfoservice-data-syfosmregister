@@ -88,10 +88,14 @@ fun ArsakType.toAnnenFraversArsak() = AnnenFraversArsak(
 )
 
 // TODO: Remove if-wrapping whenever the EPJ systems stops sending garbage data
-fun CS.toMedisinskArsakType() = if (v == "0" || v.isNullOrBlank()) { null } else { MedisinskArsakType.values().first { it.codeValue == v.trim() } }
+fun CS.toMedisinskArsakType() =
+        if (v == "0" || v.isNullOrBlank()) { null }
+        else { MedisinskArsakType.values().firstOrNull() { it.codeValue == v.trim() } }
 
 // TODO: Remove if-wrapping whenever the EPJ systems stops sending garbage data
-fun CS.toArbeidsrelatertArsakType() = if (v == "0" || v.isNullOrBlank()) { null } else { ArbeidsrelatertArsakType.values().first { it.codeValue == v } }
+fun CS.toArbeidsrelatertArsakType() =
+        if (v == "0" || v.isNullOrBlank()) { null }
+        else { ArbeidsrelatertArsakType.values().firstOrNull() { it.codeValue == v } }
 
 fun HelseOpplysningerArbeidsuforhet.Prognose.toPrognose() = Prognose(
         arbeidsforEtterPeriode = isArbeidsforEtterEndtPeriode == true,
