@@ -82,18 +82,16 @@ fun ArsakType.toAnnenFraversArsak() = AnnenFraversArsak(
             if (code.v == "0" || code.v.isNullOrBlank()) {
                 null
             } else {
-                AnnenFraverGrunn.values().first { it.codeValue == code.v.trim() }
+                AnnenFraverGrunn.values().firstOrNull { it.codeValue == code.v.trim() }
             }
         }
 )
 
 // TODO: Remove if-wrapping whenever the EPJ systems stops sending garbage data
-fun CS.toMedisinskArsakType() = if (v == "0" || v.isNullOrBlank()) { null }
-else { MedisinskArsakType.values().first { it.codeValue == v.trim() } }
+fun CS.toMedisinskArsakType() = if (v == "0" || v.isNullOrBlank()) { null } else { MedisinskArsakType.values().first { it.codeValue == v.trim() } }
 
 // TODO: Remove if-wrapping whenever the EPJ systems stops sending garbage data
-fun CS.toArbeidsrelatertArsakType() = if (v == "0" || v.isNullOrBlank()) { null }
-else { ArbeidsrelatertArsakType.values().first { it.codeValue == v } }
+fun CS.toArbeidsrelatertArsakType() = if (v == "0" || v.isNullOrBlank()) { null } else { ArbeidsrelatertArsakType.values().first { it.codeValue == v } }
 
 fun HelseOpplysningerArbeidsuforhet.Prognose.toPrognose() = Prognose(
         arbeidsforEtterPeriode = isArbeidsforEtterEndtPeriode == true,
@@ -140,7 +138,8 @@ fun Address.toAdresse() = Adresse(
 // TODO: Remove mapNotNull whenever the EPJ systems stops sending garbage data
 fun ArsakType.toArbeidsrelatertArsak() = ArbeidsrelatertArsak(
         beskrivelse = beskriv,
-        arsak =  listOf(ArbeidsrelatertArsakType.ANNET)
+        arsak = if (arsakskode.isNullOrEmpty()) {
+            listOf(ArbeidsrelatertArsakType.ANNET) } else { arsakskode.mapNotNull(CS::toArbeidsrelatertArsakType) }
 )
 
 // TODO: Remove mapNotNull whenever the EPJ systems stops sending garbage data
