@@ -49,5 +49,7 @@ fun main() {
 
     val hentetSykmeldinger = database.hentSykmeldinger("1191250828148")
 
+    log.info("Antall sykmeldinger som er mappet over:  {}", hentetSykmeldinger.size)
+
     log.info("PasientAktoerId: {}", hentetSykmeldinger.first().sykmelding.pasientAktoerId)
 }
