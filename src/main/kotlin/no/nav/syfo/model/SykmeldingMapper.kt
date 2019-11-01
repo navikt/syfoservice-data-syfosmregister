@@ -140,8 +140,7 @@ fun Address.toAdresse() = Adresse(
 // TODO: Remove mapNotNull whenever the EPJ systems stops sending garbage data
 fun ArsakType.toArbeidsrelatertArsak() = ArbeidsrelatertArsak(
         beskrivelse = beskriv,
-        arsak =  if(arsakskode.isNullOrEmpty()) {
-                listOf(ArbeidsrelatertArsakType.ANNET)} else {arsakskode.mapNotNull(CS::toArbeidsrelatertArsakType)}
+        arsak =  listOf(ArbeidsrelatertArsakType.ANNET)
 )
 
 // TODO: Remove mapNotNull whenever the EPJ systems stops sending garbage data
