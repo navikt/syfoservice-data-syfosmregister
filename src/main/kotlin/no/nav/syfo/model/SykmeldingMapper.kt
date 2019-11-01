@@ -53,7 +53,7 @@ fun HelseOpplysningerArbeidsuforhet.Aktivitet.Periode.GradertSykmelding.toGrader
 )
 
 fun HelseOpplysningerArbeidsuforhet.Arbeidsgiver.toArbeidsgiver() = Arbeidsgiver(
-        harArbeidsgiver = if (HarArbeidsgiver.values().firstOrNull{ it.codeValue == harArbeidsgiver.v } == null) {
+        harArbeidsgiver = if (HarArbeidsgiver.values().firstOrNull { it.codeValue == harArbeidsgiver.v } == null) {
                 HarArbeidsgiver.INGEN_ARBEIDSGIVER } else { HarArbeidsgiver.values().first { it.codeValue == harArbeidsgiver.v } },
         navn = navnArbeidsgiver,
         yrkesbetegnelse = yrkesbetegnelse,

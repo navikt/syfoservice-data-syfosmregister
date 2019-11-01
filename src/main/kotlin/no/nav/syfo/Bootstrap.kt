@@ -51,6 +51,6 @@ fun main() {
     val hentantallSykmeldinger = database.hentAntallSykmeldinger()
     val hentetSykmeldinger = database.hentSykmeldinger()
 
-    log.info("Antall sykmeldinger som finnes i databasen:  {}", hentantallSykmeldinger.first())
+    log.info("Antall sykmeldinger som finnes i databasen:  {}", hentantallSykmeldinger.first().antall)
     log.info("Antall sykmeldinger som er mappet over:  {}", hentetSykmeldinger.size)
 }

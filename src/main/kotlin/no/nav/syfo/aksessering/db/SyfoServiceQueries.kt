@@ -49,7 +49,7 @@ fun ResultSet.toReceivedSykmelding(): ReceivedSykmelding =
 fun unmarshallerToHealthInformation(healthInformation: String): HelseOpplysningerArbeidsuforhet =
     fellesformatUnmarshaller.unmarshal(StringReader(healthInformation)) as HelseOpplysningerArbeidsuforhet
 
-fun DatabaseInterface.hentAntallSykmeldinger(): List<String> =
+fun DatabaseInterface.hentAntallSykmeldinger(): List<AntallSykmeldinger> =
     connection.use { connection ->
         connection.prepareStatement(
             """
@@ -57,9 +57,15 @@ fun DatabaseInterface.hentAntallSykmeldinger(): List<String> =
                         FROM SYKMELDING_DOK
                         """
         ).use {
-            it.executeQuery().toList { toString() }
+            it.executeQuery().toList { toAntallSykmeldinger() }
         }
     }
 
-fun ResultSet.toString(): String =
-    getString("antall")
+data class AntallSykmeldinger(
+    val antall: String
+)
+
+fun ResultSet.toAntallSykmeldinger(): AntallSykmeldinger =
+    AntallSykmeldinger(
+        antall = getString("antall")
+    )
