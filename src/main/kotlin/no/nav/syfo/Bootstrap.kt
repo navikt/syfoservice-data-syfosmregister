@@ -47,7 +47,7 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-    val hentetSykmeldinger = database.hentSykmeldinger("1191250828148")
+    val hentetSykmeldinger = database.hentSykmeldinger("1244598973387")
 
     log.info("Antall sykmeldinger som er mappet over:  {}", hentetSykmeldinger.size)
 
