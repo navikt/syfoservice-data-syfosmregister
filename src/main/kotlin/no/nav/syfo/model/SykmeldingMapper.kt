@@ -73,7 +73,14 @@ fun HelseOpplysningerArbeidsuforhet.MedisinskVurdering.toMedisinskVurdering() = 
         annenFraversArsak = annenFraversArsak?.toAnnenFraversArsak()
 )
 
-fun CV.toDiagnose() = Diagnose(s, v, dn)
+fun CV.toDiagnose() = Diagnose(
+        system = s,
+        kode = if (v.isNullOrEmpty()) {
+                ""
+        } else {
+                v
+        },
+        tekst = dn)
 
 fun ArsakType.toAnnenFraversArsak() = AnnenFraversArsak(
         beskrivelse = beskriv,
@@ -89,13 +96,11 @@ fun ArsakType.toAnnenFraversArsak() = AnnenFraversArsak(
 
 // TODO: Remove if-wrapping whenever the EPJ systems stops sending garbage data
 fun CS.toMedisinskArsakType() =
-        if (v == "0" || v.isNullOrBlank()) { null }
-        else { MedisinskArsakType.values().firstOrNull() { it.codeValue == v.trim() } }
+        if (v == "0" || v.isNullOrBlank()) { null } else { MedisinskArsakType.values().firstOrNull() { it.codeValue == v.trim() } }
 
 // TODO: Remove if-wrapping whenever the EPJ systems stops sending garbage data
 fun CS.toArbeidsrelatertArsakType() =
-        if (v == "0" || v.isNullOrBlank()) { null }
-        else { ArbeidsrelatertArsakType.values().firstOrNull() { it.codeValue == v } }
+        if (v == "0" || v.isNullOrBlank()) { null } else { ArbeidsrelatertArsakType.values().firstOrNull() { it.codeValue == v } }
 
 fun HelseOpplysningerArbeidsuforhet.Prognose.toPrognose() = Prognose(
         arbeidsforEtterPeriode = isArbeidsforEtterEndtPeriode == true,
