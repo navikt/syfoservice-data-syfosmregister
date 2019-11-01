@@ -3,7 +3,6 @@ package no.nav.syfo.aksessering.db
 import java.io.StringReader
 import java.sql.ResultSet
 import java.time.LocalDateTime
-import java.util.UUID
 import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.db.toList
@@ -11,16 +10,14 @@ import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.toSykmelding
 import no.nav.syfo.utils.fellesformatUnmarshaller
 
-fun DatabaseInterface.hentSykmeldinger(aktor_id: String): List<ReceivedSykmelding> =
+fun DatabaseInterface.hentSykmeldinger(): List<ReceivedSykmelding> =
         connection.use { connection ->
             connection.prepareStatement(
                     """
                         SELECT *
                         FROM SYKMELDING_DOK
-                        WHERE aktor_id=?
                         """
             ).use {
-                it.setString(1, aktor_id)
                 it.executeQuery().toList { toReceivedSykmelding() }
             }
         }

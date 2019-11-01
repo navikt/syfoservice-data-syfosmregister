@@ -125,8 +125,7 @@ fun HelseOpplysningerArbeidsuforhet.UtdypendeOpplysninger.toMap() =
 
 // TODO: Remove if-wrapping whenever the EPJ systems stops sending garbage data
 fun CS.toSvarRestriksjon() =
-        if (v.isNullOrBlank()) { null } else
-        { SvarRestriksjon.values().first { it.codeValue == v } }
+        if (v.isNullOrBlank()) { null } else { SvarRestriksjon.values().first { it.codeValue == v } }
 
 fun Address.toAdresse() = Adresse(
         gate = streetAdr,
