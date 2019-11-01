@@ -29,7 +29,7 @@ fun ResultSet.toReceivedSykmelding(): ReceivedSykmelding =
     ReceivedSykmelding(
         sykmelding = unmarshallerToHealthInformation(getString("dokument")).toSykmelding(
             sykmeldingId = UUID.randomUUID().toString(),
-            pasientAktoerId = "",
+            pasientAktoerId = getString("aktor_id"),
             legeAktoerId = "",
             msgId = "",
             signaturDato = LocalDateTime.now()
