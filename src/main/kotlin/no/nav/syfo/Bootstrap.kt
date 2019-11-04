@@ -52,5 +52,6 @@ fun main() {
     val hentetSykmeldinger = database.hentSykmeldinger()
 
     log.info("Antall sykmeldinger som finnes i databasen:  {}", hentantallSykmeldinger.first().antall)
+    log.info("Størresle på filer som er mappet over: {}", objectMapper.writeValueAsBytes(hentetSykmeldinger).size / 10.0 )
     log.info("Antall sykmeldinger som er mappet over:  {}", hentetSykmeldinger.size)
 }
