@@ -15,10 +15,10 @@ fun DatabaseInterface.hentSykmeldinger(): List<ReceivedSykmelding> =
             connection.prepareStatement(
                     """
                         SELECT * FROM (
-                            SELECT *,
-                            row_number() over (ORDER BY created ASC) line_number
-                            FROM SYKMELDING_DOK
-                        ) WHERE line_number BETWEEN 0 AND 10 ORDER BY line_number;
+                            SELECT syk.*, row_number() over (ORDER BY created ASC) line_number
+                            FROM SYKMELDING_DOK syk
+                            ) 
+                        WHERE line_number BETWEEN 0 AND 10 ORDER BY line_number
                         """
             ).use {
                 it.executeQuery().toList { toReceivedSykmelding() }
