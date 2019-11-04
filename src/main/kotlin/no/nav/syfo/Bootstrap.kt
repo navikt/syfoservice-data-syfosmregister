@@ -12,6 +12,7 @@ import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
 import no.nav.syfo.db.Database
+import no.nav.syfo.service.SykmeldingService
 import no.nav.syfo.utils.getFileAsString
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -48,10 +49,5 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-    val hentantallSykmeldinger = database.hentAntallSykmeldinger()
-    val hentetSykmeldinger = database.hentSykmeldinger()
-
-    log.info("Antall sykmeldinger som finnes i databasen:  {}", hentantallSykmeldinger.first().antall)
-    log.info("Størresle på filer som er mappet over: {}", objectMapper.writeValueAsBytes(hentetSykmeldinger).size / 10.0 )
-    log.info("Antall sykmeldinger som er mappet over:  {}", hentetSykmeldinger.size)
+    SykmeldingService(database, 500).run()
 }

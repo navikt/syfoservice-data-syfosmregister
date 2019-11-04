@@ -10,7 +10,7 @@ import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.toSykmelding
 import no.nav.syfo.utils.fellesformatUnmarshaller
 
-fun DatabaseInterface.hentSykmeldinger(): List<ReceivedSykmelding> =
+fun DatabaseInterface.hentSykmeldinger(startlinje: Int, stoplinje: Int): List<ReceivedSykmelding> =
         connection.use { connection ->
             connection.prepareStatement(
                     """
@@ -19,9 +19,11 @@ fun DatabaseInterface.hentSykmeldinger(): List<ReceivedSykmelding> =
                             FROM SYKMELDING_DOK syk
                             WHERE created < to_timestamp('2019-11-04','YYYY-MM-DD')
                             ) 
-                        WHERE line_number BETWEEN 0 AND 10 ORDER BY line_number
+                        WHERE line_number BETWEEN ? AND ? ORDER BY line_number
                         """
             ).use {
+                it.setInt(1, startlinje)
+                it.setInt(2, stoplinje)
                 it.executeQuery().toList { toReceivedSykmelding() }
             }
         }
