@@ -38,7 +38,7 @@ spec:
     paths:
       - kvPath: serviceuser/data/prod/srvsyfoservice-dat
         mountPath: /secrets/serviceuser
-      - kvPath: oracle/data/prod/creds/syfoservice_p-user
+      - kvPath: oracle/data/prod/creds/syfoservice-user
         mountPath: /secrets/credentials
   webproxy: true
   ingresses:
