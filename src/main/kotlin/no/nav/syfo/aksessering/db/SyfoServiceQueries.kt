@@ -17,6 +17,7 @@ fun DatabaseInterface.hentSykmeldinger(): List<ReceivedSykmelding> =
                         SELECT * FROM (
                             SELECT syk.*, row_number() over (ORDER BY created ASC) line_number
                             FROM SYKMELDING_DOK syk
+                            WHERE created < to_timestamp('2019-11-04','YYYY-MM-DD')
                             ) 
                         WHERE line_number BETWEEN 0 AND 10 ORDER BY line_number
                         """
