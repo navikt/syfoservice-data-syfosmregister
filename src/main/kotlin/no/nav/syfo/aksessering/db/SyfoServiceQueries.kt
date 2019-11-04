@@ -14,8 +14,11 @@ fun DatabaseInterface.hentSykmeldinger(): List<ReceivedSykmelding> =
         connection.use { connection ->
             connection.prepareStatement(
                     """
-                        SELECT *
-                        FROM SYKMELDING_DOK
+                        SELECT * FROM (
+                            SELECT *,
+                            row_number() over (ORDER BY created ASC) line_number
+                            FROM SYKMELDING_DOK
+                        ) WHERE line_number BETWEEN 0 AND 10 ORDER BY line_number;
                         """
             ).use {
                 it.executeQuery().toList { toReceivedSykmelding() }
@@ -29,7 +32,7 @@ fun ResultSet.toReceivedSykmelding(): ReceivedSykmelding =
             pasientAktoerId = getString("aktor_id"),
             legeAktoerId = "",
             msgId = "",
-            signaturDato = LocalDateTime.now()
+            signaturDato = getTimestamp("created").toLocalDateTime()
         ),
         personNrPasient = unmarshallerToHealthInformation(getString("dokument")).pasient.fodselsnummer.id,
         tlfPasient = unmarshallerToHealthInformation(getString("dokument")).pasient.kontaktInfo.firstOrNull()?.teleAddress?.v,
