@@ -1,8 +1,7 @@
 package no.nav.syfo
 
 data class Environment(
-    val applicationPort: Int = getEnvVar("APPLICATION_PORT", "8080").toInt(),
-    val databaseUrl: String = getEnvVar("DATABASE_URL")
+    val applicationPort: Int = getEnvVar("APPLICATION_PORT", "8080").toInt()
 )
 
 data class VaultCredentials(
