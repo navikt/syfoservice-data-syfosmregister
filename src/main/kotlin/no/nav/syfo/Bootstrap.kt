@@ -10,6 +10,7 @@ import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
 import no.nav.syfo.db.Database
+import no.nav.syfo.kafka.SykmeldingKafkaProducer
 import no.nav.syfo.service.SykmeldingService
 import no.nav.syfo.utils.getFileAsString
 import org.slf4j.Logger
@@ -50,6 +51,6 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-
-    SykmeldingService(database, 1000).run()
+    val sykmeldingKafkaProducer = SykmeldingKafkaProducer()
+    SykmeldingService(sykmeldingKafkaProducer, database, 1000).run()
 }

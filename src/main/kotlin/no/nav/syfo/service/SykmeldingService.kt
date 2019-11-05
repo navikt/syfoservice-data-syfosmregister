@@ -3,9 +3,11 @@ package no.nav.syfo.service
 import no.nav.syfo.aksessering.db.hentAntallSykmeldinger
 import no.nav.syfo.aksessering.db.hentSykmeldinger
 import no.nav.syfo.db.DatabaseInterface
+import no.nav.syfo.kafka.SykmeldingKafkaProducer
 import no.nav.syfo.log
 
 class SykmeldingService(
+    private val sykmeldingKafkaProducer: SykmeldingKafkaProducer,
     private val database: DatabaseInterface,
     private val batchSize: Int
 ) {
@@ -19,6 +21,9 @@ class SykmeldingService(
 
         while (antallSykmeldinger > counter) {
             val hentetSykmeldinger = database.hentSykmeldinger(counter + 1, counter + batchSize)
+            for (sykmelding in hentetSykmeldinger) {
+                sykmeldingKafkaProducer.publishToKafka(sykmelding)
+            }
             counter += hentetSykmeldinger.size
             log.info("Antall sykmeldinger som er mappet over:  {} totalt {}", hentetSykmeldinger.size, counter)
         }
