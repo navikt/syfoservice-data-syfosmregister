@@ -40,7 +40,7 @@ fun ResultSet.toJsonString(): List<String> {
         val rowMap = HashMap<String, Any?>()
         for (i in 1..columns) {
 
-            var data: Any
+            var data: Any?
             if(metadata.getColumnClassName(i).contains("oracle.sql.TIMESTAMP")) {
                data = getTimestamp(i)
             } else {
