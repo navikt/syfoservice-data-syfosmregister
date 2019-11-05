@@ -38,7 +38,7 @@ fun ResultSet.toJsonString(): List<String> {
 
     while (this.next()) {
         val rowMap = HashMap<String, Any>()
-        for (i in 0..columns) {
+        for (i in 1..columns) {
             rowMap[metadata.getColumnName(i)] = getObject(i)
         }
         listOfRows.add(objectMapper.writeValueAsString(rowMap))
