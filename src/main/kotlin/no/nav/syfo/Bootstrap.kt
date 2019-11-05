@@ -51,5 +51,5 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-    SykmeldingService(database, 500).run()
+    SykmeldingService(database, 1000).run()
 }
