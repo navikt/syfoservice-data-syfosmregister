@@ -1,8 +1,5 @@
 package no.nav.syfo.aksessering.db
 
-import java.io.StringReader
-import java.sql.ResultSet
-import java.time.LocalDateTime
 import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.db.toList
@@ -10,11 +7,14 @@ import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.toSykmelding
 import no.nav.syfo.objectMapper
 import no.nav.syfo.utils.fellesformatUnmarshaller
+import java.io.StringReader
+import java.sql.ResultSet
+import java.time.LocalDateTime
 
 fun DatabaseInterface.hentSykmeldinger(startlinje: Int, stoplinje: Int): List<String> =
-        connection.use { connection ->
-            connection.prepareStatement(
-                    """
+    connection.use { connection ->
+        connection.prepareStatement(
+            """
                         SELECT * FROM (
                             SELECT syk.*, row_number() over (ORDER BY created ASC) line_number
                             FROM SYKMELDING_DOK syk
@@ -22,12 +22,12 @@ fun DatabaseInterface.hentSykmeldinger(startlinje: Int, stoplinje: Int): List<St
                             ) 
                         WHERE line_number BETWEEN ? AND ? ORDER BY line_number
                         """
-            ).use {
-                it.setInt(1, startlinje)
-                it.setInt(2, stoplinje)
-                it.executeQuery().toJsonString()
-            }
+        ).use {
+            it.setInt(1, startlinje)
+            it.setInt(2, stoplinje)
+            it.executeQuery().toJsonString()
         }
+    }
 
 fun ResultSet.toJsonString(): List<String> {
 
@@ -42,12 +42,8 @@ fun ResultSet.toJsonString(): List<String> {
 
             var data: Any?
             if (metadata.getColumnClassName(i).contains("oracle.sql.TIMESTAMP")) {
-               data = getTimestamp(i)
-            }
-            else if(metadata.getColumnClassName(i).contains("oracle.sql.CLOB")) {
-                data = getClob(i)
-            }
-            else {
+                data = getTimestamp(i)
+            } else {
                 data = getObject(i)
             }
             rowMap[metadata.getColumnName(i)] = data
