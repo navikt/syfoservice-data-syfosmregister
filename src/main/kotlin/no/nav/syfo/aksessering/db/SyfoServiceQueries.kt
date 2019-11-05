@@ -8,9 +8,10 @@ import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.db.toList
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.toSykmelding
+import no.nav.syfo.objectMapper
 import no.nav.syfo.utils.fellesformatUnmarshaller
 
-fun DatabaseInterface.hentSykmeldinger(startlinje: Int, stoplinje: Int): List<ReceivedSykmelding> =
+fun DatabaseInterface.hentSykmeldinger(startlinje: Int, stoplinje: Int): List<String> =
         connection.use { connection ->
             connection.prepareStatement(
                     """
@@ -24,9 +25,26 @@ fun DatabaseInterface.hentSykmeldinger(startlinje: Int, stoplinje: Int): List<Re
             ).use {
                 it.setInt(1, startlinje)
                 it.setInt(2, stoplinje)
-                it.executeQuery().toList { toReceivedSykmelding() }
+                it.executeQuery().toJsonString()
             }
         }
+
+fun ResultSet.toJsonString(): List<String> {
+
+    val listOfRows = ArrayList<String>()
+
+    val metadata = this.metaData
+    val columns = metadata.columnCount
+
+    while (this.next()) {
+        val rowMap = HashMap<String, Any>()
+        for (i in 0..columns) {
+            rowMap[metadata.getColumnName(i)] = getObject(i)
+        }
+        listOfRows.add(objectMapper.writeValueAsString(rowMap))
+    }
+    return listOfRows.map { objectMapper.writeValueAsString(it) }
+}
 
 fun ResultSet.toReceivedSykmelding(): ReceivedSykmelding =
     ReceivedSykmelding(
