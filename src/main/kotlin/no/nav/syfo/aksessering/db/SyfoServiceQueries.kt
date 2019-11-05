@@ -44,7 +44,7 @@ fun ResultSet.toJsonString(): List<String> {
             if (metadata.getColumnClassName(i).contains("oracle.sql.TIMESTAMP")) {
                 data = getTimestamp(i)
             }
-            else if (metadata.getColumnClassName(i).contains("oracle.sql.CLOB")) {
+            else if (metadata.getColumnClassName(i).contains("oracle.sql.CLOB") || metadata.getColumnName(i) == "DOKUMENT") {
                 data = getString(i)
             }
             else {
