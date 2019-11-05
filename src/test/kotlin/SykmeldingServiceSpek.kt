@@ -1,3 +1,4 @@
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockkClass
 import io.mockk.mockkStatic
@@ -14,11 +15,17 @@ import org.spekframework.spek2.style.specification.describe
 
 object SykmeldingServiceSpek : Spek({
 
+    val database = mockkClass(DatabaseInterface::class)
+    val sykmeldingKafkaProducer = mockkClass(SykmeldingKafkaProducer::class)
+
+    beforeEachTest {
+        clearAllMocks()
+    }
+
     describe("Tester SykmeldingServiceSpek") {
 
         it("Skal hente ut alle sykmeldinger", timeout = 1000000000L) {
-            val database = mockkClass(DatabaseInterface::class)
-            val sykmeldingKafkaProducer = mockkClass(SykmeldingKafkaProducer::class)
+
             every { sykmeldingKafkaProducer.publishToKafka(any()) } returns Unit
             mockkStatic("no.nav.syfo.aksessering.db.SyfoServiceQueriesKt")
             every { database.hentSykmeldinger(any(), any()) } returns 0.until(10).map { "" }
@@ -33,8 +40,6 @@ object SykmeldingServiceSpek : Spek({
         }
 
         it("Skal hente ut alle sykmeldinger 2") {
-            val database = mockkClass(DatabaseInterface::class)
-            val sykmeldingKafkaProducer = mockkClass(SykmeldingKafkaProducer::class)
             every { sykmeldingKafkaProducer.publishToKafka(any()) } returns Unit
             mockkStatic("no.nav.syfo.aksessering.db.SyfoServiceQueriesKt")
             every { database.hentSykmeldinger(any(), any()) } returns 0.until(8).map { "" }
