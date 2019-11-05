@@ -1,5 +1,8 @@
 package no.nav.syfo.aksessering.db
 
+import java.io.StringReader
+import java.sql.ResultSet
+import java.time.LocalDateTime
 import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.db.toList
@@ -7,9 +10,6 @@ import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.toSykmelding
 import no.nav.syfo.objectMapper
 import no.nav.syfo.utils.fellesformatUnmarshaller
-import java.io.StringReader
-import java.sql.ResultSet
-import java.time.LocalDateTime
 
 fun DatabaseInterface.hentSykmeldinger(startlinje: Int, stoplinje: Int): List<String> =
     connection.use { connection ->
@@ -43,11 +43,9 @@ fun ResultSet.toJsonString(): List<String> {
             var data: Any?
             if (metadata.getColumnClassName(i).contains("oracle.sql.TIMESTAMP")) {
                 data = getTimestamp(i)
-            }
-            else if (metadata.getColumnClassName(i).contains("oracle.sql.CLOB") || metadata.getColumnName(i) == "DOKUMENT") {
+            } else if (metadata.getColumnClassName(i).contains("oracle.sql.CLOB") || metadata.getColumnName(i) == "DOKUMENT") {
                 data = getString(i)
-            }
-            else {
+            } else {
                 data = getObject(i)
             }
             rowMap[metadata.getColumnName(i)] = data

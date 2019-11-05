@@ -25,7 +25,7 @@ class SykmeldingService(
                 sykmeldingKafkaProducer.publishToKafka(sykmelding)
             }
             counter += hentetSykmeldinger.size
-            log.info("Antall sykmeldinger som er mappet over:  {} totalt {}", hentetSykmeldinger.size, counter)
+            log.info("Antall sykmeldinger som er hentet i dette forsoket:  {} totalt {}", hentetSykmeldinger.size, counter)
         }
         return counter
     }
