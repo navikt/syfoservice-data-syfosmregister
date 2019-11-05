@@ -45,7 +45,7 @@ fun ResultSet.toJsonString(): List<String> {
                 data = getTimestamp(i)
             }
             else if (metadata.getColumnClassName(i).contains("oracle.sql.CLOB")) {
-                data = getTimestamp(i)
+                data = getClob(i)
             }
             else {
                 data = getObject(i)
