@@ -15,5 +15,9 @@ data class VaultServiceUser(
     val serviceuserPassword: String
 )
 
+data class VaultConfig(
+    val jdbcUrl: String
+)
+
 fun getEnvVar(varName: String, defaultValue: String? = null) =
     System.getenv(varName) ?: defaultValue ?: throw RuntimeException("Missing required variable \"$varName\"")

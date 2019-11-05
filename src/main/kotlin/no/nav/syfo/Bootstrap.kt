@@ -6,8 +6,6 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.syfo.aksessering.db.hentAntallSykmeldinger
-import no.nav.syfo.aksessering.db.hentSykmeldinger
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
@@ -40,7 +38,11 @@ fun main() {
         serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
     )
 
-    val database = Database(environment, vaultSecrets)
+    val vaultConfig = VaultConfig(
+        jdbcUrl = getFileAsString("/secrets/config/jdbc_url")
+    )
+
+    val database = Database(vaultConfig, vaultSecrets)
 
     val applicationState = ApplicationState()
     val applicationEngine = createApplicationEngine(environment, applicationState)

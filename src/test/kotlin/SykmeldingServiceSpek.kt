@@ -25,9 +25,9 @@ object SykmeldingServiceSpek : Spek({
             every { database.hentAntallSykmeldinger() } returns listOf(AntallSykmeldinger("21"))
             val sykmeldingService = SykmeldingService(database, 10)
             sykmeldingService.run() shouldEqual 21
-            verify(exactly = 1) { database.hentSykmeldinger(1,10) }
-            verify(exactly = 1) { database.hentSykmeldinger(11,20) }
-            verify(exactly = 1) { database.hentSykmeldinger(21,30) }
+            verify(exactly = 1) { database.hentSykmeldinger(1, 10) }
+            verify(exactly = 1) { database.hentSykmeldinger(11, 20) }
+            verify(exactly = 1) { database.hentSykmeldinger(21, 30) }
         }
 
         it("Skal hente ut alle sykmeldinger 2") {
@@ -37,9 +37,7 @@ object SykmeldingServiceSpek : Spek({
             every { database.hentAntallSykmeldinger() } returns listOf(AntallSykmeldinger("8"))
             val sykmeldingService = SykmeldingService(database, 10)
             sykmeldingService.run() shouldEqual 8
-            verify(exactly = 1) { database.hentSykmeldinger(1,10) }
-
+            verify(exactly = 1) { database.hentSykmeldinger(1, 10) }
         }
-
     }
 })

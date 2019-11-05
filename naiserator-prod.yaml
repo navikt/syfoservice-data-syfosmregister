@@ -40,9 +40,8 @@ spec:
         mountPath: /secrets/serviceuser
       - kvPath: oracle/data/prod/creds/syfoservice-user
         mountPath: /secrets/credentials
+      - kvPath: oracle/data/prod/config/syfoservice
+        mountPath: /secrets/config
   webproxy: true
   ingresses:
     - "https://syfoservice-data-syfosmregister.nais.adeo.no"
-  env:
-    - name: DATABASE_URL
-      value: jdbc:oracle:thin:@(DESCRIPTION=(FAILOVER=on)(CONNECT_TIMEOUT= 15)(RETRY_COUNT=20)(RETRY_DELAY=3)(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=a01dbfl030.adeo.no)(PORT=1521))(ADDRESS=(PROTOCOL=TCP)(HOST=a01dbfl031.adeo.no)(PORT=1522)))(CONNECT_DATA=(SERVICE_NAME=syfoservice_ha)))

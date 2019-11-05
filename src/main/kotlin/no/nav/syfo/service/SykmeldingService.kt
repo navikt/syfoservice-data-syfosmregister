@@ -21,8 +21,8 @@ class SykmeldingService(
             val hentetSykmeldinger = database.hentSykmeldinger(counter + 1, counter + batchSize)
             counter += hentetSykmeldinger.size
             log.info("Antall sykmeldinger som er mappet over:  {}", hentetSykmeldinger.size)
+            log.info("Counter på sykmeldinger som er mappet over:  {}", counter)
         }
         return counter
     }
-
 }

@@ -4,11 +4,11 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import java.sql.Connection
 import java.sql.ResultSet
-import no.nav.syfo.Environment
+import no.nav.syfo.VaultConfig
 import no.nav.syfo.VaultCredentials
 
 class Database(
-    private val env: Environment,
+    private val vaultConfig: VaultConfig,
     private val vaultCredentialService: VaultCredentials
 ) : DatabaseInterface {
 
@@ -19,7 +19,7 @@ class Database(
 
     init {
         dataSource = HikariDataSource(HikariConfig().apply {
-            jdbcUrl = env.databaseUrl
+            jdbcUrl = vaultConfig.jdbcUrl
             username = vaultCredentialService.databaseUsername
             password = vaultCredentialService.databasePassword
             maximumPoolSize = 3
