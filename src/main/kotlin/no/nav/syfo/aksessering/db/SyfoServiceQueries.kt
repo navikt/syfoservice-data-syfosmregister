@@ -43,7 +43,11 @@ fun ResultSet.toJsonString(): List<String> {
             var data: Any?
             if (metadata.getColumnClassName(i).contains("oracle.sql.TIMESTAMP")) {
                 data = getTimestamp(i)
-            } else {
+            }
+            else if (metadata.getColumnClassName(i).contains("oracle.sql.CLOB")) {
+                data = getTimestamp(i)
+            }
+            else {
                 data = getObject(i)
             }
             rowMap[metadata.getColumnName(i)] = data
