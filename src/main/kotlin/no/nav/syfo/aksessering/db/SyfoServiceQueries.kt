@@ -37,7 +37,6 @@ fun ResultSet.toJsonString(): DatabaseResult {
     val columns = metadata.columnCount
     var lastIndex = 0
     while (this.next()) {
-        isLast
         val rowMap = HashMap<String, Any?>()
         lastIndex = getInt("SYKMELDING_DOK_ID")
         for (i in 1..columns) {
