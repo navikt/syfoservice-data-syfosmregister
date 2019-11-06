@@ -60,5 +60,5 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
     val sykmeldingKafkaProducer = SykmeldingKafkaProducer(environment.sm2013SyfoserviceSykmeldingTopic, kafkaproducerStringSykmelding)
-    SykmeldingService(sykmeldingKafkaProducer, database, 1000).run()
+    SykmeldingService(sykmeldingKafkaProducer, database, 10_000).run()
 }
