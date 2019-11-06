@@ -15,7 +15,6 @@ class SykmeldingService(
     fun run(): Int {
         val hentantallSykmeldinger = database.hentAntallSykmeldinger()
         log.info("Antall sykmeldinger som finnes i databasen:  {}", hentantallSykmeldinger.first().antall)
-        val antallSykmeldinger = hentantallSykmeldinger.first().antall.toInt()
 
         var lastIndex = 0
         var counter = 0
@@ -23,9 +22,14 @@ class SykmeldingService(
         while (true) {
 
             val result = database.hentSykmeldinger(lastIndex, batchSize)
+            val currentMillies = System.currentTimeMillis()
+            for (sykmelding in result.rows) {
+                sykmeldingKafkaProducer.publishToKafka(sykmelding)
+            }
+            val kafkaTime = (System.currentTimeMillis() - currentMillies) / 1000.0
             lastIndex = result.lastIndex
             counter += result.rows.size
-            log.info("Antall sykmeldinger som er hentet i dette forsoket:  {} totalt {}, DB time used {}, processing time {}, lastIndex {}", result.rows.size, counter, result.databaseTime, result.processingTime, lastIndex)
+            log.info("Antall sykmeldinger som er hentet i dette forsoket:  {} totalt {}, DB time used {}, processing time {}, lastIndex {}, kafkatime {}", result.rows.size, counter, result.databaseTime, result.processingTime, lastIndex, kafkaTime)
             if (result.rows.isEmpty()) {
                 log.info("no more sykmelinger in database")
                 break

@@ -95,7 +95,6 @@ fun DatabaseInterface.hentAntallSykmeldinger(): List<AntallSykmeldinger> =
             """
                         SELECT COUNT(MOTTAK_ID) AS antall
                         FROM SYKMELDING_DOK
-                        WHERE created < to_timestamp('2019-11-04','YYYY-MM-DD')
                         """
         ).use {
             it.executeQuery().toList { toAntallSykmeldinger() }
