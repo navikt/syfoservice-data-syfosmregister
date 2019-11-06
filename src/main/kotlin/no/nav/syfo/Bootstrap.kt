@@ -76,10 +76,12 @@ fun main() {
         listOf(environment.sm2013SyfoserviceSykmeldingTopic)
     )
 
-    kafkaconsumerStringSykmelding.poll(Duration.ofMillis(0)).forEach { consumerRecord ->
-        val jsonMap: Map<String, Any?> = objectMapper.readValue(consumerRecord.value())
-        val receivedSykmelding = toReceivedSykmelding(jsonMap)
-        log.info("Mapped to ReceivedSykmelding")
+    while (applicationState.ready) {
+        kafkaconsumerStringSykmelding.poll(Duration.ofMillis(0)).forEach { consumerRecord ->
+            val jsonMap: Map<String, Any?> = objectMapper.readValue(consumerRecord.value())
+            val receivedSykmelding = toReceivedSykmelding(jsonMap)
+            log.info("Mapped to ReceivedSykmelding")
+        }
     }
 
     // val sykmeldingKafkaProducer = SykmeldingKafkaProducer(environment.sm2013SyfoserviceSykmeldingTopic, kafkaproducerStringSykmelding)
