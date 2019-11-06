@@ -20,7 +20,7 @@ fun DatabaseInterface.hentSykmeldinger(lastIndex: Int, limit: Int): DatabaseResu
                 SELECT * FROM SYKMELDING_DOK 
                 WHERE SYKMELDING_DOK_ID > ?
                 ORDER BY SYKMELDING_DOK_ID ASC
-                FETCH NEXT ? ROWS ONLY;
+                FETCH NEXT ? ROWS ONLY
                 """
         ).use {
             it.setInt(1, lastIndex)
