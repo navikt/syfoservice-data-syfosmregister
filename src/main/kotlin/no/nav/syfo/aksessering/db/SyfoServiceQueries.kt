@@ -23,6 +23,7 @@ fun DatabaseInterface.hentSykmeldinger(lastIndex: Int, limit: Int): DatabaseResu
                 FETCH NEXT ? ROWS ONLY
                 """
         ).use {
+            it.fetchSize = 10_000
             it.setInt(1, lastIndex)
             it.setInt(2, limit)
             val currentMillies = System.currentTimeMillis()
