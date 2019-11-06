@@ -25,17 +25,17 @@ fun DatabaseInterface.hentSykmeldinger(lastIndex: Int, limit: Int): DatabaseResu
         ).use {
             it.setInt(1, lastIndex)
             it.setInt(2, limit)
-            it.executeQuery().toJsonString()
+            it.executeQuery().toJsonString(lastIndex)
         }
     }
 
-fun ResultSet.toJsonString(): DatabaseResult {
+fun ResultSet.toJsonString(previusIndex: Int): DatabaseResult {
 
     val listOfRows = ArrayList<String>()
 
     val metadata = this.metaData
     val columns = metadata.columnCount
-    var lastIndex = 0
+    var lastIndex = previusIndex
     while (this.next()) {
         val rowMap = HashMap<String, Any?>()
         lastIndex = getInt("SYKMELDING_DOK_ID")
