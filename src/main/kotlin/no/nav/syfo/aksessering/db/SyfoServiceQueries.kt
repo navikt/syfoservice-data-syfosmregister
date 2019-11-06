@@ -11,35 +11,36 @@ import no.nav.syfo.model.toSykmelding
 import no.nav.syfo.objectMapper
 import no.nav.syfo.utils.fellesformatUnmarshaller
 
-fun DatabaseInterface.hentSykmeldinger(startlinje: Int, stoplinje: Int): List<String> =
+data class DatabaseResult(val lastIndex: Int, val rows: List<String>)
+
+fun DatabaseInterface.hentSykmeldinger(lastIndex: Int, limit: Int): DatabaseResult =
     connection.use { connection ->
         connection.prepareStatement(
             """
-                        SELECT * FROM (
-                            SELECT syk.*, row_number() over (ORDER BY created ASC) line_number
-                            FROM SYKMELDING_DOK syk
-                            WHERE created < to_timestamp('2019-11-04','YYYY-MM-DD')
-                            ) 
-                        WHERE line_number BETWEEN ? AND ? ORDER BY line_number
-                        """
+                SELECT * FROM SYKMELDING_DOK 
+                WHERE SYKMELDING_DOK_ID > ?
+                ORDER BY SYKMELDING_DOK_ID ASC
+                FETCH NEXT ? ROWS ONLY;
+                """
         ).use {
-            it.setInt(1, startlinje)
-            it.setInt(2, stoplinje)
+            it.setInt(1, lastIndex)
+            it.setInt(2, limit)
             it.executeQuery().toJsonString()
         }
     }
 
-fun ResultSet.toJsonString(): List<String> {
+fun ResultSet.toJsonString(): DatabaseResult {
 
     val listOfRows = ArrayList<String>()
 
     val metadata = this.metaData
     val columns = metadata.columnCount
-
+    var lastIndex = 0
     while (this.next()) {
+        isLast
         val rowMap = HashMap<String, Any?>()
+        lastIndex = getInt("SYKMELDING_DOK_ID")
         for (i in 1..columns) {
-
             var data: Any?
             if (metadata.getColumnClassName(i).contains("oracle.sql.TIMESTAMP")) {
                 data = getTimestamp(i)
@@ -52,7 +53,7 @@ fun ResultSet.toJsonString(): List<String> {
         }
         listOfRows.add(objectMapper.writeValueAsString(rowMap))
     }
-    return listOfRows.map { objectMapper.writeValueAsString(it) }
+    return DatabaseResult(lastIndex, listOfRows.map { objectMapper.writeValueAsString(it) })
 }
 
 fun ResultSet.toReceivedSykmelding(): ReceivedSykmelding =

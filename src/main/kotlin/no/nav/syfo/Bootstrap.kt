@@ -13,12 +13,10 @@ import no.nav.syfo.db.Database
 import no.nav.syfo.kafka.SykmeldingKafkaProducer
 import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toProducerConfig
-import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.service.SykmeldingService
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
 import org.apache.kafka.clients.producer.KafkaProducer
-import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -49,7 +47,6 @@ fun main() {
         jdbcUrl = getFileAsString("/secrets/config/jdbc_url")
     )
 
-
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
     val producerProperties = kafkaBaseConfig.toProducerConfig(environment.applicationName, valueSerializer = JacksonKafkaSerializer::class)
     val kafkaproducerStringSykmelding = KafkaProducer<String, String>(producerProperties)
@@ -63,5 +60,5 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
     val sykmeldingKafkaProducer = SykmeldingKafkaProducer(environment.sm2013SyfoserviceSykmeldingTopic, kafkaproducerStringSykmelding)
-    SykmeldingService(sykmeldingKafkaProducer, database, 10000).run()
+    SykmeldingService(sykmeldingKafkaProducer, database, 1000).run()
 }
