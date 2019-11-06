@@ -11,9 +11,9 @@ import no.nav.syfo.model.toSykmelding
 import no.nav.syfo.objectMapper
 import no.nav.syfo.utils.fellesformatUnmarshaller
 
-data class DatabaseResult(val lastIndex: Int, val rows: List<String>)
+data class DatabaseResult(val lastIndex: Int, val rows: List<String>, var databaseTime: Double = 0.0, var processingTime: Double = 0.0)
 
-fun DatabaseInterface.hentSykmeldinger(lastIndex: Int, limit: Int): ResultSet =
+fun DatabaseInterface.hentSykmeldinger(lastIndex: Int, limit: Int): DatabaseResult =
     connection.use { connection ->
         connection.prepareStatement(
             """
@@ -25,12 +25,19 @@ fun DatabaseInterface.hentSykmeldinger(lastIndex: Int, limit: Int): ResultSet =
         ).use {
             it.setInt(1, lastIndex)
             it.setInt(2, limit)
-            it.executeQuery()
+            val currentMillies = System.currentTimeMillis()
+            val resultSet = it.executeQuery()
+            val databaseEndMillies = System.currentTimeMillis()
+            val databaseResult = resultSet.toJsonString(lastIndex)
+            val processingMillies = System.currentTimeMillis()
+
+            databaseResult.databaseTime = (databaseEndMillies - currentMillies) / 1000.0
+            databaseResult.processingTime = (processingMillies - databaseEndMillies) / 1000.0
+            return databaseResult
         }
     }
 
 fun ResultSet.toJsonString(previusIndex: Int): DatabaseResult {
-
     val listOfRows = ArrayList<String>()
 
     val metadata = this.metaData

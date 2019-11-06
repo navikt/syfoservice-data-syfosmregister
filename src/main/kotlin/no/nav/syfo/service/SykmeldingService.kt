@@ -2,7 +2,6 @@ package no.nav.syfo.service
 
 import no.nav.syfo.aksessering.db.hentAntallSykmeldinger
 import no.nav.syfo.aksessering.db.hentSykmeldinger
-import no.nav.syfo.aksessering.db.toJsonString
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.kafka.SykmeldingKafkaProducer
 import no.nav.syfo.log
@@ -22,18 +21,11 @@ class SykmeldingService(
         var counter = 0
 
         while (true) {
-            val start = System.currentTimeMillis()
-            val resultSet = database.hentSykmeldinger(lastIndex, batchSize)
-            val dbTime = System.currentTimeMillis()
-            val result = resultSet.toJsonString(lastIndex)
-            for (sykmelding in result.rows) {
-                // sykmeldingKafkaProducer.publishToKafka(sykmelding)
-            }
+
+            val result = database.hentSykmeldinger(lastIndex, batchSize)
             lastIndex = result.lastIndex
             counter += result.rows.size
-            val processintTime = (System.currentTimeMillis() - dbTime) / 1000.0
-            val dbProcessintTime = (dbTime - start) / 1000.0
-            log.info("Antall sykmeldinger som er hentet i dette forsoket:  {} totalt {}, DB time used {}, processing time {}, lastIndex {}", result.rows.size, counter, dbProcessintTime, processintTime, lastIndex)
+            log.info("Antall sykmeldinger som er hentet i dette forsoket:  {} totalt {}, DB time used {}, processing time {}, lastIndex {}", result.rows.size, counter, result.databaseTime, result.processingTime, lastIndex)
             if (result.rows.isEmpty()) {
                 log.info("no more sykmelinger in database")
                 break
