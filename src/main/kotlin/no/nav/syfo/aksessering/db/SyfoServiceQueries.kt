@@ -13,7 +13,7 @@ import no.nav.syfo.utils.fellesformatUnmarshaller
 
 data class DatabaseResult(val lastIndex: Int, val rows: List<String>)
 
-fun DatabaseInterface.hentSykmeldinger(lastIndex: Int, limit: Int): DatabaseResult =
+fun DatabaseInterface.hentSykmeldinger(lastIndex: Int, limit: Int): ResultSet =
     connection.use { connection ->
         connection.prepareStatement(
             """
@@ -25,7 +25,7 @@ fun DatabaseInterface.hentSykmeldinger(lastIndex: Int, limit: Int): DatabaseResu
         ).use {
             it.setInt(1, lastIndex)
             it.setInt(2, limit)
-            it.executeQuery().toJsonString(lastIndex)
+            it.executeQuery()
         }
     }
 
