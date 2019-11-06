@@ -22,7 +22,7 @@ class SykmeldingService(
         while (antallSykmeldinger > counter) {
             val hentetSykmeldinger = database.hentSykmeldinger(counter + 1, counter + batchSize)
             for (sykmelding in hentetSykmeldinger) {
-                sykmeldingKafkaProducer.publishToKafka(sykmelding)
+                //sykmeldingKafkaProducer.publishToKafka(sykmelding)
             }
             counter += hentetSykmeldinger.size
             log.info("Antall sykmeldinger som er hentet i dette forsoket:  {} totalt {}", hentetSykmeldinger.size, counter)
