@@ -7,6 +7,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.util.KtorExperimentalAPI
+import java.io.StringReader
+import java.time.Duration
+import java.time.LocalDateTime
 import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
@@ -15,16 +18,12 @@ import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.toSykmelding
-import no.nav.syfo.utils.MapperFunctions.Companion.toReceivedSykmelding
 import no.nav.syfo.utils.fellesformatUnmarshaller
 import no.nav.syfo.utils.getFileAsString
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.io.StringReader
-import java.time.Duration
-import java.time.LocalDateTime
 
 val objectMapper: ObjectMapper = ObjectMapper().apply {
     registerKotlinModule()
@@ -77,7 +76,6 @@ fun main() {
         listOf(environment.sm2013SyfoserviceSykmeldingTopic)
     )
 
-
     while (applicationState.ready) {
         kafkaconsumerStringSykmelding.poll(Duration.ofMillis(0)).forEach { consumerRecord ->
             log.info("got kafkatopic")
@@ -88,12 +86,10 @@ fun main() {
         }
     }
 
-
     // val sykmeldingKafkaProducer = SykmeldingKafkaProducer(environment.sm2013SyfoserviceSykmeldingTopic, kafkaproducerStringSykmelding)
 
     // SykmeldingService(sykmeldingKafkaProducer, database, 10_000).run()
 }
-
 
 fun toReceivedSykmelding(jsonMap: Map<String, Any?>): ReceivedSykmelding {
 
@@ -125,4 +121,3 @@ fun toReceivedSykmelding(jsonMap: Map<String, Any?>): ReceivedSykmelding {
 
 fun unmarshallerToHealthInformation(healthInformation: String): HelseOpplysningerArbeidsuforhet =
     fellesformatUnmarshaller.unmarshal(StringReader(healthInformation)) as HelseOpplysningerArbeidsuforhet
-
