@@ -75,7 +75,11 @@ fun HelseOpplysningerArbeidsuforhet.MedisinskVurdering.toMedisinskVurdering() = 
 )
 
 fun CV.toDiagnose() = Diagnose(
-        system = s,
+        system = if (s.isNullOrEmpty()) {
+                ""
+        } else {
+                s
+        },
         kode = if (v.isNullOrEmpty()) {
                 ""
         } else {

@@ -18,7 +18,7 @@
       }
     },
     {
-      "topicName": "privat-syfo-sm2013-syfoservice-sykmelding-clean",
+      "topicName": "privat-syfo-sm2013-syfoservice-received-sykmelding",
       "members": [
         {"member":"srvsyfoservice-dat", "role":"CONSUMER"},
         {"member":"srvsyfoservice-dat", "role":"PRODUCER"},
