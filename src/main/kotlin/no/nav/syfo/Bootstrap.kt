@@ -79,6 +79,8 @@ fun main() {
 
     while (applicationState.ready) {
         kafkaconsumerStringSykmelding.poll(Duration.ofMillis(0)).forEach { consumerRecord ->
+            log.info("got kafkatopic")
+            log.info(consumerRecord.value())
             val jsonMap: Map<String, Any?> = objectMapper.readValue(consumerRecord.value())
             val receivedSykmelding = toReceivedSykmelding(jsonMap)
             log.info("Mapped to ReceivedSykmelding")
