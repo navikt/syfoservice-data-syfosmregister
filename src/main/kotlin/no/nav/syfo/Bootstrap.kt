@@ -60,7 +60,7 @@ fun main() {
 
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-consumer-2",
+        "${environment.applicationName}-consumer",
         valueDeserializer = StringDeserializer::class
     )
     val producerProperties =
@@ -96,7 +96,7 @@ fun main() {
                 )
             )
             counter++
-            if (counter % 100 == 0) {
+            if (counter % 10000 == 0) {
                 log.info("Melding sendt til kafka topic nr {}", counter)
             }
         }
