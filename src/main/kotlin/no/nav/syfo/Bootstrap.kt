@@ -91,20 +91,20 @@ fun main() {
 
 fun toReceivedSykmelding(jsonMap: Map<String, Any?>): ReceivedSykmelding {
 
-    val unmarshallerToHealthInformation = unmarshallerToHealthInformation(jsonMap["dokument"].toString())
+    val unmarshallerToHealthInformation = unmarshallerToHealthInformation(jsonMap["DOKUMENT"].toString())
 
     return ReceivedSykmelding(
         sykmelding = unmarshallerToHealthInformation.toSykmelding(
-            sykmeldingId = jsonMap["melding_id"].toString(),
-            pasientAktoerId = jsonMap["aktor_id"].toString(),
+            sykmeldingId = jsonMap["MELDING_ID"].toString(),
+            pasientAktoerId = jsonMap["AKTOR_ID"].toString(),
             legeAktoerId = "",
             msgId = "",
-            signaturDato = (jsonMap["created"] as Timestamp).toLocalDateTime()
+            signaturDato = (jsonMap["CREATED"] as Timestamp).toLocalDateTime()
         ),
         personNrPasient = unmarshallerToHealthInformation.pasient.fodselsnummer.id,
         tlfPasient = unmarshallerToHealthInformation.pasient.kontaktInfo.firstOrNull()?.teleAddress?.v,
         personNrLege = "",
-        navLogId = jsonMap["mottak_id"].toString(),
+        navLogId = jsonMap["MOTTAK_ID"].toString(),
         msgId = "",
         legekontorOrgNr = "",
         legekontorOrgName = "",
