@@ -99,7 +99,7 @@ fun toReceivedSykmelding(jsonMap: Map<String, Any?>): ReceivedSykmelding {
             pasientAktoerId = jsonMap["AKTOR_ID"].toString(),
             legeAktoerId = "",
             msgId = "",
-            signaturDato = (jsonMap["CREATED"] as Timestamp).toLocalDateTime()
+            signaturDato = LocalDateTime.parse((jsonMap["CREATED"].toString().substring(0, 19)))
         ),
         personNrPasient = unmarshallerToHealthInformation.pasient.fodselsnummer.id,
         tlfPasient = unmarshallerToHealthInformation.pasient.kontaktInfo.firstOrNull()?.teleAddress?.v,
