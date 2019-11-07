@@ -16,11 +16,15 @@ import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
 import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
+import no.nav.syfo.kafka.toProducerConfig
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.toSykmelding
+import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.fellesformatUnmarshaller
 import no.nav.syfo.utils.getFileAsString
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -56,11 +60,12 @@ fun main() {
 
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-consumer",
+        "${environment.applicationName}-consumer-2",
         valueDeserializer = StringDeserializer::class
     )
-    // val producerProperties = kafkaBaseConfig.toProducerConfig(environment.applicationName, valueSerializer = JacksonKafkaSerializer::class)
-    // val kafkaproducerStringSykmelding = KafkaProducer<String, String>(producerProperties)
+    val producerProperties =
+        kafkaBaseConfig.toProducerConfig(environment.applicationName, valueSerializer = JacksonKafkaSerializer::class)
+    val kafkaproducerReceivedSykmelding = KafkaProducer<String, ReceivedSykmelding>(producerProperties)
     val kafkaconsumerStringSykmelding = KafkaConsumer<String, String>(consumerProperties)
 
     // val database = Database(vaultConfig, vaultSecrets)
@@ -76,11 +81,24 @@ fun main() {
         listOf(environment.sm2013SyfoserviceSykmeldingTopic)
     )
 
+    var counter = 0
+
     while (applicationState.ready) {
         kafkaconsumerStringSykmelding.poll(Duration.ofMillis(0)).forEach { consumerRecord ->
-            val jsonMap: Map<String, String?> = objectMapper.readValue(objectMapper.readValue<String>(objectMapper.readValue<String>(consumerRecord.value())))
+            val jsonMap: Map<String, String?> =
+                objectMapper.readValue(objectMapper.readValue<String>(objectMapper.readValue<String>(consumerRecord.value())))
             val receivedSykmelding = toReceivedSykmelding(jsonMap)
-            log.info("Mapped to ReceivedSykmelding")
+            kafkaproducerReceivedSykmelding.send(
+                ProducerRecord(
+                    environment.sm2013SyfoserviceSykmeldingCleanTopic,
+                    receivedSykmelding.sykmelding.id,
+                    receivedSykmelding
+                )
+            )
+            counter++
+            if (counter % 100 == 0) {
+                log.info("Melding sendt til kafka topic nr {}", counter)
+            }
         }
     }
 
