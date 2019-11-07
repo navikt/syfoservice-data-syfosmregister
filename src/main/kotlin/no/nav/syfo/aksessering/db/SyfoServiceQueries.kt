@@ -53,7 +53,7 @@ fun ResultSet.toJsonString(previusIndex: Int): DatabaseResult {
         }
         listOfRows.add(objectMapper.writeValueAsString(rowMap))
     }
-    return DatabaseResult(lastIndex, listOfRows.map { objectMapper.writeValueAsString(it) })
+    return DatabaseResult(lastIndex, listOfRows)
 }
 
 fun DatabaseInterface.hentAntallSykmeldinger(): List<AntallSykmeldinger> =
