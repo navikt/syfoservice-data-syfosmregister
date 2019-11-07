@@ -60,7 +60,7 @@ fun main() {
 
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-consumer",
+        "${environment.applicationName}-consumer-2",
         valueDeserializer = StringDeserializer::class
     )
     val producerProperties =

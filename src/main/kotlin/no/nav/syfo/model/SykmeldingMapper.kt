@@ -81,7 +81,10 @@ fun CV.toDiagnose() = Diagnose(
         } else {
                 v
         },
-        tekst = dn)
+        tekst = if (dn.isNullOrEmpty()) {
+                        ""
+                } else {
+        dn })
 
 fun ArsakType.toAnnenFraversArsak() = AnnenFraversArsak(
         beskrivelse = beskriv,
