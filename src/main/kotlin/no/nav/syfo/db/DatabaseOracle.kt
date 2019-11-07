@@ -7,10 +7,10 @@ import java.sql.ResultSet
 import no.nav.syfo.VaultConfig
 import no.nav.syfo.VaultCredentials
 
-class Database(
+class DatabaseOracle(
     private val vaultConfig: VaultConfig,
     private val vaultCredentialService: VaultCredentials
-) : DatabaseInterface {
+) : DatabaseInterfaceOracle {
 
     private val dataSource: HikariDataSource
 
@@ -36,6 +36,6 @@ fun <T> ResultSet.toList(mapper: ResultSet.() -> T) = mutableListOf<T>().apply {
     }
 }
 
-interface DatabaseInterface {
+interface DatabaseInterfaceOracle {
     val connection: Connection
 }

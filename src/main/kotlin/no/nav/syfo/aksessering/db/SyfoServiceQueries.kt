@@ -1,13 +1,13 @@
 package no.nav.syfo.aksessering.db
 
 import java.sql.ResultSet
-import no.nav.syfo.db.DatabaseInterface
+import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.db.toList
 import no.nav.syfo.objectMapper
 
 data class DatabaseResult(val lastIndex: Int, val rows: List<String>, var databaseTime: Double = 0.0, var processingTime: Double = 0.0)
 
-fun DatabaseInterface.hentSykmeldinger(lastIndex: Int, limit: Int): DatabaseResult =
+fun DatabaseInterfaceOracle.hentSykmeldinger(lastIndex: Int, limit: Int): DatabaseResult =
     connection.use { connection ->
         connection.prepareStatement(
             """
@@ -56,7 +56,7 @@ fun ResultSet.toJsonString(previusIndex: Int): DatabaseResult {
     return DatabaseResult(lastIndex, listOfRows)
 }
 
-fun DatabaseInterface.hentAntallSykmeldinger(): List<AntallSykmeldinger> =
+fun DatabaseInterfaceOracle.hentAntallSykmeldinger(): List<AntallSykmeldinger> =
     connection.use { connection ->
         connection.prepareStatement(
             """
