@@ -35,6 +35,7 @@ class DatabasePostgres(
             maximumPoolSize = 3
             isAutoCommit = false
             transactionIsolation = "TRANSACTION_REPEATABLE_READ"
+            driverClassName = "org.postgresql.Driver"
             validate()
         })
 
