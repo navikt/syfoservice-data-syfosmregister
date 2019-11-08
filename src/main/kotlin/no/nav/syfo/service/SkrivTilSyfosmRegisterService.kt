@@ -88,4 +88,13 @@ class SkrivTilSyfosmRegisterService(
             }
         }
 
+    fun convertPasientFnr(pasientFnr: String): String =
+        when (pasientFnr.length <= 11) {
+            true -> pasientFnr
+            else -> {
+                log.info("Størrelsen på pasientFnr er: {}", pasientFnr.length)
+                pasientFnr.substring(0, 11)
+            }
+        }
+
 }
