@@ -1,7 +1,6 @@
 package no.nav.syfo.model
 
 import java.time.LocalDateTime
-import no.nav.syfo.model.Sykmelding
 import no.nav.syfo.objectMapper
 import org.postgresql.util.PGobject
 

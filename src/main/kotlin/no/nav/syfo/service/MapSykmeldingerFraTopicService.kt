@@ -4,7 +4,9 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import java.io.StringReader
 import java.time.Duration
 import java.time.LocalDateTime
+import java.util.UUID
 import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
+import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.log
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.toSykmelding
@@ -13,30 +15,39 @@ import no.nav.syfo.utils.fellesformatUnmarshaller
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
-import java.util.UUID
 
 class MapSykmeldingerFraTopicService(
     private val kafkaconsumerStringSykmelding: KafkaConsumer<String, String>,
     private val kafkaproducerReceivedSykmelding: KafkaProducer<String, ReceivedSykmelding>,
     private val sm2013SyfoserviceSykmeldingCleanTopic: String,
-    private var counter: Int
+    private val sm2013SyfoserviceSykmeldingStringTopic: String,
+    private var applicationState: ApplicationState
 ) {
 
     fun run() {
-        kafkaconsumerStringSykmelding.poll(Duration.ofMillis(0)).forEach { consumerRecord ->
-            val jsonMap: Map<String, String?> =
-                objectMapper.readValue(objectMapper.readValue<String>(objectMapper.readValue<String>(consumerRecord.value())))
-            val receivedSykmelding = toReceivedSykmelding(jsonMap)
-            kafkaproducerReceivedSykmelding.send(
-                ProducerRecord(
-                    sm2013SyfoserviceSykmeldingCleanTopic,
-                    receivedSykmelding.sykmelding.id,
-                    receivedSykmelding
-                )
+
+        var counter = 0
+        while (applicationState.ready) {
+
+            kafkaconsumerStringSykmelding.subscribe(
+                listOf(sm2013SyfoserviceSykmeldingStringTopic)
             )
-            counter++
-            if (counter % 1000 == 0) {
-                log.info("Melding sendt til kafka topic nr {}", counter)
+
+            kafkaconsumerStringSykmelding.poll(Duration.ofMillis(0)).forEach { consumerRecord ->
+                val jsonMap: Map<String, String?> =
+                    objectMapper.readValue(objectMapper.readValue<String>(objectMapper.readValue<String>(consumerRecord.value())))
+                val receivedSykmelding = toReceivedSykmelding(jsonMap)
+                kafkaproducerReceivedSykmelding.send(
+                    ProducerRecord(
+                        sm2013SyfoserviceSykmeldingCleanTopic,
+                        receivedSykmelding.sykmelding.id,
+                        receivedSykmelding
+                    )
+                )
+                counter++
+                if (counter % 1000 == 0) {
+                    log.info("Melding sendt til kafka topic nr {}", counter)
+                }
             }
         }
     }

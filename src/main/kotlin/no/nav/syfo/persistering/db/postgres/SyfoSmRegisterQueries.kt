@@ -1,14 +1,14 @@
 package no.nav.syfo.persistering.db.postgres
 
+import java.sql.Connection
 import java.sql.ResultSet
+import java.sql.Timestamp
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.db.toList
 import no.nav.syfo.model.SykmeldingStatusEvent
 import no.nav.syfo.model.Sykmeldingsdokument
 import no.nav.syfo.model.Sykmeldingsopplysninger
 import no.nav.syfo.model.toPGObject
-import java.sql.Connection
-import java.sql.Timestamp
 
 data class DatabaseResult(
     val lastIndex: Int,
@@ -85,7 +85,6 @@ fun DatabaseInterfacePostgres.hentAntallSykmeldinger(): List<AntallSykmeldinger>
             it.executeQuery().toList { toAntallSykmeldinger() }
         }
     }
-
 
 fun Connection.erSykmeldingsopplysningerLagret(mottakId: String) =
     use { connection ->

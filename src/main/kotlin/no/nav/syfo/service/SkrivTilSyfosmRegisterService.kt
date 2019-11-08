@@ -1,13 +1,10 @@
 package no.nav.syfo.service
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import net.logstash.logback.argument.StructuredArguments
-import no.nav.syfo.application.ApplicationState
-import no.nav.syfo.db.DatabaseInterfaceOracle
-import no.nav.syfo.db.DatabaseInterfacePostgres
-import no.nav.syfo.db.DatabasePostgres
-import no.nav.syfo.log
 import java.time.Duration
+import no.nav.syfo.application.ApplicationState
+import no.nav.syfo.db.DatabaseInterfacePostgres
+import no.nav.syfo.log
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.StatusEvent
 import no.nav.syfo.model.SykmeldingStatusEvent
@@ -75,8 +72,6 @@ class SkrivTilSyfosmRegisterService(
 
                 log.info("Sykmelding SM2013 lagret i databasen")
             }
-
-
         }
     }
     }

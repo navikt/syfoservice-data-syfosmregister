@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.syfo.persistering.db.postgres.hentAntallSykmeldinger
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
@@ -18,7 +17,6 @@ import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.service.MapSykmeldingerFraTopicService
-import no.nav.syfo.service.SkrivTilSyfosmRegisterService
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -57,7 +55,7 @@ fun main() {
 
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-consumer-4",
+        "${environment.applicationName}-consumer-5",
         valueDeserializer = StringDeserializer::class
     )
     val producerProperties =
@@ -83,21 +81,14 @@ fun main() {
     // SykmeldingKafkaProducer(environment.sm2013SyfoserviceSykmeldingTopic, kafkaproducerStringSykmelding),
     // databaseOracle, 10_000).run()
 
-    kafkaconsumerStringSykmelding.subscribe(
-        listOf(environment.sm2013SyfoserviceSykmeldingTopic)
-    )
-
-    var counter = 0
-
-    while (applicationState.ready) {
-        // Map sykmeldinger fra intern format
-        MapSykmeldingerFraTopicService(
-            kafkaconsumerStringSykmelding,
-            kafkaproducerReceivedSykmelding,
-            environment.sm2013SyfoserviceSykmeldingCleanTopic,
-            counter).run()
-
-    }
+    // mapper som sykmelding som er av typen string og sender dei til ny topic
+    MapSykmeldingerFraTopicService(
+        kafkaconsumerStringSykmelding,
+        kafkaproducerReceivedSykmelding,
+        environment.sm2013SyfoserviceSykmeldingCleanTopic,
+        environment.sm2013SyfoserviceSykmeldingTopic,
+        applicationState
+    ).run()
 
     // oppdatere syfosmregiser databasen
     /*
