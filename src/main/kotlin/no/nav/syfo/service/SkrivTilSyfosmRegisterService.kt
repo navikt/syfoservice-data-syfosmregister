@@ -43,7 +43,7 @@ class SkrivTilSyfosmRegisterService(
                     databasePostgres.connection.opprettSykmeldingsopplysninger(
                         Sykmeldingsopplysninger(
                             id = receivedSykmelding.sykmelding.id,
-                            pasientFnr = receivedSykmelding.personNrPasient,
+                            pasientFnr = convertPasientFnr(receivedSykmelding.personNrPasient),
                             pasientAktoerId = receivedSykmelding.sykmelding.pasientAktoerId,
                             legeFnr = receivedSykmelding.personNrLege,
                             legeAktoerId = receivedSykmelding.sykmelding.behandler.aktoerId,
