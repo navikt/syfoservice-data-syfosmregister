@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.syfo.aksessering.db.postgres.hentAntallSykmeldinger
+import no.nav.syfo.persistering.db.postgres.hentAntallSykmeldinger
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
@@ -17,6 +17,7 @@ import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
 import no.nav.syfo.model.ReceivedSykmelding
+import no.nav.syfo.service.SkrivTilSyfosmRegisterService
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -55,7 +56,7 @@ fun main() {
 
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-consumer-3",
+        "${environment.applicationName}-consumer",
         valueDeserializer = StringDeserializer::class
     )
     val producerProperties =
@@ -63,7 +64,7 @@ fun main() {
     val kafkaproducerReceivedSykmelding = KafkaProducer<String, ReceivedSykmelding>(producerProperties)
     val kafkaproducerStringSykmelding = KafkaProducer<String, String>(producerProperties)
     val kafkaconsumerStringSykmelding = KafkaConsumer<String, String>(consumerProperties)
-    val kafkaconsumerReceivedSykmelding = KafkaConsumer<String, ReceivedSykmelding>(consumerProperties)
+    val kafkaconsumerReceivedSykmelding = KafkaConsumer<String, String>(consumerProperties)
 
     val databaseOracle = DatabaseOracle(vaultConfig, vaultSecrets)
     val vaultCredentialService = VaultCredentialService()
@@ -89,12 +90,20 @@ fun main() {
     val antallSykmeldinger = databasePostgres.hentAntallSykmeldinger()
     log.info("Antall sykmeldinger i datbasen, {}", antallSykmeldinger.first().antall)
 
-    while (applicationState.ready) {
+    SkrivTilSyfosmRegisterService(
+        kafkaconsumerReceivedSykmelding,
+        databasePostgres,
+        environment.sm2013SyfoserviceSykmeldingCleanTopic,
+        applicationState
+    ).run()
+
+    //while (applicationState.ready) {
         // Map sykmeldinger fra intern format
         // MapSykmeldingerFraTopicService(
         // kafkaconsumerStringSykmelding,
         // kafkaproducerReceivedSykmelding,
         // environment.sm2013SyfoserviceSykmeldingCleanTopic,
         // counter).run()
-    }
+
+    ///}
 }
