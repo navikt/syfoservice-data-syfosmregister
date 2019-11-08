@@ -25,54 +25,57 @@ class SkrivTilSyfosmRegisterService(
 ) {
 
     fun run() {
+        var counter = 0
         while (applicationState.ready) {
-        kafkaconsumerReceivedSykmelding.subscribe(
-            listOf(
-                sm2013SyfoserviceSykmeldingCleanTopic
+            kafkaconsumerReceivedSykmelding.subscribe(
+                listOf(
+                    sm2013SyfoserviceSykmeldingCleanTopic
+                )
             )
-        )
 
-        kafkaconsumerReceivedSykmelding.poll(Duration.ofMillis(0)).forEach { consumerRecord ->
-            val receivedSykmelding: ReceivedSykmelding = objectMapper.readValue(consumerRecord.value())
-            // TODO check if already stored in database
-            // Then insert into DB
-            if (databasePostgres.connection.erSykmeldingsopplysningerLagret(receivedSykmelding.navLogId)) {
-                log.info("Sykmelding med id {} allerede lagret i databasen", receivedSykmelding.navLogId
-                )
-            } else {
-                databasePostgres.connection.opprettSykmeldingsopplysninger(
-                    Sykmeldingsopplysninger(
-                        id = receivedSykmelding.sykmelding.id,
-                        pasientFnr = receivedSykmelding.personNrPasient,
-                        pasientAktoerId = receivedSykmelding.sykmelding.pasientAktoerId,
-                        legeFnr = receivedSykmelding.personNrLege,
-                        legeAktoerId = receivedSykmelding.sykmelding.behandler.aktoerId,
-                        mottakId = receivedSykmelding.navLogId,
-                        legekontorOrgNr = receivedSykmelding.legekontorOrgNr,
-                        legekontorHerId = receivedSykmelding.legekontorHerId,
-                        legekontorReshId = receivedSykmelding.legekontorReshId,
-                        epjSystemNavn = receivedSykmelding.sykmelding.avsenderSystem.navn,
-                        epjSystemVersjon = receivedSykmelding.sykmelding.avsenderSystem.versjon,
-                        mottattTidspunkt = receivedSykmelding.mottattDato,
-                        tssid = receivedSykmelding.tssid
+            kafkaconsumerReceivedSykmelding.poll(Duration.ofMillis(0)).forEach { consumerRecord ->
+                val receivedSykmelding: ReceivedSykmelding = objectMapper.readValue(consumerRecord.value())
+                if (databasePostgres.connection.erSykmeldingsopplysningerLagret(receivedSykmelding.navLogId)) {
+                    log.info(
+                        "Sykmelding med id {} allerede lagret i databasen", receivedSykmelding.navLogId
                     )
-                )
-                databasePostgres.connection.opprettSykmeldingsdokument(
-                    Sykmeldingsdokument(
-                        id = receivedSykmelding.sykmelding.id,
-                        sykmelding = receivedSykmelding.sykmelding
+                } else {
+                    databasePostgres.connection.opprettSykmeldingsopplysninger(
+                        Sykmeldingsopplysninger(
+                            id = receivedSykmelding.sykmelding.id,
+                            pasientFnr = receivedSykmelding.personNrPasient,
+                            pasientAktoerId = receivedSykmelding.sykmelding.pasientAktoerId,
+                            legeFnr = receivedSykmelding.personNrLege,
+                            legeAktoerId = receivedSykmelding.sykmelding.behandler.aktoerId,
+                            mottakId = receivedSykmelding.navLogId,
+                            legekontorOrgNr = receivedSykmelding.legekontorOrgNr,
+                            legekontorHerId = receivedSykmelding.legekontorHerId,
+                            legekontorReshId = receivedSykmelding.legekontorReshId,
+                            epjSystemNavn = receivedSykmelding.sykmelding.avsenderSystem.navn,
+                            epjSystemVersjon = receivedSykmelding.sykmelding.avsenderSystem.versjon,
+                            mottattTidspunkt = receivedSykmelding.mottattDato,
+                            tssid = receivedSykmelding.tssid
+                        )
                     )
-                )
+                    databasePostgres.connection.opprettSykmeldingsdokument(
+                        Sykmeldingsdokument(
+                            id = receivedSykmelding.sykmelding.id,
+                            sykmelding = receivedSykmelding.sykmelding
+                        )
+                    )
 
-                databasePostgres.registerStatus(
-                    SykmeldingStatusEvent(
-                    receivedSykmelding.sykmelding.id,
-                    receivedSykmelding.mottattDato, StatusEvent.APEN)
-                )
-
-                log.info("Sykmelding SM2013 lagret i databasen")
+                    databasePostgres.registerStatus(
+                        SykmeldingStatusEvent(
+                            receivedSykmelding.sykmelding.id,
+                            receivedSykmelding.mottattDato, StatusEvent.APEN
+                        )
+                    )
+                    counter++
+                    if (counter % 1000 == 0) {
+                        log.info("Melding SM2013 lagret i databasen nr: {}", counter)
+                    }
+                }
             }
         }
-    }
     }
 }

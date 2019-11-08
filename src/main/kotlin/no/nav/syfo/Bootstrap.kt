@@ -16,7 +16,8 @@ import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
 import no.nav.syfo.model.ReceivedSykmelding
-import no.nav.syfo.service.MapSykmeldingerFraTopicService
+import no.nav.syfo.persistering.db.postgres.hentAntallSykmeldinger
+import no.nav.syfo.service.SkrivTilSyfosmRegisterService
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -55,7 +56,7 @@ fun main() {
 
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-consumer-6",
+        "${environment.applicationName}-consumer-7",
         valueDeserializer = StringDeserializer::class
     )
     val producerProperties =
@@ -82,6 +83,7 @@ fun main() {
     // databaseOracle, 10_000).run()
 
     // mapper som sykmelding som er av typen string og sender dei til ny topic
+    /*
     MapSykmeldingerFraTopicService(
         kafkaconsumerStringSykmelding,
         kafkaproducerReceivedSykmelding,
@@ -89,11 +91,11 @@ fun main() {
         environment.sm2013SyfoserviceSykmeldingTopic,
         applicationState
     ).run()
+     */
 
     // oppdatere syfosmregiser databasen
-    /*
-    val antallSykmeldinger = databasePostgres.hentAntallSykmeldinger()
-    log.info("Antall sykmeldinger i datbasen, {}", antallSykmeldinger.first().antall)
+    val antallSykmeldingerFor = databasePostgres.hentAntallSykmeldinger()
+    log.info("Antall sykmeldinger i datbasen for oppdatering, {}", antallSykmeldingerFor.first().antall)
 
     SkrivTilSyfosmRegisterService(
         kafkaconsumerReceivedSykmelding,
@@ -101,5 +103,7 @@ fun main() {
         environment.sm2013SyfoserviceSykmeldingCleanTopic,
         applicationState
     ).run()
-     */
+
+    val antallSykmeldingerEtter = databasePostgres.hentAntallSykmeldinger()
+    log.info("Antall sykmeldinger i datbasen etter oppdatering, {}", antallSykmeldingerEtter.first().antall)
 }
