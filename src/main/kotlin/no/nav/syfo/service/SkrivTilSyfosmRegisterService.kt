@@ -47,7 +47,7 @@ class SkrivTilSyfosmRegisterService(
                             pasientAktoerId = receivedSykmelding.sykmelding.pasientAktoerId,
                             legeFnr = receivedSykmelding.personNrLege,
                             legeAktoerId = receivedSykmelding.sykmelding.behandler.aktoerId,
-                            mottakId = receivedSykmelding.navLogId,
+                            mottakId = convertToMottakid(receivedSykmelding.navLogId),
                             legekontorOrgNr = receivedSykmelding.legekontorOrgNr,
                             legekontorHerId = receivedSykmelding.legekontorHerId,
                             legekontorReshId = receivedSykmelding.legekontorReshId,
@@ -78,4 +78,14 @@ class SkrivTilSyfosmRegisterService(
             }
         }
     }
+
+    fun convertToMottakid(mottakid: String): String =
+        when (mottakid.length <= 63) {
+            true -> mottakid
+            else -> {
+                log.info("Størrelsen på mottakid er: {}, mottakid: {}", mottakid.length, mottakid)
+                mottakid.substring(0, 63)
+            }
+        }
+
 }
