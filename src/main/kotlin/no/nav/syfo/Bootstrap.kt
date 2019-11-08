@@ -17,6 +17,7 @@ import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
 import no.nav.syfo.model.ReceivedSykmelding
+import no.nav.syfo.service.MapSykmeldingerFraTopicService
 import no.nav.syfo.service.SkrivTilSyfosmRegisterService
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
@@ -56,7 +57,7 @@ fun main() {
 
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-consumer",
+        "${environment.applicationName}-consumer-4",
         valueDeserializer = StringDeserializer::class
     )
     val producerProperties =
@@ -82,11 +83,24 @@ fun main() {
     // SykmeldingKafkaProducer(environment.sm2013SyfoserviceSykmeldingTopic, kafkaproducerStringSykmelding),
     // databaseOracle, 10_000).run()
 
-    // kafkaconsumerStringSykmelding.subscribe(
-    //    listOf(environment.sm2013SyfoserviceSykmeldingTopic)
-    // )
-    // var counter = 0
+    kafkaconsumerStringSykmelding.subscribe(
+        listOf(environment.sm2013SyfoserviceSykmeldingTopic)
+    )
 
+    var counter = 0
+
+    while (applicationState.ready) {
+        // Map sykmeldinger fra intern format
+        MapSykmeldingerFraTopicService(
+            kafkaconsumerStringSykmelding,
+            kafkaproducerReceivedSykmelding,
+            environment.sm2013SyfoserviceSykmeldingCleanTopic,
+            counter).run()
+
+    }
+
+    // oppdatere syfosmregiser databasen
+    /*
     val antallSykmeldinger = databasePostgres.hentAntallSykmeldinger()
     log.info("Antall sykmeldinger i datbasen, {}", antallSykmeldinger.first().antall)
 
@@ -96,14 +110,5 @@ fun main() {
         environment.sm2013SyfoserviceSykmeldingCleanTopic,
         applicationState
     ).run()
-
-    //while (applicationState.ready) {
-        // Map sykmeldinger fra intern format
-        // MapSykmeldingerFraTopicService(
-        // kafkaconsumerStringSykmelding,
-        // kafkaproducerReceivedSykmelding,
-        // environment.sm2013SyfoserviceSykmeldingCleanTopic,
-        // counter).run()
-
-    ///}
+     */
 }

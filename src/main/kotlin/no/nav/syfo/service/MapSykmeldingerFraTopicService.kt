@@ -13,6 +13,7 @@ import no.nav.syfo.utils.fellesformatUnmarshaller
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
+import java.util.UUID
 
 class MapSykmeldingerFraTopicService(
     private val kafkaconsumerStringSykmelding: KafkaConsumer<String, String>,
@@ -34,7 +35,7 @@ class MapSykmeldingerFraTopicService(
                 )
             )
             counter++
-            if (counter % 10000 == 0) {
+            if (counter % 1000 == 0) {
                 log.info("Melding sendt til kafka topic nr {}", counter)
             }
         }
@@ -46,7 +47,7 @@ class MapSykmeldingerFraTopicService(
 
         return ReceivedSykmelding(
             sykmelding = unmarshallerToHealthInformation.toSykmelding(
-                sykmeldingId = jsonMap["MELDING_ID"].toString(),
+                sykmeldingId = UUID.randomUUID().toString(),
                 pasientAktoerId = jsonMap["AKTOR_ID"].toString(),
                 legeAktoerId = "",
                 msgId = "",
