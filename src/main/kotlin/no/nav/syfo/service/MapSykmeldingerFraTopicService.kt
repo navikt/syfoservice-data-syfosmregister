@@ -25,7 +25,7 @@ class MapSykmeldingerFraTopicService(
     fun run() {
         kafkaconsumerStringSykmelding.poll(Duration.ofMillis(0)).forEach { consumerRecord ->
             val jsonMap: Map<String, String?> =
-                objectMapper.readValue(objectMapper.readValue<String>(consumerRecord.value()))
+                objectMapper.readValue(objectMapper.readValue<String>(objectMapper.readValue<String>(consumerRecord.value())))
             val receivedSykmelding = toReceivedSykmelding(jsonMap)
             kafkaproducerReceivedSykmelding.send(
                 ProducerRecord(
