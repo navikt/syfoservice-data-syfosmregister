@@ -1,7 +1,7 @@
 package no.nav.syfo.service
 
-import no.nav.syfo.aksessering.db.hentAntallSykmeldinger
-import no.nav.syfo.aksessering.db.hentSykmeldinger
+import no.nav.syfo.aksessering.db.oracle.hentAntallSykmeldinger
+import no.nav.syfo.aksessering.db.oracle.hentSykmeldinger
 import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.kafka.SykmeldingKafkaProducer
 import no.nav.syfo.log

@@ -1,4 +1,4 @@
-package no.nav.syfo.aksessering.db
+package no.nav.syfo.aksessering.db.oracle
 
 import java.sql.ResultSet
 import no.nav.syfo.db.DatabaseInterfaceOracle

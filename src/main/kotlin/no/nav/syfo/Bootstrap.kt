@@ -6,10 +6,13 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.syfo.aksessering.db.postgres.hentAntallSykmeldinger
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
 import no.nav.syfo.db.DatabaseOracle
+import no.nav.syfo.db.DatabasePostgres
+import no.nav.syfo.db.VaultCredentialService
 import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
@@ -62,7 +65,9 @@ fun main() {
     val kafkaconsumerStringSykmelding = KafkaConsumer<String, String>(consumerProperties)
     val kafkaconsumerReceivedSykmelding = KafkaConsumer<String, ReceivedSykmelding>(consumerProperties)
 
-    val database = DatabaseOracle(vaultConfig, vaultSecrets)
+    val databaseOracle = DatabaseOracle(vaultConfig, vaultSecrets)
+    val vaultCredentialService = VaultCredentialService()
+    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
 
     val applicationState = ApplicationState()
     val applicationEngine = createApplicationEngine(environment, applicationState)
@@ -74,12 +79,15 @@ fun main() {
     // Hent ut sykmeldigner fra syfoservice
     // HentSykmeldingerFraSyfoServiceService(
     // SykmeldingKafkaProducer(environment.sm2013SyfoserviceSykmeldingTopic, kafkaproducerStringSykmelding),
-    // database, 10_000).run()
+    // databaseOracle, 10_000).run()
 
     // kafkaconsumerStringSykmelding.subscribe(
     //    listOf(environment.sm2013SyfoserviceSykmeldingTopic)
     // )
     // var counter = 0
+
+    val antallSykmeldinger = databasePostgres.hentAntallSykmeldinger()
+    log.info("Antall sykmeldinger i datbasen, {}", antallSykmeldinger.first().antall)
 
     while (applicationState.ready) {
         // Map sykmeldinger fra intern format
