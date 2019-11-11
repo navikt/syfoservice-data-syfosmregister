@@ -7,11 +7,11 @@ import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.vault.Vault
 import org.slf4j.LoggerFactory
 
-private val log = LoggerFactory.getLogger("no.nav.syfo.db")
-
 class VaultCredentialService() {
     var leaseDuration: Long = 0
     var renewCredentialsTaskData: RenewCredentialsTaskData? = null
+
+    private val log = LoggerFactory.getLogger(VaultCredentialService::class.java)
 
     suspend fun runRenewCredentialsTask(applicationState: ApplicationState) {
         delay(leaseDuration)

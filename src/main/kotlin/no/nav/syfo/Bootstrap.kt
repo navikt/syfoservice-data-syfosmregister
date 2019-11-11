@@ -9,19 +9,15 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
-import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.db.VaultCredentialService
 import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
-import no.nav.syfo.kafka.toProducerConfig
-import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.persistering.db.postgres.hentAntallSykmeldinger
 import no.nav.syfo.service.SkrivTilSyfosmRegisterService
-import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
+import no.nav.syfo.vault.RenewVaultService
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -40,33 +36,33 @@ val log: Logger = LoggerFactory.getLogger("no.nav.syfo.syfoservicedatasyfosmregi
 fun main() {
     val environment = Environment()
 
-    val vaultSecrets = VaultCredentials(
-        databasePassword = getFileAsString("/secrets/credentials/password"),
-        databaseUsername = getFileAsString("/secrets/credentials/username")
-    )
+//    val vaultSecrets = VaultCredentials(
+//        databasePassword = getFileAsString("/secrets/credentials/password"),
+//        databaseUsername = getFileAsString("/secrets/credentials/username")
+//    )
 
     val vaultServiceuser = VaultServiceUser(
         serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
         serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
     )
 
-    val vaultConfig = VaultConfig(
-        jdbcUrl = getFileAsString("/secrets/config/jdbc_url")
-    )
+//    val vaultConfig = VaultConfig(
+//        jdbcUrl = getFileAsString("/secrets/config/jdbc_url")
+//    )
 
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-consumer-7",
+        "${environment.applicationName}-consumer-8",
         valueDeserializer = StringDeserializer::class
     )
-    val producerProperties =
-        kafkaBaseConfig.toProducerConfig(environment.applicationName, valueSerializer = JacksonKafkaSerializer::class)
-    val kafkaproducerReceivedSykmelding = KafkaProducer<String, ReceivedSykmelding>(producerProperties)
-    val kafkaproducerStringSykmelding = KafkaProducer<String, String>(producerProperties)
-    val kafkaconsumerStringSykmelding = KafkaConsumer<String, String>(consumerProperties)
+//    val producerProperties =
+//        kafkaBaseConfig.toProducerConfig(environment.applicationName, valueSerializer = JacksonKafkaSerializer::class)
+//    val kafkaproducerReceivedSykmelding = KafkaProducer<String, ReceivedSykmelding>(producerProperties)
+//    val kafkaproducerStringSykmelding = KafkaProducer<String, String>(producerProperties)
+//    val kafkaconsumerStringSykmelding = KafkaConsumer<String, String>(consumerProperties)
     val kafkaconsumerReceivedSykmelding = KafkaConsumer<String, String>(consumerProperties)
 
-    val databaseOracle = DatabaseOracle(vaultConfig, vaultSecrets)
+//    val databaseOracle = DatabaseOracle(vaultConfig, vaultSecrets)
     val vaultCredentialService = VaultCredentialService()
     val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
 
@@ -93,7 +89,8 @@ fun main() {
     ).run()
      */
 
-    // oppdatere syfosmregiser databasen
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+
     val antallSykmeldingerFor = databasePostgres.hentAntallSykmeldinger()
     log.info("Antall sykmeldinger i datbasen for oppdatering, {}", antallSykmeldingerFor.first().antall)
 
@@ -103,7 +100,4 @@ fun main() {
         environment.sm2013SyfoserviceSykmeldingCleanTopic,
         applicationState
     ).run()
-
-    val antallSykmeldingerEtter = databasePostgres.hentAntallSykmeldinger()
-    log.info("Antall sykmeldinger i datbasen etter oppdatering, {}", antallSykmeldingerEtter.first().antall)
 }

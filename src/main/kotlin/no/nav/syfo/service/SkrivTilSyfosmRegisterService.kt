@@ -26,6 +26,7 @@ class SkrivTilSyfosmRegisterService(
 
     fun run() {
         var counter = 0
+        var counterDuplicates = 0
         while (applicationState.ready) {
             kafkaconsumerReceivedSykmelding.subscribe(
                 listOf(
@@ -36,9 +37,12 @@ class SkrivTilSyfosmRegisterService(
             kafkaconsumerReceivedSykmelding.poll(Duration.ofMillis(0)).forEach { consumerRecord ->
                 val receivedSykmelding: ReceivedSykmelding = objectMapper.readValue(consumerRecord.value())
                 if (databasePostgres.connection.erSykmeldingsopplysningerLagret(receivedSykmelding.navLogId)) {
-                    log.info(
-                        "Sykmelding med id {} allerede lagret i databasen", receivedSykmelding.navLogId
-                    )
+                    counterDuplicates++
+                    if (counterDuplicates % 1000 == 0) {
+                        log.info(
+                            "1000 duplikater er registrer og vil ikke bli oppdatert", receivedSykmelding.navLogId
+                        )
+                    }
                 } else {
                     databasePostgres.connection.opprettSykmeldingsopplysninger(
                         Sykmeldingsopplysninger(
@@ -51,8 +55,8 @@ class SkrivTilSyfosmRegisterService(
                             legekontorOrgNr = receivedSykmelding.legekontorOrgNr,
                             legekontorHerId = receivedSykmelding.legekontorHerId,
                             legekontorReshId = receivedSykmelding.legekontorReshId,
-                            epjSystemNavn = receivedSykmelding.sykmelding.avsenderSystem.navn,
-                            epjSystemVersjon = receivedSykmelding.sykmelding.avsenderSystem.versjon,
+                            epjSystemNavn = "SYFOSERVICE",
+                            epjSystemVersjon = "1",
                             mottattTidspunkt = receivedSykmelding.mottattDato,
                             tssid = receivedSykmelding.tssid
                         )
@@ -96,5 +100,4 @@ class SkrivTilSyfosmRegisterService(
                 pasientFnr.substring(0, 11)
             }
         }
-
 }
