@@ -40,7 +40,7 @@ class SkrivTilSyfosmRegisterService(
                     counterDuplicates++
                     if (counterDuplicates % 10000 == 0) {
                         log.info(
-                            "1000 duplikater er registrer og vil ikke bli oppdatert", receivedSykmelding.navLogId
+                            "10000 duplikater er registrer og vil ikke bli oppdatert", receivedSykmelding.navLogId
                         )
                     }
                 } else {
