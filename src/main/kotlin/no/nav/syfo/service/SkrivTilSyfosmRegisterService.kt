@@ -36,7 +36,7 @@ class SkrivTilSyfosmRegisterService(
 
             kafkaconsumerReceivedSykmelding.poll(Duration.ofMillis(0)).forEach { consumerRecord ->
                 val receivedSykmelding: ReceivedSykmelding = objectMapper.readValue(consumerRecord.value())
-                if (databasePostgres.connection.erSykmeldingsopplysningerLagret(receivedSykmelding.navLogId)) {
+                if (databasePostgres.connection.erSykmeldingsopplysningerLagret(convertToMottakid(receivedSykmelding.navLogId))) {
                     counterDuplicates++
                     if (counterDuplicates % 1000 == 0) {
                         log.info(
