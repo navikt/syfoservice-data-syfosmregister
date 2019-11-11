@@ -7,7 +7,7 @@ import no.nav.syfo.objectMapper
 
 data class DatabaseResult(val lastIndex: Int, val rows: List<String>, var databaseTime: Double = 0.0, var processingTime: Double = 0.0)
 
-fun DatabaseInterfaceOracle.hentSykmeldinger(lastIndex: Int, limit: Int): DatabaseResult =
+fun DatabaseInterfaceOracle.hentSykmeldingerSyfoService(lastIndex: Int, limit: Int): DatabaseResult =
     connection.use { connection ->
         connection.prepareStatement(
             """
@@ -22,7 +22,7 @@ fun DatabaseInterfaceOracle.hentSykmeldinger(lastIndex: Int, limit: Int): Databa
             val currentMillies = System.currentTimeMillis()
             val resultSet = it.executeQuery()
             val databaseEndMillies = System.currentTimeMillis()
-            val databaseResult = resultSet.toJsonString(lastIndex)
+            val databaseResult = resultSet.toJsonStringSyfoService(lastIndex)
             val processingMillies = System.currentTimeMillis()
 
             databaseResult.databaseTime = (databaseEndMillies - currentMillies) / 1000.0
@@ -31,7 +31,7 @@ fun DatabaseInterfaceOracle.hentSykmeldinger(lastIndex: Int, limit: Int): Databa
         }
     }
 
-fun ResultSet.toJsonString(previusIndex: Int): DatabaseResult {
+fun ResultSet.toJsonStringSyfoService(previusIndex: Int): DatabaseResult {
     val listOfRows = ArrayList<String>()
 
     val metadata = this.metaData
@@ -56,7 +56,7 @@ fun ResultSet.toJsonString(previusIndex: Int): DatabaseResult {
     return DatabaseResult(lastIndex, listOfRows)
 }
 
-fun DatabaseInterfaceOracle.hentAntallSykmeldinger(): List<AntallSykmeldinger> =
+fun DatabaseInterfaceOracle.hentAntallSykmeldingerSyfoService(): List<AntallSykmeldinger> =
     connection.use { connection ->
         connection.prepareStatement(
             """

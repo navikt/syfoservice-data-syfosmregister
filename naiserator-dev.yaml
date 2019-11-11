@@ -39,9 +39,13 @@ spec:
       - kvPath: serviceuser/data/dev/srvsyfoservice-dat
         mountPath: /secrets/serviceuser
       - kvPath: oracle/data/dev/creds/syfoservice_q1-user
-        mountPath: /secrets/credentials
+        mountPath: /secrets/syfoservice/credentials
       - kvPath: oracle/data/dev/config/syfoservice_q1
-        mountPath: /secrets/config
+        mountPath: /secrets/syfoservice/config
+      - kvPath: oracle/data/dev/creds/eia2_q1-user
+        mountPath: /secrets/eia/credentials
+      - kvPath: oracle/data/dev/config/eia2_q1
+        mountPath: /secrets/eia/config
   webproxy: true
   ingresses:
     - "https://syfoservice-data-syfosmregister.nais.preprod.local"

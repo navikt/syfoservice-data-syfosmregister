@@ -1,7 +1,7 @@
 package no.nav.syfo.service
 
-import no.nav.syfo.aksessering.db.oracle.hentAntallSykmeldinger
-import no.nav.syfo.aksessering.db.oracle.hentSykmeldinger
+import no.nav.syfo.aksessering.db.oracle.hentAntallSykmeldingerSyfoService
+import no.nav.syfo.aksessering.db.oracle.hentSykmeldingerSyfoService
 import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.kafka.SykmeldingKafkaProducer
 import no.nav.syfo.log
@@ -13,7 +13,7 @@ class HentSykmeldingerFraSyfoServiceService(
 ) {
 
     fun run(): Int {
-        val hentantallSykmeldinger = databaseOracle.hentAntallSykmeldinger()
+        val hentantallSykmeldinger = databaseOracle.hentAntallSykmeldingerSyfoService()
         log.info("Antall sykmeldinger som finnes i databasen:  {}", hentantallSykmeldinger.first().antall)
 
         var lastIndex = 0
@@ -21,7 +21,7 @@ class HentSykmeldingerFraSyfoServiceService(
 
         while (true) {
 
-            val result = databaseOracle.hentSykmeldinger(lastIndex, batchSize)
+            val result = databaseOracle.hentSykmeldingerSyfoService(lastIndex, batchSize)
             val currentMillies = System.currentTimeMillis()
             for (sykmelding in result.rows) {
                 sykmeldingKafkaProducer.publishToKafka(sykmelding)
