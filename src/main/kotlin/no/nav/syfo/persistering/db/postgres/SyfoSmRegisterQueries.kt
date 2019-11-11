@@ -86,16 +86,17 @@ fun DatabaseInterfacePostgres.hentAntallSykmeldinger(): List<AntallSykmeldinger>
         }
     }
 
-fun Connection.erSykmeldingsopplysningerLagret(mottakId: String) =
+fun Connection.erSykmeldingsopplysningerLagret(id: String, mottakId: String) =
     use { connection ->
         connection.prepareStatement(
             """
                 SELECT *
                 FROM SYKMELDINGSOPPLYSNINGER
-                WHERE mottak_id=?;
+                WHERE id = ? OR mottak_id = ?;
                 """
         ).use {
-            it.setString(1, mottakId)
+            it.setString(1, id)
+            it.setString(2, mottakId)
             it.executeQuery().next()
         }
     }

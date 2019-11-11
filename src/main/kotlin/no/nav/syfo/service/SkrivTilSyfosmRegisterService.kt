@@ -36,9 +36,9 @@ class SkrivTilSyfosmRegisterService(
 
             kafkaconsumerReceivedSykmelding.poll(Duration.ofMillis(0)).forEach { consumerRecord ->
                 val receivedSykmelding: ReceivedSykmelding = objectMapper.readValue(consumerRecord.value())
-                if (databasePostgres.connection.erSykmeldingsopplysningerLagret(convertToMottakid(receivedSykmelding.navLogId))) {
+                if (databasePostgres.connection.erSykmeldingsopplysningerLagret(receivedSykmelding.sykmelding.id, convertToMottakid(receivedSykmelding.navLogId))) {
                     counterDuplicates++
-                    if (counterDuplicates % 1000 == 0) {
+                    if (counterDuplicates % 10000 == 0) {
                         log.info(
                             "1000 duplikater er registrer og vil ikke bli oppdatert", receivedSykmelding.navLogId
                         )
@@ -75,7 +75,7 @@ class SkrivTilSyfosmRegisterService(
                         )
                     )
                     counter++
-                    if (counter % 1000 == 0) {
+                    if (counter % 10000 == 0) {
                         log.info("Melding SM2013 lagret i databasen nr: {}", counter)
                     }
                 }
