@@ -1,15 +1,23 @@
 package no.nav.syfo.aksessering.db.oracle
 
+import no.nav.helse.eiFellesformat.XMLEIFellesformat
+import no.nav.helse.eiFellesformat.XMLMottakenhetBlokk
+import no.nav.helse.msgHead.XMLMsgHead
 import java.io.StringReader
 import java.sql.ResultSet
-import java.time.LocalDateTime
 import java.util.UUID
 import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.db.toList
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.toSykmelding
+import no.nav.syfo.utils.extractHelseOpplysningerArbeidsuforhet
+import no.nav.syfo.utils.extractOrganisationHerNumberFromSender
+import no.nav.syfo.utils.extractOrganisationNumberFromSender
+import no.nav.syfo.utils.extractOrganisationRashNumberFromSender
 import no.nav.syfo.utils.fellesformatUnmarshaller
+import no.nav.syfo.utils.get
+import java.time.ZoneOffset
 
 fun DatabaseInterfaceOracle.hentSykmeldingerEia(aktor_id: String): List<ReceivedSykmelding> =
     connection.use { connection ->
@@ -32,7 +40,7 @@ fun DatabaseInterfaceOracle.hentSykmeldingerEia(aktor_id: String): List<Received
                     AND m.melding_type_kode = 'SYKMELD'
                     AND bfxt.MELDING_XML_TYPE = 'MELDING'
                     AND trunc( m.REGISTRERT_DATO) >= to_date('2016-05-11','YYYY-MM-DD')
-                    ORDER BY m.melding_id DESC;
+                    ORDER BY m.melding_id DESC
                         """
         ).use {
             it.setString(1, aktor_id)
@@ -40,29 +48,46 @@ fun DatabaseInterfaceOracle.hentSykmeldingerEia(aktor_id: String): List<Received
         }
     }
 
-fun ResultSet.toReceivedSykmelding(): ReceivedSykmelding =
-    ReceivedSykmelding(
-            sykmelding = unmarshallerToHealthInformation(getString("MELDING_XML")).toSykmelding(
+fun ResultSet.toReceivedSykmelding(): ReceivedSykmelding {
+
+    val fellesformat = fellesformatUnmarshaller.unmarshal(StringReader(getString("MELDING_XML"))) as XMLEIFellesformat
+    val receiverBlock = fellesformat.get<XMLMottakenhetBlokk>()
+    val msgHead = fellesformat.get<XMLMsgHead>()
+    val healthInformation = extractHelseOpplysningerArbeidsuforhet(fellesformat)
+    val msgId = msgHead.msgInfo.msgId
+    val ediLoggId = receiverBlock.ediLoggId
+    val legekontorHerId = extractOrganisationHerNumberFromSender(fellesformat)?.id
+    val legekontorReshId = extractOrganisationRashNumberFromSender(fellesformat)?.id
+    val legekontorOrgNr = extractOrganisationNumberFromSender(fellesformat)?.id
+    val legekontorOrgName = msgHead.msgInfo.sender.organisation.organisationName
+    val personNumberPatient = healthInformation.pasient.fodselsnummer.id
+    val personNumberDoctor = receiverBlock.avsenderFnrFraDigSignatur
+
+    return ReceivedSykmelding(
+        sykmelding = unmarshallerToHealthInformation(getString("MELDING_XML")).toSykmelding(
             sykmeldingId = UUID.randomUUID().toString(),
             pasientAktoerId = "",
             legeAktoerId = "",
-            msgId = "",
-            signaturDato = LocalDateTime.now()
+            msgId = msgId,
+            signaturDato = msgHead.msgInfo.genDate
         ),
-        personNrPasient = "",
-        tlfPasient = "",
-        personNrLege = "",
-        navLogId = "",
-        msgId = "",
-        legekontorOrgNr = "",
-        legekontorOrgName = "",
-        legekontorHerId = "",
-        legekontorReshId = "",
-        mottattDato = LocalDateTime.now(),
-        rulesetVersion = null,
+        personNrPasient = personNumberPatient,
+        tlfPasient = healthInformation.pasient.kontaktInfo.firstOrNull()?.teleAddress?.v,
+        personNrLege = personNumberDoctor,
+        navLogId = ediLoggId,
+        msgId = msgId,
+        legekontorOrgNr = legekontorOrgNr,
+        legekontorOrgName = legekontorOrgName,
+        legekontorHerId = legekontorHerId,
+        legekontorReshId = legekontorReshId,
+        mottattDato = receiverBlock.mottattDatotid.toGregorianCalendar().toZonedDateTime().withZoneSameInstant(
+            ZoneOffset.UTC
+        ).toLocalDateTime(),
+        rulesetVersion = healthInformation.regelSettVersjon,
         fellesformat = "",
         tssid = ""
     )
+}
 
 fun DatabaseInterfaceOracle.hentAntallSykmeldingerEia(): List<AntallSykmeldinger> =
     connection.use { connection ->
