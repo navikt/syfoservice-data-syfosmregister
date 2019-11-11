@@ -92,7 +92,7 @@ class SkrivTilSyfosmRegisterService(
 
 private fun logNonValidSykmelding(receivedSykmelding: ReceivedSykmelding) {
     log.info(
-        "Invalid fnr for sykmelding, id = {}, mottak_id = ",
+        "Invalid fnr for sykmelding, id = {}, mottak_id = {}",
         receivedSykmelding.sykmelding.id,
         receivedSykmelding.navLogId
     )
