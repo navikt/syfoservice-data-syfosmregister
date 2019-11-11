@@ -36,7 +36,13 @@ class SkrivTilSyfosmRegisterService(
 
             kafkaconsumerReceivedSykmelding.poll(Duration.ofMillis(0)).forEach { consumerRecord ->
                 val receivedSykmelding: ReceivedSykmelding = objectMapper.readValue(consumerRecord.value())
-                if (databasePostgres.connection.erSykmeldingsopplysningerLagret(receivedSykmelding.sykmelding.id, convertToMottakid(receivedSykmelding.navLogId))) {
+                if (!validPasientFnr(receivedSykmelding.personNrPasient)) {
+                    logNonValidSykmelding(receivedSykmelding)
+                } else if (databasePostgres.connection.erSykmeldingsopplysningerLagret(
+                        receivedSykmelding.sykmelding.id,
+                        convertToMottakid(receivedSykmelding.navLogId)
+                    )
+                ) {
                     counterDuplicates++
                     if (counterDuplicates % 10000 == 0) {
                         log.info(
@@ -47,7 +53,7 @@ class SkrivTilSyfosmRegisterService(
                     databasePostgres.connection.opprettSykmeldingsopplysninger(
                         Sykmeldingsopplysninger(
                             id = receivedSykmelding.sykmelding.id,
-                            pasientFnr = convertPasientFnr(receivedSykmelding.personNrPasient),
+                            pasientFnr = receivedSykmelding.personNrPasient,
                             pasientAktoerId = receivedSykmelding.sykmelding.pasientAktoerId,
                             legeFnr = receivedSykmelding.personNrLege,
                             legeAktoerId = receivedSykmelding.sykmelding.behandler.aktoerId,
@@ -82,22 +88,24 @@ class SkrivTilSyfosmRegisterService(
             }
         }
     }
-
-    fun convertToMottakid(mottakid: String): String =
-        when (mottakid.length <= 63) {
-            true -> mottakid
-            else -> {
-                log.info("Størrelsen på mottakid er: {}, mottakid: {}", mottakid.length, mottakid)
-                mottakid.substring(0, 63)
-            }
-        }
-
-    fun convertPasientFnr(pasientFnr: String): String =
-        when (pasientFnr.length <= 11) {
-            true -> pasientFnr
-            else -> {
-                log.info("Størrelsen på pasientFnr er: {}", pasientFnr.length)
-                pasientFnr.substring(0, 11)
-            }
-        }
 }
+
+private fun logNonValidSykmelding(receivedSykmelding: ReceivedSykmelding) {
+    log.info(
+        "Invalid fnr for sykmelding, id = {}, mottak_id = ",
+        receivedSykmelding.sykmelding.id,
+        receivedSykmelding.navLogId
+    )
+}
+
+fun convertToMottakid(mottakid: String): String =
+    when (mottakid.length <= 63) {
+        true -> mottakid
+        else -> {
+            log.info("Størrelsen på mottakid er: {}, mottakid: {}", mottakid.length, mottakid)
+            mottakid.substring(0, 63)
+        }
+    }
+
+fun validPasientFnr(pasientFnr: String): Boolean =
+    pasientFnr.length == 11
