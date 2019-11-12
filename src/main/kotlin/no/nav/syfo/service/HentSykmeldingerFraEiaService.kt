@@ -1,6 +1,7 @@
 package no.nav.syfo.service
 
 import no.nav.syfo.aksessering.db.oracle.hentAntallSykmeldingerEia
+import no.nav.syfo.aksessering.db.oracle.hentSykmeldingerEia
 import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.kafka.RecivedSykmeldingKafkaProducer
 import no.nav.syfo.log
@@ -15,7 +16,9 @@ class HentSykmeldingerFraEiaService(
         val hentantallSykmeldinger = databaseOracle.hentAntallSykmeldingerEia()
         log.info("Antall sykmeldinger som finnes i databasen:  {}", hentantallSykmeldinger.first().antall)
 
-        var lastIndex = 0
+        val hentSykmeldingerEia = databaseOracle.hentSykmeldingerEia()
+        log.info("Mapper over sykmeldinger som finnes i databasen:  {}", hentSykmeldingerEia.size)
+
         var counter = 0
 
         return counter
