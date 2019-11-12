@@ -9,15 +9,16 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
-import no.nav.syfo.db.DatabaseOracle
-import no.nav.syfo.kafka.RecivedSykmeldingKafkaProducer
+import no.nav.syfo.db.DatabasePostgres
+import no.nav.syfo.db.VaultCredentialService
 import no.nav.syfo.kafka.loadBaseConfig
-import no.nav.syfo.kafka.toProducerConfig
-import no.nav.syfo.model.ReceivedSykmelding
-import no.nav.syfo.service.HentSykmeldingerFraEiaService
-import no.nav.syfo.utils.JacksonKafkaSerializer
+import no.nav.syfo.kafka.toConsumerConfig
+import no.nav.syfo.persistering.db.postgres.hentAntallSykmeldinger
+import no.nav.syfo.service.SkrivTilSyfosmRegisterService
 import no.nav.syfo.utils.getFileAsString
-import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -50,22 +51,23 @@ fun main() {
     )
 
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
-//    val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-//        "${environment.applicationName}-consumer-10",
-//        valueDeserializer = StringDeserializer::class
-//    )
+    val consumerProperties = kafkaBaseConfig.toConsumerConfig(
+        "${environment.applicationName}-consumer-11",
+        valueDeserializer = StringDeserializer::class
+    )
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "500")
 
-    val producerProperties =
-        kafkaBaseConfig.toProducerConfig(environment.applicationName, valueSerializer = JacksonKafkaSerializer::class)
+//    val producerProperties =
+//        kafkaBaseConfig.toProducerConfig(environment.applicationName, valueSerializer = JacksonKafkaSerializer::class)
 //    val kafkaproducerReceivedSykmelding = KafkaProducer<String, ReceivedSykmelding>(producerProperties)
 //    val kafkaproducerStringSykmelding = KafkaProducer<String, String>(producerProperties)
 //    val kafkaconsumerStringSykmelding = KafkaConsumer<String, String>(consumerProperties)
-//    val kafkaconsumerReceivedSykmelding = KafkaConsumer<String, String>(consumerProperties)
-    val kafkaproducerEiaReceivedSykmelding = KafkaProducer<String, ReceivedSykmelding>(producerProperties)
+    val kafkaconsumerReceivedSykmelding = KafkaConsumer<String, String>(consumerProperties)
+    //   val kafkaproducerEiaReceivedSykmelding = KafkaProducer<String, ReceivedSykmelding>(producerProperties)
 
-    val databaseOracle = DatabaseOracle(vaultConfig, vaultSecrets)
-//    val vaultCredentialService = VaultCredentialService()
-//    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
+    // val databaseOracle = DatabaseOracle(vaultConfig, vaultSecrets)
+    val vaultCredentialService = VaultCredentialService()
+    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
 
     val applicationState = ApplicationState()
     val applicationEngine = createApplicationEngine(environment, applicationState)
@@ -75,13 +77,13 @@ fun main() {
     applicationState.ready = true
 
     // Hent ut sykmeldigner fra eia
-    HentSykmeldingerFraEiaService(
-        RecivedSykmeldingKafkaProducer(
-            environment.sm2013SyfoserviceSykmeldingTopic,
-            kafkaproducerEiaReceivedSykmelding
-        ),
-        databaseOracle, 10_000
-    ).run()
+//    HentSykmeldingerFraEiaService(
+//        RecivedSykmeldingKafkaProducer(
+//            environment.sm2013SyfoserviceSykmeldingTopic,
+//            kafkaproducerEiaReceivedSykmelding
+//        ),
+//        databaseOracle, 10_000
+//    ).run()
 
     // Hent ut sykmeldigner fra syfoservice
     // HentSykmeldingerFraSyfoServiceService(
@@ -101,14 +103,13 @@ fun main() {
 
     // RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
 
-    // val antallSykmeldingerFor = databasePostgres.hentAntallSykmeldinger()
-    // log.info("Antall sykmeldinger i datbasen for oppdatering, {}", antallSykmeldingerFor.first().antall)
+    val antallSykmeldingerFor = databasePostgres.hentAntallSykmeldinger()
+    log.info("Antall sykmeldinger i datbasen for oppdatering, {}", antallSykmeldingerFor.first().antall)
 
-    /* SkrivTilSyfosmRegisterService(
+    SkrivTilSyfosmRegisterService(
         kafkaconsumerReceivedSykmelding,
         databasePostgres,
         environment.sm2013SyfoserviceSykmeldingCleanTopic,
         applicationState
     ).run()
-     */
 }

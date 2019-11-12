@@ -11,7 +11,6 @@ import no.nav.syfo.model.SykmeldingStatusEvent
 import no.nav.syfo.model.Sykmeldingsdokument
 import no.nav.syfo.model.Sykmeldingsopplysninger
 import no.nav.syfo.objectMapper
-import no.nav.syfo.persistering.db.postgres.erSykmeldingsopplysningerLagret
 import no.nav.syfo.persistering.db.postgres.opprettSykmeldingsdokument
 import no.nav.syfo.persistering.db.postgres.opprettSykmeldingsopplysninger
 import no.nav.syfo.persistering.db.postgres.registerStatus
@@ -27,66 +26,74 @@ class SkrivTilSyfosmRegisterService(
     fun run() {
         var counter = 0
         var counterDuplicates = 0
+        var invalidCounter = 0
         while (applicationState.ready) {
             kafkaconsumerReceivedSykmelding.subscribe(
                 listOf(
                     sm2013SyfoserviceSykmeldingCleanTopic
                 )
             )
-
             kafkaconsumerReceivedSykmelding.poll(Duration.ofMillis(0)).forEach { consumerRecord ->
                 val receivedSykmelding: ReceivedSykmelding = objectMapper.readValue(consumerRecord.value())
                 if (!validPasientFnr(receivedSykmelding.personNrPasient)) {
                     logNonValidSykmelding(receivedSykmelding)
-                } else if (databasePostgres.connection.erSykmeldingsopplysningerLagret(
-                        receivedSykmelding.sykmelding.id,
-                        convertToMottakid(receivedSykmelding.navLogId)
-                    )
-                ) {
-                    counterDuplicates++
-                    if (counterDuplicates % 10000 == 0) {
-                        log.info(
-                            "10000 duplikater er registrer og vil ikke bli oppdatert", receivedSykmelding.navLogId
-                        )
-                    }
-                } else {
-                    databasePostgres.connection.opprettSykmeldingsopplysninger(
-                        Sykmeldingsopplysninger(
-                            id = receivedSykmelding.sykmelding.id,
-                            pasientFnr = receivedSykmelding.personNrPasient,
-                            pasientAktoerId = receivedSykmelding.sykmelding.pasientAktoerId,
-                            legeFnr = receivedSykmelding.personNrLege,
-                            legeAktoerId = receivedSykmelding.sykmelding.behandler.aktoerId,
-                            mottakId = convertToMottakid(receivedSykmelding.navLogId),
-                            legekontorOrgNr = receivedSykmelding.legekontorOrgNr,
-                            legekontorHerId = receivedSykmelding.legekontorHerId,
-                            legekontorReshId = receivedSykmelding.legekontorReshId,
-                            epjSystemNavn = "SYFOSERVICE",
-                            epjSystemVersjon = "1",
-                            mottattTidspunkt = receivedSykmelding.mottattDato,
-                            tssid = receivedSykmelding.tssid
-                        )
-                    )
-                    databasePostgres.connection.opprettSykmeldingsdokument(
-                        Sykmeldingsdokument(
-                            id = receivedSykmelding.sykmelding.id,
-                            sykmelding = receivedSykmelding.sykmelding
-                        )
-                    )
-
-                    databasePostgres.registerStatus(
-                        SykmeldingStatusEvent(
-                            receivedSykmelding.sykmelding.id,
-                            receivedSykmelding.mottattDato, StatusEvent.APEN
-                        )
-                    )
-                    counter++
-                    if (counter % 10000 == 0) {
-                        log.info("Melding SM2013 lagret i databasen nr: {}", counter)
-                    }
+                    saveSykmeldingInDB(receivedSykmelding, "00000000000")
+                    invalidCounter++
                 }
+
+                counter++
+                if (counter % 10000 == 0) {
+                    log.info("searched through : {} sykmeldinger, found {} invalid", counter, invalidCounter)
+                }
+//                else if (databasePostgres.connection.erSykmeldingsopplysningerLagret(
+//                        receivedSykmelding.sykmelding.id,
+//                        convertToMottakid(receivedSykmelding.navLogId)
+//                    )
+//                ) {
+//                    counterDuplicates++
+//                    if (counterDuplicates % 10000 == 0) {
+//                        log.info(
+//                            "10000 duplikater er registrer og vil ikke bli oppdatert", receivedSykmelding.navLogId
+//                        )
+//                    }
+//                } else {
+//                    saveSykmeldingInDB(receivedSykmelding)
+//                }
             }
         }
+    }
+
+    private fun saveSykmeldingInDB(receivedSykmelding: ReceivedSykmelding, personnr: String = receivedSykmelding.personNrPasient) {
+        databasePostgres.connection.opprettSykmeldingsopplysninger(
+            Sykmeldingsopplysninger(
+                id = receivedSykmelding.sykmelding.id,
+                pasientFnr = personnr,
+                pasientAktoerId = receivedSykmelding.sykmelding.pasientAktoerId,
+                legeFnr = receivedSykmelding.personNrLege,
+                legeAktoerId = receivedSykmelding.sykmelding.behandler.aktoerId,
+                mottakId = convertToMottakid(receivedSykmelding.navLogId),
+                legekontorOrgNr = receivedSykmelding.legekontorOrgNr,
+                legekontorHerId = receivedSykmelding.legekontorHerId,
+                legekontorReshId = receivedSykmelding.legekontorReshId,
+                epjSystemNavn = "SYFOSERVICE",
+                epjSystemVersjon = "1",
+                mottattTidspunkt = receivedSykmelding.mottattDato,
+                tssid = receivedSykmelding.tssid
+            )
+        )
+        databasePostgres.connection.opprettSykmeldingsdokument(
+            Sykmeldingsdokument(
+                id = receivedSykmelding.sykmelding.id,
+                sykmelding = receivedSykmelding.sykmelding
+            )
+        )
+
+        databasePostgres.registerStatus(
+            SykmeldingStatusEvent(
+                receivedSykmelding.sykmelding.id,
+                receivedSykmelding.mottattDato, StatusEvent.APEN
+            )
+        )
     }
 }
 
