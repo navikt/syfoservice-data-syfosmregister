@@ -16,6 +16,7 @@ import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.persistering.db.postgres.hentAntallSykmeldinger
 import no.nav.syfo.service.SkrivTilSyfosmRegisterService
 import no.nav.syfo.utils.getFileAsString
+import no.nav.syfo.vault.RenewVaultService
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -36,19 +37,19 @@ val log: Logger = LoggerFactory.getLogger("no.nav.syfo.syfoservicedatasyfosmregi
 fun main() {
     val environment = Environment()
 
-    val vaultSecrets = VaultCredentials(
-        databasePassword = getFileAsString("/secrets/eia/credentials/password"),
-        databaseUsername = getFileAsString("/secrets/eia/credentials/username")
-    )
+//    val vaultSecrets = VaultCredentials(
+//        databasePassword = getFileAsString("/secrets/eia/credentials/password"),
+//        databaseUsername = getFileAsString("/secrets/eia/credentials/username")
+//    )
 
     val vaultServiceuser = VaultServiceUser(
         serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
         serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
     )
 
-    val vaultConfig = VaultConfig(
-        jdbcUrl = getFileAsString("/secrets/eia/config/jdbc_url")
-    )
+//    val vaultConfig = VaultConfig(
+//        jdbcUrl = getFileAsString("/secrets/eia/config/jdbc_url")
+//    )
 
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
@@ -101,7 +102,7 @@ fun main() {
     ).run()
      */
 
-    // RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
 
     val antallSykmeldingerFor = databasePostgres.hentAntallSykmeldinger()
     log.info("Antall sykmeldinger i datbasen for oppdatering, {}", antallSykmeldingerFor.first().antall)
