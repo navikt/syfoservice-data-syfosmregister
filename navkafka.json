@@ -22,6 +22,7 @@
       "members": [
         {"member":"srvsyfoservice-dat", "role":"CONSUMER"},
         {"member":"srvsyfoservice-dat", "role":"PRODUCER"},
+        {"member":"srvsyfoprediksjoner", "role":"CONSUMER"},
         {"member":"s151890", "role":"MANAGER"},
         {"member":"k143566", "role":"MANAGER"},
         {"member":"f133008", "role":"MANAGER"},
