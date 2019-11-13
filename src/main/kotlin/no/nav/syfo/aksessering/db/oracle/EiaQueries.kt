@@ -20,14 +20,7 @@ fun DatabaseInterfaceOracle.hentSykmeldingerEia(): List<Eia> =
     connection.use { connection ->
         connection.prepareStatement(
             """
-                    SELECT M.MELDING_ID
-                    , m.PASIENT_ID
-                    , m.MELDING_TYPE_KODE, bfxt.MELDING_XML_TYPE
-                    , m.EDILOGGID , m.PASIENT_ID
-                    , m.AVSENDERID ,msh.STATUS_KODE
-                    , m.AKTIV_BEHANDLING, bf.BEHANDLING_FORSOK_ID
-                    , msh.MELDING_STATUS_ID, mx.MELDING_XML_ID
-                    , mx.MELDING_XML, bfxt.xml_skjema
+                    SELECT m.EDILOGGID, m.PASIENT_ID, m.AVSENDERID, mx.MELDING_XML
                     FROM melding m, behandling_forsok bf, melding_status_historikk msh, 
                     behandling_forsok_xml_type bfxt, melding_xml mx
                     WHERE bf.BEHANDLING_FORSOK_ID = m.AKTIV_BEHANDLING
@@ -47,16 +40,15 @@ fun DatabaseInterfaceOracle.hentSykmeldingerEia(): List<Eia> =
 fun ResultSet.toEia(): Eia {
 
     val fellesformat = fellesformatUnmarshaller.unmarshal(StringReader(getString("MELDING_XML"))) as XMLEIFellesformat
-    val receiverBlock = fellesformat.get<XMLMottakenhetBlokk>()
     val msgHead = fellesformat.get<XMLMsgHead>()
     val healthInformation = extractHelseOpplysningerArbeidsuforhet(fellesformat)
-    val ediLoggId = receiverBlock.ediLoggId
+    val ediLoggId = getString("EDILOGGID")
     val legekontorHerId = extractOrganisationHerNumberFromSender(fellesformat)?.id
     val legekontorReshId = extractOrganisationRashNumberFromSender(fellesformat)?.id
     val legekontorOrgNr = extractOrganisationNumberFromSender(fellesformat)?.id
     val legekontorOrgName = msgHead.msgInfo.sender.organisation.organisationName
-    val personNumberPatient = healthInformation.pasient.fodselsnummer.id
-    val personNumberDoctor = receiverBlock.avsenderFnrFraDigSignatur
+    val personNumberPatient = getString("PASIENT_ID")
+    val personNumberDoctor = getString("AVSENDERID")
 
     return Eia(
         pasientfnr = personNumberPatient,
