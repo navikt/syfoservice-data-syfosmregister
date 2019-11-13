@@ -42,9 +42,9 @@ spec:
         mountPath: /secrets/syfoservice/credentials
       - kvPath: oracle/data/prod/config/syfoservice
         mountPath: /secrets/syfoservice/config
-      - kvPath: oracle/data/dev/creds/eia_p-user
+      - kvPath: oracle/data/prod/creds/eia_p-user
         mountPath: /secrets/eia/credentials
-      - kvPath: oracle/data/dev/config/eia_p
+      - kvPath: oracle/data/prod/config/eia_p
         mountPath: /secrets/eia/config
   webproxy: true
   ingresses:
