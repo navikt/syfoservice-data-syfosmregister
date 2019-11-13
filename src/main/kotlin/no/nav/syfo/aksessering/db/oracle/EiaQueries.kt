@@ -27,6 +27,7 @@ fun DatabaseInterfaceOracle.hentSykmeldingerEia(): List<Eia> =
                     AND bfxt.MELDING_XML_ID = mx.MELDING_XML_ID
                     AND m.melding_type_kode = 'SYKMELD'
                     AND bfxt.MELDING_XML_TYPE = 'MELDING'
+                    AND msh.STATUS_KODE != 'AVVIST'
                     AND trunc( m.REGISTRERT_DATO) >= to_date('2016-05-11','YYYY-MM-DD')
                     ORDER BY m.melding_id DESC
                         """
