@@ -45,7 +45,7 @@ fun ResultSet.toEia(): List<Eia> {
     while (next()) {
 
         val ediLoggId = getString("EDILOGGID")
-        log.info("Ediloggid: {}", ediLoggId)
+        log.info("Ediloggid for mapping: {}", ediLoggId)
         try {
             val fellesformat =
                 fellesformatUnmarshaller.unmarshal(StringReader(getString("MELDING_XML"))) as XMLEIFellesformat
