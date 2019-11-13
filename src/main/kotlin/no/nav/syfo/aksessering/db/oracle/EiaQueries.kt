@@ -34,35 +34,49 @@ fun DatabaseInterfaceOracle.hentSykmeldingerEia(): List<Eia> =
                     ORDER BY m.melding_id DESC
                         """
         ).use {
-            it.executeQuery().toList { toEia() }
+            it.executeQuery().toEia()
         }
     }
 
-fun ResultSet.toEia(): Eia {
+fun ResultSet.toEia(): List<Eia> {
 
-    val ediLoggId = getString("EDILOGGID")
-    log.info("Ediloggid: {}", ediLoggId)
-    val fellesformat = fellesformatUnmarshaller.unmarshal(StringReader(getString("MELDING_XML"))) as XMLEIFellesformat
-    val msgHead = fellesformat.get<XMLMsgHead>()
-    val healthInformation = extractHelseOpplysningerArbeidsuforhet(fellesformat)
-    val legekontorHerId = extractOrganisationHerNumberFromSender(fellesformat)?.id
-    val legekontorReshId = extractOrganisationRashNumberFromSender(fellesformat)?.id
-    val legekontorOrgNr = extractOrganisationNumberFromSender(fellesformat)?.id
-    val legekontorOrgName = msgHead.msgInfo.sender.organisation.organisationName
-    val personNumberPatient = getString("PASIENT_ID")
-    val personNumberDoctor = getString("AVSENDERID")
+    val listEia = ArrayList<Eia>()
 
-    return Eia(
-        pasientfnr = personNumberPatient,
-        legefnr = setPersonNumberDoctor(personNumberDoctor),
-        mottakid = ediLoggId,
-        legekontorOrgnr = legekontorOrgNr,
-        legekontorOrgnavn = legekontorOrgName,
-        legekontorHer = legekontorHerId,
-        legekontorResh = legekontorReshId,
-        epjSystemNavn = healthInformation.avsenderSystem.systemNavn,
-        epjSystemVersjon = healthInformation.avsenderSystem.systemVersjon
-    )
+    while (next()) {
+
+        val ediLoggId = getString("EDILOGGID")
+        log.info("Ediloggid: {}", ediLoggId)
+        try {
+            val fellesformat =
+                fellesformatUnmarshaller.unmarshal(StringReader(getString("MELDING_XML"))) as XMLEIFellesformat
+
+            val msgHead = fellesformat.get<XMLMsgHead>()
+            val healthInformation = extractHelseOpplysningerArbeidsuforhet(fellesformat)
+            val legekontorHerId = extractOrganisationHerNumberFromSender(fellesformat)?.id
+            val legekontorReshId = extractOrganisationRashNumberFromSender(fellesformat)?.id
+            val legekontorOrgNr = extractOrganisationNumberFromSender(fellesformat)?.id
+            val legekontorOrgName = msgHead.msgInfo.sender.organisation.organisationName
+            val personNumberPatient = getString("PASIENT_ID")
+            val personNumberDoctor = getString("AVSENDERID")
+
+            listEia.add(
+                Eia(
+                    pasientfnr = personNumberPatient,
+                    legefnr = setPersonNumberDoctor(personNumberDoctor),
+                    mottakid = ediLoggId,
+                    legekontorOrgnr = legekontorOrgNr,
+                    legekontorOrgnavn = legekontorOrgName,
+                    legekontorHer = legekontorHerId,
+                    legekontorResh = legekontorReshId,
+                    epjSystemNavn = healthInformation.avsenderSystem.systemNavn,
+                    epjSystemVersjon = healthInformation.avsenderSystem.systemVersjon
+                )
+            )
+        } catch (e: Exception) {
+            log.warn("Sykmelding feiler på mapping med Ediloggid: {}", ediLoggId)
+        }
+    }
+    return listEia
 }
 
 private fun setPersonNumberDoctor(personNumberDoctor: String?): String {
