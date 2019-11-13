@@ -52,7 +52,7 @@ fun ResultSet.toEia(): Eia {
 
     return Eia(
         pasientfnr = personNumberPatient,
-        legefnr = personNumberDoctor,
+        legefnr = setPersonNumberDoctor(personNumberDoctor),
         mottakid = ediLoggId,
         legekontorOrgnr = legekontorOrgNr,
         legekontorOrgnavn = legekontorOrgName,
@@ -61,6 +61,14 @@ fun ResultSet.toEia(): Eia {
         epjSystemNavn = healthInformation.avsenderSystem.systemNavn,
         epjSystemVersjon = healthInformation.avsenderSystem.systemVersjon
     )
+}
+
+private fun setPersonNumberDoctor(personNumberDoctor: String?): String {
+    return if (personNumberDoctor.isNullOrEmpty()) {
+        ""
+    } else {
+        personNumberDoctor
+    }
 }
 
 fun DatabaseInterfaceOracle.hentAntallSykmeldingerEia(): List<AntallSykmeldinger> =
