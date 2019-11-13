@@ -3,9 +3,7 @@ package no.nav.syfo.aksessering.db.oracle
 import java.io.StringReader
 import java.sql.ResultSet
 import no.nav.helse.eiFellesformat.XMLEIFellesformat
-import no.nav.helse.eiFellesformat.XMLMottakenhetBlokk
 import no.nav.helse.msgHead.XMLMsgHead
-import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.db.toList
 import no.nav.syfo.model.Eia
@@ -83,6 +81,3 @@ fun DatabaseInterfaceOracle.hentAntallSykmeldingerEia(): List<AntallSykmeldinger
             it.executeQuery().toList { toAntallSykmeldinger() }
         }
     }
-
-fun unmarshallerToHealthInformation(healthInformation: String): HelseOpplysningerArbeidsuforhet =
-    fellesformatUnmarshaller.unmarshal(StringReader(healthInformation)) as HelseOpplysningerArbeidsuforhet
