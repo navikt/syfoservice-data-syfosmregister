@@ -15,6 +15,7 @@ fun DatabaseInterfaceOracle.hentSykmeldingerEia(lastIndex: Int, limit: Int): Dat
                     FROM melding
                     WHERE melding_type_kode = 'SYKMELD'
                     AND MELDING_ID > ?
+                    AND MELDING_TYPE_VERSJON = '2013-10-01'
                     ORDER BY melding_id ASC
                     FETCH NEXT ? ROWS ONLY
                         """
@@ -98,6 +99,7 @@ fun DatabaseInterfaceOracle.hentAntallSykmeldingerEia(): List<AntallSykmeldinger
                     SELECT COUNT(MELDING_ID) as antall
                     FROM melding
                     WHERE melding_type_kode = 'SYKMELD'
+                    AND MELDING_TYPE_VERSJON = '2013-10-01'
                         """
         ).use {
             it.executeQuery().toList { toAntallSykmeldinger() }
