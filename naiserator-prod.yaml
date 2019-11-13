@@ -57,4 +57,4 @@ spec:
     - name: MOUNT_PATH_VAULT
       value: /postgresql/prod-fss
     - name: LAST_INDEX
-      value: 21606670
+      value: "21606670"

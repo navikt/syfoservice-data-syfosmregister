@@ -63,7 +63,6 @@ fun ResultSet.toEia(previusIndex: Int): DatabaseResult<Eia> {
             } else {
                 log.warn("Ugyldig fnr på pasient med Ediloggid: $ediLoggId")
             }
-
         } catch (e: Exception) {
             log.warn("Sykmelding feiler på mapping med Ediloggid: $ediLoggId", e)
         }
