@@ -28,6 +28,7 @@ fun DatabaseInterfaceOracle.hentSykmeldingerEia(): List<Eia> =
                     AND m.melding_type_kode = 'SYKMELD'
                     AND bfxt.MELDING_XML_TYPE = 'MELDING'
                     AND msh.STATUS_KODE != 'AVVIST'
+                    AND bfxt.xml_skjema = 'http://www.kith.no/xmlstds/HelseOpplysningerArbeidsuforhet/2013-10-01'
                     AND trunc( m.REGISTRERT_DATO) >= to_date('2016-05-11','YYYY-MM-DD')
                     ORDER BY m.melding_id DESC
                         """
@@ -75,6 +76,8 @@ fun DatabaseInterfaceOracle.hentAntallSykmeldingerEia(): List<AntallSykmeldinger
                     AND bfxt.MELDING_XML_ID = mx.MELDING_XML_ID
                     AND m.melding_type_kode = 'SYKMELD'
                     AND bfxt.MELDING_XML_TYPE = 'MELDING'
+                    AND msh.STATUS_KODE != 'AVVIST'
+                    AND bfxt.xml_skjema = 'http://www.kith.no/xmlstds/HelseOpplysningerArbeidsuforhet/2013-10-01'
                     AND trunc( m.REGISTRERT_DATO) >= to_date('2016-05-11','YYYY-MM-DD')
                     ORDER BY m.melding_id DESC
                         """
