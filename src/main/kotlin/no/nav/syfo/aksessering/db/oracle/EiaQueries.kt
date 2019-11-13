@@ -59,7 +59,7 @@ fun ResultSet.toEia(previusIndex: Int): DatabaseResult<Eia> {
                 )
             )
         } catch (e: Exception) {
-            log.warn("Sykmelding feiler på mapping med Ediloggid: {}", ediLoggId)
+            log.warn("Sykmelding feiler på mapping med Ediloggid: $ediLoggId", e)
         }
     }
     return DatabaseResult(lastIndex, listEia)
