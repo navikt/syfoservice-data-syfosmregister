@@ -58,7 +58,6 @@ fun ResultSet.toEia(previusIndex: Int): DatabaseResult<Eia> {
     while (next()) {
 
         val ediLoggId = getString("EDILOGGID")
-        log.info("Ediloggid for mapping: {}", ediLoggId)
         lastIndex = getInt("MELDING_ID")
         try {
             val fellesformat =
