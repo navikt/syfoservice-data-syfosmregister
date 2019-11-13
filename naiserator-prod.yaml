@@ -56,3 +56,5 @@ spec:
       value: jdbc:postgresql://fsspgdb.adeo.no:5432/syfosmregister
     - name: MOUNT_PATH_VAULT
       value: /postgresql/prod-fss
+    - name: LAST_INDEX
+      value: 21606670

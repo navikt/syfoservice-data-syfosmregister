@@ -56,3 +56,5 @@ spec:
       value: jdbc:postgresql://B27DBVL003.preprod.local:5432/syfosmregister
     - name: MOUNT_PATH_VAULT
       value: /postgresql/preprod-fss
+    - name: LAST_INDEX
+      value: 0

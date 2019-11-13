@@ -9,14 +9,14 @@ import no.nav.syfo.log
 class HentSykmeldingerFraEiaService(
     private val eiaKafkaProducer: EiaSykmeldingKafkaProducer,
     private val databaseOracle: DatabaseInterfaceOracle,
-    private val batchSize: Int
+    private val batchSize: Int,
+    private var lastIndex: Int
 ) {
 
     fun run(): Int {
         val hentantallSykmeldinger = databaseOracle.hentAntallSykmeldingerEia()
         log.info("Antall sykmeldinger som finnes i databasen:  {}", hentantallSykmeldinger.first().antall)
 
-        var lastIndex = 0
         var counter = 0
 
         while (true) {
