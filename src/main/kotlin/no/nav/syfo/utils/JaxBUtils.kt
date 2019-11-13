@@ -6,20 +6,15 @@ import javax.xml.bind.JAXBContext
 import javax.xml.bind.Unmarshaller
 import no.nav.helse.eiFellesformat.XMLEIFellesformat
 import no.nav.helse.eiFellesformat.XMLMottakenhetBlokk
-import no.nav.helse.infotrygd.foresp.InfotrygdForesp
 import no.nav.helse.msgHead.XMLMsgHead
 import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
-import no.nav.helse.sm2013.KontrollSystemBlokk
-import no.nav.helse.sm2013.KontrollsystemBlokkType
 
 val fellesformatJaxBContext: JAXBContext = JAXBContext.newInstance(
     XMLEIFellesformat::class.java,
     XMLMsgHead::class.java,
     XMLMottakenhetBlokk::class.java,
-    HelseOpplysningerArbeidsuforhet::class.java,
-    KontrollsystemBlokkType::class.java,
-    KontrollSystemBlokk::class.java,
-    InfotrygdForesp::class.java)
+    HelseOpplysningerArbeidsuforhet::class.java
+)
 
 val fellesformatUnmarshaller: Unmarshaller = fellesformatJaxBContext.createUnmarshaller().apply {
     setAdapter(LocalDateTimeXmlAdapter::class.java, XMLDateTimeAdapter())
