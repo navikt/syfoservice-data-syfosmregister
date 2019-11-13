@@ -7,7 +7,5 @@ data class Eia(
     val legekontorOrgnr: String?,
     val legekontorOrgnavn: String?,
     val legekontorHer: String?,
-    val legekontorResh: String?,
-    val epjSystemNavn: String,
-    val epjSystemVersjon: String
+    val legekontorResh: String?
 )

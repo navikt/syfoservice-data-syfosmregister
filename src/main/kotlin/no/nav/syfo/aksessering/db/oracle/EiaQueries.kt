@@ -1,38 +1,21 @@
 package no.nav.syfo.aksessering.db.oracle
 
-import java.io.StringReader
 import java.sql.ResultSet
-import no.nav.helse.eiFellesformat.XMLEIFellesformat
-import no.nav.helse.msgHead.XMLMsgHead
 import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.db.toList
 import no.nav.syfo.log
 import no.nav.syfo.model.Eia
-import no.nav.syfo.utils.extractHelseOpplysningerArbeidsuforhet
-import no.nav.syfo.utils.extractOrganisationHerNumberFromSender
-import no.nav.syfo.utils.extractOrganisationNumberFromSender
-import no.nav.syfo.utils.extractOrganisationRashNumberFromSender
-import no.nav.syfo.utils.fellesformatUnmarshaller
 import no.nav.syfo.utils.get
 
 fun DatabaseInterfaceOracle.hentSykmeldingerEia(lastIndex: Int, limit: Int): DatabaseResult<Eia> =
     connection.use { connection ->
         connection.prepareStatement(
             """
-                    SELECT m.MELDING_ID, m.EDILOGGID, m.PASIENT_ID, m.AVSENDERID, mx.MELDING_XML
-                    FROM melding m, behandling_forsok bf, melding_status_historikk msh, 
-                    behandling_forsok_xml_type bfxt, melding_xml mx
-                    WHERE bf.BEHANDLING_FORSOK_ID = m.AKTIV_BEHANDLING
-                    AND bf.AKTIV_STATUS = msh.MELDING_STATUS_ID
-                    AND bfxt.BEHANDLING_FORSOK_ID = bf.BEHANDLING_FORSOK_ID
-                    AND bfxt.MELDING_XML_ID = mx.MELDING_XML_ID
-                    AND m.melding_type_kode = 'SYKMELD'
-                    AND bfxt.MELDING_XML_TYPE = 'MELDING'
-                    AND msh.STATUS_KODE != 'AVVIST'
-                    AND bfxt.xml_skjema = 'http://www.kith.no/xmlstds/HelseOpplysningerArbeidsuforhet/2013-10-01'
-                    AND trunc( m.REGISTRERT_DATO) >= to_date('2016-05-11','YYYY-MM-DD')
-                    AND m.MELDING_ID > ?
-                    ORDER BY m.melding_id ASC
+                    SELECT *
+                    FROM melding
+                    WHERE melding_type_kode = 'SYKMELD'
+                    AND MELDING_ID > ?
+                    ORDER BY melding_id ASC
                     FETCH NEXT ? ROWS ONLY
                         """
         ).use {
@@ -56,33 +39,23 @@ fun ResultSet.toEia(previusIndex: Int): DatabaseResult<Eia> {
     var lastIndex = previusIndex
 
     while (next()) {
-
         val ediLoggId = getString("EDILOGGID")
         lastIndex = getInt("MELDING_ID")
         try {
-            val fellesformat =
-                fellesformatUnmarshaller.unmarshal(StringReader(getString("MELDING_XML"))) as XMLEIFellesformat
-
-            val msgHead = fellesformat.get<XMLMsgHead>()
-            val healthInformation = extractHelseOpplysningerArbeidsuforhet(fellesformat)
-            val legekontorHerId = extractOrganisationHerNumberFromSender(fellesformat)?.id
-            val legekontorReshId = extractOrganisationRashNumberFromSender(fellesformat)?.id
-            val legekontorOrgNr = extractOrganisationNumberFromSender(fellesformat)?.id
-            val legekontorOrgName = msgHead.msgInfo.sender.organisation.organisationName
+            val legekontorOrgName = getString("ORGANISASJON_NAVN")
             val personNumberPatient = getString("PASIENT_ID")
-            val personNumberDoctor = getString("AVSENDERID")
+            val personNumberDoctor = getString("AVSENDER_FNRSIGNATUR")
 
             listEia.add(
                 Eia(
                     pasientfnr = personNumberPatient,
                     legefnr = setPersonNumberDoctor(personNumberDoctor),
                     mottakid = ediLoggId,
-                    legekontorOrgnr = legekontorOrgNr,
-                    legekontorOrgnavn = legekontorOrgName,
-                    legekontorHer = legekontorHerId,
-                    legekontorResh = legekontorReshId,
-                    epjSystemNavn = healthInformation.avsenderSystem.systemNavn,
-                    epjSystemVersjon = healthInformation.avsenderSystem.systemVersjon
+                    legekontorOrgnr = getOrgNumber(this),
+                    legekontorHer = getHEROrg(this),
+                    legekontorResh = getRSHOrg(this),
+                    legekontorOrgnavn = legekontorOrgName
+
                 )
             )
         } catch (e: Exception) {
@@ -91,6 +64,24 @@ fun ResultSet.toEia(previusIndex: Int): DatabaseResult<Eia> {
     }
     return DatabaseResult(lastIndex, listEia)
 }
+
+private fun getOrgNumber(resultSet: ResultSet): String =
+    when (resultSet.getString("ORGANISASJON_IDTYPE")) {
+        "ENH" -> resultSet.getString("ORGANISASJON_ID")
+        else -> ""
+    }
+
+private fun getHEROrg(resultSet: ResultSet): String =
+    when (resultSet.getString("ORGANISASJON_IDTYPE")) {
+        "HER" -> resultSet.getString("ORGANISASJON_ID")
+        else -> ""
+    }
+
+private fun getRSHOrg(resultSet: ResultSet): String =
+    when (resultSet.getString("ORGANISASJON_IDTYPE")) {
+        "RSH" -> resultSet.getString("ORGANISASJON_ID")
+        else -> ""
+    }
 
 private fun setPersonNumberDoctor(personNumberDoctor: String?): String {
     return if (personNumberDoctor.isNullOrEmpty()) {
@@ -105,18 +96,8 @@ fun DatabaseInterfaceOracle.hentAntallSykmeldingerEia(): List<AntallSykmeldinger
         connection.prepareStatement(
             """
                     SELECT COUNT(M.MELDING_ID) as antall
-                    FROM melding m, behandling_forsok bf, melding_status_historikk msh, 
-                    behandling_forsok_xml_type bfxt, melding_xml mx
-                    WHERE bf.BEHANDLING_FORSOK_ID = m.AKTIV_BEHANDLING
-                    AND bf.AKTIV_STATUS = msh.MELDING_STATUS_ID
-                    AND bfxt.BEHANDLING_FORSOK_ID = bf.BEHANDLING_FORSOK_ID
-                    AND bfxt.MELDING_XML_ID = mx.MELDING_XML_ID
-                    AND m.melding_type_kode = 'SYKMELD'
-                    AND bfxt.MELDING_XML_TYPE = 'MELDING'
-                    AND msh.STATUS_KODE != 'AVVIST'
-                    AND bfxt.xml_skjema = 'http://www.kith.no/xmlstds/HelseOpplysningerArbeidsuforhet/2013-10-01'
-                    AND trunc( m.REGISTRERT_DATO) >= to_date('2016-05-11','YYYY-MM-DD')
-                    ORDER BY m.melding_id DESC
+                    FROM melding
+                    WHERE melding_type_kode = 'SYKMELD'
                         """
         ).use {
             it.executeQuery().toList { toAntallSykmeldinger() }
