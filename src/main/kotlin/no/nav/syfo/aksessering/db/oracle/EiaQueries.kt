@@ -95,7 +95,7 @@ fun DatabaseInterfaceOracle.hentAntallSykmeldingerEia(): List<AntallSykmeldinger
     connection.use { connection ->
         connection.prepareStatement(
             """
-                    SELECT COUNT(M.MELDING_ID) as antall
+                    SELECT COUNT(MELDING_ID) as antall
                     FROM melding
                     WHERE melding_type_kode = 'SYKMELD'
                         """
