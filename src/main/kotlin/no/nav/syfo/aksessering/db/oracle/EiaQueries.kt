@@ -6,6 +6,7 @@ import no.nav.helse.eiFellesformat.XMLEIFellesformat
 import no.nav.helse.msgHead.XMLMsgHead
 import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.db.toList
+import no.nav.syfo.log
 import no.nav.syfo.model.Eia
 import no.nav.syfo.utils.extractHelseOpplysningerArbeidsuforhet
 import no.nav.syfo.utils.extractOrganisationHerNumberFromSender
@@ -39,10 +40,11 @@ fun DatabaseInterfaceOracle.hentSykmeldingerEia(): List<Eia> =
 
 fun ResultSet.toEia(): Eia {
 
+    val ediLoggId = getString("EDILOGGID")
+    log.info("Ediloggid: {}", ediLoggId)
     val fellesformat = fellesformatUnmarshaller.unmarshal(StringReader(getString("MELDING_XML"))) as XMLEIFellesformat
     val msgHead = fellesformat.get<XMLMsgHead>()
     val healthInformation = extractHelseOpplysningerArbeidsuforhet(fellesformat)
-    val ediLoggId = getString("EDILOGGID")
     val legekontorHerId = extractOrganisationHerNumberFromSender(fellesformat)?.id
     val legekontorReshId = extractOrganisationRashNumberFromSender(fellesformat)?.id
     val legekontorOrgNr = extractOrganisationNumberFromSender(fellesformat)?.id
