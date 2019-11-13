@@ -82,7 +82,7 @@ fun main() {
             environment.sm2013EiaSykmedlingTopic,
             kafkaproducerEiaSykmelding
         ),
-        databaseOracle, 10_000
+        databaseOracle, 10
     ).run()
 
     // Hent ut sykmeldigner fra syfoservice

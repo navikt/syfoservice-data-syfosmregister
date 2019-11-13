@@ -16,10 +16,27 @@ class HentSykmeldingerFraEiaService(
         val hentantallSykmeldinger = databaseOracle.hentAntallSykmeldingerEia()
         log.info("Antall sykmeldinger som finnes i databasen:  {}", hentantallSykmeldinger.first().antall)
 
-        val hentSykmeldingerEia = databaseOracle.hentSykmeldingerEia()
-        log.info("Mapper over sykmeldinger som finnes i databasen:  {}", hentSykmeldingerEia.size)
-
+        var lastIndex = 0
         var counter = 0
+
+        while (true) {
+
+            val result = databaseOracle.hentSykmeldingerEia(lastIndex, batchSize)
+
+            val currentMillies = System.currentTimeMillis()
+
+            /*for (eiaSykmelding in result.rows) {
+                eiaKafkaProducer.publishToKafka(eiaSykmelding)
+            } */
+            val kafkaTime = (System.currentTimeMillis() - currentMillies) / 1000.0
+            lastIndex = result.lastIndex
+            counter += result.rows.size
+            log.info("Antall sykmeldinger som er hentet i dette forsoket:  {} totalt {}, DB time used {}, processing time {}, lastIndex {}, kafkatime {}", result.rows.size, counter, result.databaseTime, result.processingTime, lastIndex, kafkaTime)
+            if (result.rows.isEmpty()) {
+                log.info("no more sykmelinger in database")
+                break
+            }
+        }
 
         return counter
     }

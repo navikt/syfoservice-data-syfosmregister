@@ -5,9 +5,9 @@ import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.db.toList
 import no.nav.syfo.objectMapper
 
-data class DatabaseResult(val lastIndex: Int, val rows: List<String>, var databaseTime: Double = 0.0, var processingTime: Double = 0.0)
+data class DatabaseResult<T>(val lastIndex: Int, val rows: List<T>, var databaseTime: Double = 0.0, var processingTime: Double = 0.0)
 
-fun DatabaseInterfaceOracle.hentSykmeldingerSyfoService(lastIndex: Int, limit: Int): DatabaseResult =
+fun DatabaseInterfaceOracle.hentSykmeldingerSyfoService(lastIndex: Int, limit: Int): DatabaseResult<String> =
     connection.use { connection ->
         connection.prepareStatement(
             """
@@ -31,7 +31,7 @@ fun DatabaseInterfaceOracle.hentSykmeldingerSyfoService(lastIndex: Int, limit: I
         }
     }
 
-fun ResultSet.toJsonStringSyfoService(previusIndex: Int): DatabaseResult {
+fun ResultSet.toJsonStringSyfoService(previusIndex: Int): DatabaseResult<String> {
     val listOfRows = ArrayList<String>()
 
     val metadata = this.metaData
