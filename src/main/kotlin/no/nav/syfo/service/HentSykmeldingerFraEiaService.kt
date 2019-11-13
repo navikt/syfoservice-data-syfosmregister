@@ -3,11 +3,11 @@ package no.nav.syfo.service
 import no.nav.syfo.aksessering.db.oracle.hentAntallSykmeldingerEia
 import no.nav.syfo.aksessering.db.oracle.hentSykmeldingerEia
 import no.nav.syfo.db.DatabaseInterfaceOracle
-import no.nav.syfo.kafka.RecivedSykmeldingKafkaProducer
+import no.nav.syfo.kafka.EiaSykmeldingKafkaProducer
 import no.nav.syfo.log
 
 class HentSykmeldingerFraEiaService(
-    private val recivedSykmeldingKafkaProducer: RecivedSykmeldingKafkaProducer,
+    private val eiaKafkaProducer: EiaSykmeldingKafkaProducer,
     private val databaseOracle: DatabaseInterfaceOracle,
     private val batchSize: Int
 ) {

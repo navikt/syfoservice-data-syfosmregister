@@ -7,6 +7,7 @@ data class Environment(
     val applicationPort: Int = getEnvVar("APPLICATION_PORT", "8080").toInt(),
     val sm2013SyfoserviceSykmeldingTopic: String = getEnvVar("KAFKA_SM2013_SYFOSERVICE_SYKMELDING_TOPIC", "privat-syfo-sm2013-syfoservice-sykmelding"),
     val sm2013SyfoserviceSykmeldingCleanTopic: String = getEnvVar("KAFKA_SM2013_SYFOSERVICE_SYKMELDING_CLEAN_TOPIC", "privat-syfo-sm2013-syfoservice-received-sykmelding-clean"),
+    val sm2013EiaSykmedlingTopic: String = getEnvVar("KAFKA_SM2013_EIA_SYKMELDING_TOPIC", "privat-syfo-sm2013-eia-sykmelding"),
     val applicationName: String = getEnvVar("NAIS_APP_NAME", "syfoservice-data-syfosmregister"),
     val syfosmregisterDBURL: String = getEnvVar("SYFOSMREGISTER_DB_URL"),
     val mountPathVault: String = getEnvVar("MOUNT_PATH_VAULT"),
