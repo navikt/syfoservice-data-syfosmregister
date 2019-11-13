@@ -31,6 +31,7 @@ fun DatabaseInterfaceOracle.hentSykmeldingerEia(lastIndex: Int, limit: Int): Dat
                     AND msh.STATUS_KODE != 'AVVIST'
                     AND bfxt.xml_skjema = 'http://www.kith.no/xmlstds/HelseOpplysningerArbeidsuforhet/2013-10-01'
                     AND trunc( m.REGISTRERT_DATO) >= to_date('2016-05-11','YYYY-MM-DD')
+                    AND m.MELDING_ID > ?
                     ORDER BY m.melding_id ASC
                     FETCH NEXT ? ROWS ONLY
                         """
