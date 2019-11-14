@@ -16,6 +16,7 @@ import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.service.SkrivTilSyfosmRegisterServiceEia
 import no.nav.syfo.utils.getFileAsString
 import no.nav.syfo.vault.RenewVaultService
+import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
@@ -55,7 +56,7 @@ fun main() {
         valueDeserializer = StringDeserializer::class
     )
 
-//    consumerProperties.setProperty(ConsoleConsumer.ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "500")
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
 
 //    val producerProperties =
 //        kafkaBaseConfig.toProducerConfig(environment.applicationName, valueSerializer = JacksonKafkaSerializer::class)

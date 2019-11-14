@@ -7,7 +7,6 @@ import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.log
 import no.nav.syfo.model.Eia
 import no.nav.syfo.objectMapper
-import no.nav.syfo.persistering.db.postgres.erSykmeldingsopplysningerLagret
 import no.nav.syfo.persistering.db.postgres.oppdaterSykmeldingsopplysninger
 import org.apache.kafka.clients.consumer.KafkaConsumer
 
@@ -20,33 +19,21 @@ class SkrivTilSyfosmRegisterServiceEia(
 
     fun run() {
         var counter = 0
-        var counterDuplicates = 0
         while (applicationState.ready) {
             kafkaconsumerEia.subscribe(
                 listOf(
                     sm2013EiaSykmedlingTopic
                 )
             )
-            kafkaconsumerEia.poll(Duration.ofMillis(0)).forEach { consumerRecord ->
-                val eia: Eia = objectMapper.readValue(consumerRecord.value())
+            val listEia = kafkaconsumerEia.poll(Duration.ofMillis(0)).map { consumerRecord ->
+                objectMapper.readValue<Eia>(consumerRecord.value())
+            }
 
-                counter++
-                if (counter % 10000 == 0) {
-                    log.info("searched through : {} sykmeldinger", counter)
-                } else if (databasePostgres.connection.erSykmeldingsopplysningerLagret(
-                        "",
-                        convertToMottakid(eia.mottakid)
-                    )
-                ) {
-                    counterDuplicates++
-                    if (counterDuplicates % 10000 == 0) {
-                        log.info(
-                            "10000 duplikater er registrer og vil ikke bli oppdatert", eia.mottakid
-                        )
-                    }
-                } else {
-                    databasePostgres.connection.oppdaterSykmeldingsopplysninger(eia)
-                }
+            counter++
+            if (counter % 100 == 0) {
+                log.info("searched through : {} sykmeldinger", counter)
+            } else {
+                databasePostgres.connection.oppdaterSykmeldingsopplysninger(listEia)
             }
         }
     }

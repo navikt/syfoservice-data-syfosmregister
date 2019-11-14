@@ -5,6 +5,7 @@ import java.sql.ResultSet
 import java.sql.Timestamp
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.db.toList
+import no.nav.syfo.log
 import no.nav.syfo.model.Eia
 import no.nav.syfo.model.SykmeldingStatusEvent
 import no.nav.syfo.model.Sykmeldingsdokument
@@ -118,7 +119,7 @@ fun DatabaseInterfacePostgres.registerStatus(sykmeldingStatusEvent: SykmeldingSt
     }
 }
 
-fun Connection.oppdaterSykmeldingsopplysninger(eia: Eia) {
+fun Connection.oppdaterSykmeldingsopplysninger(listEia: List<Eia>) {
     use { connection ->
         connection.prepareStatement(
             """
@@ -132,13 +133,17 @@ fun Connection.oppdaterSykmeldingsopplysninger(eia: Eia) {
                 mottak_id = ?
             """
         ).use {
-            it.setString(1, eia.pasientfnr)
-            it.setString(2, eia.legefnr)
-            it.setString(3, eia.legekontorOrgnr)
-            it.setString(4, eia.legekontorHer)
-            it.setString(5, eia.legekontorResh)
-            it.setString(6, eia.mottakid)
-            it.executeUpdate()
+            for (eia in listEia) {
+                it.setString(1, eia.pasientfnr)
+                it.setString(2, eia.legefnr)
+                it.setString(3, eia.legekontorOrgnr)
+                it.setString(4, eia.legekontorHer)
+                it.setString(5, eia.legekontorResh)
+                it.setString(6, eia.mottakid)
+                it.addBatch()
+            }
+            val numberOfUpdates = it.executeBatch()
+            log.info("Antall oppdateringer {}", numberOfUpdates.size)
         }
 
         connection.commit()
