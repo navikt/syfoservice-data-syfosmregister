@@ -31,7 +31,7 @@ class SkrivTilSyfosmRegisterServiceEia(
             }
             if (listEia.isNotEmpty()) {
                 counter += listEia.size
-                if (counter % 100 == 0) {
+                if (counter % 10_000 == 0) {
                     log.info("searched through : {} sykmeldinger", counter)
                 } else {
                     databasePostgres.connection.oppdaterSykmeldingsopplysninger(listEia)
