@@ -25,13 +25,21 @@ class HentSykmeldingerFraEiaService(
 
             val currentMillies = System.currentTimeMillis()
 
-            /*for (eiaSykmelding in result.rows) {
+            for (eiaSykmelding in result.rows) {
                 eiaKafkaProducer.publishToKafka(eiaSykmelding)
-            } */
+            }
             val kafkaTime = (System.currentTimeMillis() - currentMillies) / 1000.0
             lastIndex = result.lastIndex
             counter += result.rows.size
-            log.info("Antall sykmeldinger som er hentet i dette forsoket:  {} totalt {}, DB time used {}, processing time {}, lastIndex {}, kafkatime {}", result.rows.size, counter, result.databaseTime, result.processingTime, lastIndex, kafkaTime)
+            log.info(
+                "Antall sykmeldinger som er hentet i dette forsoket:  {} totalt {}, DB time used {}, processing time {}, lastIndex {}, kafkatime {}",
+                result.rows.size,
+                counter,
+                result.databaseTime,
+                result.processingTime,
+                lastIndex,
+                kafkaTime
+            )
             if (result.rows.isEmpty()) {
                 log.info("no more sykmelinger in database")
                 break

@@ -5,11 +5,11 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 
 class EiaSykmeldingKafkaProducer(
-    val sm2013SyfoserviceSykmeldingTopic: String,
+    val sm2013EiaSykmedlingTopic: String,
     val kafkaproducerStringSykmelding: KafkaProducer<String, Eia>
 ) {
 
     fun publishToKafka(eia: Eia) {
-        kafkaproducerStringSykmelding.send(ProducerRecord(sm2013SyfoserviceSykmeldingTopic, eia))
+        kafkaproducerStringSykmelding.send(ProducerRecord(sm2013EiaSykmedlingTopic, eia))
     }
 }
