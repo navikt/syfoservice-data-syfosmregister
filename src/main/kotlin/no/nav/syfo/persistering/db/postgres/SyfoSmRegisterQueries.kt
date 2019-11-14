@@ -5,6 +5,7 @@ import java.sql.ResultSet
 import java.sql.Timestamp
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.db.toList
+import no.nav.syfo.model.Eia
 import no.nav.syfo.model.SykmeldingStatusEvent
 import no.nav.syfo.model.Sykmeldingsdokument
 import no.nav.syfo.model.Sykmeldingsopplysninger
@@ -113,6 +114,33 @@ fun DatabaseInterfacePostgres.registerStatus(sykmeldingStatusEvent: SykmeldingSt
             it.setString(3, sykmeldingStatusEvent.event.name)
             it.execute()
         }
+        connection.commit()
+    }
+}
+
+fun Connection.oppdaterSykmeldingsopplysninger(eia: Eia) {
+    use { connection ->
+        connection.prepareStatement(
+            """
+                UPDATE table
+                SET pasient_fnr = ?,
+                    lege_fnr = ?,
+                    legekontor_org_nr = ?,
+                    legekontor_her_id = ?,
+                    legekontor_resh_id = ?
+                WHERE
+                mottak_id = ?
+            """
+        ).use {
+            it.setString(1, eia.pasientfnr)
+            it.setString(2, eia.legefnr)
+            it.setString(3, eia.legekontorOrgnr)
+            it.setString(4, eia.legekontorHer)
+            it.setString(5, eia.legekontorResh)
+            it.setString(6, eia.mottakid)
+            it.executeUpdate()
+        }
+
         connection.commit()
     }
 }
