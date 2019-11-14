@@ -27,10 +27,7 @@ class SkrivTilSyfosmRegisterServiceEia(
         log.info("Started kafkakonsumer")
         while (applicationState.ready) {
             val listEia: List<Eia> = kafkaconsumerEia.poll(Duration.ofMillis(100)).map {
-
-                val eia = objectMapper.readValue<Eia>(it.value())
-                log.info("Got value from topic: ${eia.mottakid}")
-                eia
+                objectMapper.readValue<Eia>(it.value())
             }
             if (listEia.isNotEmpty()) {
                 counter += listEia.size
