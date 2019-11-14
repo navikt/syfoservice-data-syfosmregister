@@ -27,12 +27,12 @@ class SkrivTilSyfosmRegisterService(
         var counter = 0
         var counterDuplicates = 0
         var invalidCounter = 0
-        while (applicationState.ready) {
-            kafkaconsumerReceivedSykmelding.subscribe(
-                listOf(
-                    sm2013SyfoserviceSykmeldingCleanTopic
-                )
+        kafkaconsumerReceivedSykmelding.subscribe(
+            listOf(
+                sm2013SyfoserviceSykmeldingCleanTopic
             )
+        )
+        while (applicationState.ready) {
             kafkaconsumerReceivedSykmelding.poll(Duration.ofMillis(0)).forEach { consumerRecord ->
                 val receivedSykmelding: ReceivedSykmelding = objectMapper.readValue(consumerRecord.value())
                 if (!validPasientFnr(receivedSykmelding.personNrPasient)) {

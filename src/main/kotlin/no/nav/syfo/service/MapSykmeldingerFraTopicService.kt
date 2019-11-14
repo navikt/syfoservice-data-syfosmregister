@@ -27,12 +27,10 @@ class MapSykmeldingerFraTopicService(
     fun run() {
 
         var counter = 0
+        kafkaconsumerStringSykmelding.subscribe(
+            listOf(sm2013SyfoserviceSykmeldingStringTopic)
+        )
         while (applicationState.ready) {
-
-            kafkaconsumerStringSykmelding.subscribe(
-                listOf(sm2013SyfoserviceSykmeldingStringTopic)
-            )
-
             kafkaconsumerStringSykmelding.poll(Duration.ofMillis(0)).forEach { consumerRecord ->
                 val jsonMap: Map<String, String?> =
                     objectMapper.readValue(objectMapper.readValue<String>(objectMapper.readValue<String>(consumerRecord.value())))

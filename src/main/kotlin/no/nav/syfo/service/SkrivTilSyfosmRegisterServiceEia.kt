@@ -19,12 +19,13 @@ class SkrivTilSyfosmRegisterServiceEia(
 
     fun run() {
         var counter = 0
-        while (applicationState.ready) {
-            kafkaconsumerEia.subscribe(
-                listOf(
-                    sm2013EiaSykmedlingTopic
-                )
+        kafkaconsumerEia.subscribe(
+            listOf(
+                sm2013EiaSykmedlingTopic
             )
+        )
+        log.info("Started kafkakonsumer")
+        while (applicationState.ready) {
             val listEia = kafkaconsumerEia.poll(Duration.ofMillis(100)).map { consumerRecord ->
                 objectMapper.readValue<Eia>(consumerRecord.value())
             }
