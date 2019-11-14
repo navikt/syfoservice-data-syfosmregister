@@ -25,15 +25,16 @@ class SkrivTilSyfosmRegisterServiceEia(
                     sm2013EiaSykmedlingTopic
                 )
             )
-            val listEia = kafkaconsumerEia.poll(Duration.ofMillis(0)).map { consumerRecord ->
+            val listEia = kafkaconsumerEia.poll(Duration.ofMillis(100)).map { consumerRecord ->
                 objectMapper.readValue<Eia>(consumerRecord.value())
             }
-
-            counter++
-            if (counter % 100 == 0) {
-                log.info("searched through : {} sykmeldinger", counter)
-            } else {
-                databasePostgres.connection.oppdaterSykmeldingsopplysninger(listEia)
+            if(listEia.isNotEmpty()) {
+                counter += listEia.size
+                if (counter % 100 == 0) {
+                    log.info("searched through : {} sykmeldinger", counter)
+                } else {
+                    databasePostgres.connection.oppdaterSykmeldingsopplysninger(listEia)
+                }
             }
         }
     }
