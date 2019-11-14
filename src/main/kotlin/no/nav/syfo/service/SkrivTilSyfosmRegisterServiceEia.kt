@@ -28,7 +28,7 @@ class SkrivTilSyfosmRegisterServiceEia(
             val listEia = kafkaconsumerEia.poll(Duration.ofMillis(100)).map { consumerRecord ->
                 objectMapper.readValue<Eia>(consumerRecord.value())
             }
-            if(listEia.isNotEmpty()) {
+            if (listEia.isNotEmpty()) {
                 counter += listEia.size
                 if (counter % 100 == 0) {
                     log.info("searched through : {} sykmeldinger", counter)
