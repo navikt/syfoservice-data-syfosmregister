@@ -122,7 +122,7 @@ fun Connection.oppdaterSykmeldingsopplysninger(eia: Eia) {
     use { connection ->
         connection.prepareStatement(
             """
-                UPDATE table
+                UPDATE SYKMELDINGSOPPLYSNINGER
                 SET pasient_fnr = ?,
                     lege_fnr = ?,
                     legekontor_org_nr = ?,
