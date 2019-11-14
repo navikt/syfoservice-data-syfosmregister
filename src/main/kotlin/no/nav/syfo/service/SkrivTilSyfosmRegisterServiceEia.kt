@@ -1,6 +1,7 @@
 package no.nav.syfo.service
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import java.time.Duration
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.log
@@ -8,7 +9,6 @@ import no.nav.syfo.model.Eia
 import no.nav.syfo.objectMapper
 import no.nav.syfo.persistering.db.postgres.oppdaterSykmeldingsopplysninger
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import java.time.Duration
 
 class SkrivTilSyfosmRegisterServiceEia(
     private val kafkaconsumerEia: KafkaConsumer<String, String>,
@@ -26,12 +26,11 @@ class SkrivTilSyfosmRegisterServiceEia(
         )
         log.info("Started kafkakonsumer")
         while (applicationState.ready) {
-            val listEia = kafkaconsumerEia.poll(Duration.ofMillis(100)).map { it ->
-                {
-                    val eia = objectMapper.readValue<Eia>(it.value())
-                    log.info("got message from topic {}", eia.mottakid)
-                    eia
-                }
+            val listEia: List<Eia> = kafkaconsumerEia.poll(Duration.ofMillis(100)).map {
+
+                var eia = objectMapper.readValue<Eia>(it.value())
+                log.info("Got value from topic: ${eia.mottakid}")
+                eia
             }
             if (listEia.isNotEmpty()) {
                 counter += listEia.size

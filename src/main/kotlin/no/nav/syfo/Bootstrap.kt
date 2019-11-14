@@ -13,9 +13,7 @@ import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.db.VaultCredentialService
 import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
-import no.nav.syfo.model.Eia
 import no.nav.syfo.service.SkrivTilSyfosmRegisterServiceEia
-import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
 import no.nav.syfo.vault.RenewVaultService
 import org.apache.kafka.clients.consumer.ConsumerConfig
