@@ -28,7 +28,7 @@ class SkrivTilSyfosmRegisterServiceEia(
         while (applicationState.ready) {
             val listEia: List<Eia> = kafkaconsumerEia.poll(Duration.ofMillis(100)).map {
 
-                var eia = objectMapper.readValue<Eia>(it.value())
+                val eia = objectMapper.readValue<Eia>(it.value())
                 log.info("Got value from topic: ${eia.mottakid}")
                 eia
             }
