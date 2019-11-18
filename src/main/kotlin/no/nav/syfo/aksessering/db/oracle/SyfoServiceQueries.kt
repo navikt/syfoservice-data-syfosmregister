@@ -6,7 +6,12 @@ import no.nav.syfo.db.toList
 import no.nav.syfo.model.StatusSyfoService
 import no.nav.syfo.objectMapper
 
-data class DatabaseResult<T>(val lastIndex: Int, val rows: List<T>, var databaseTime: Double = 0.0, var processingTime: Double = 0.0)
+data class DatabaseResult<T>(
+    val lastIndex: Int,
+    val rows: List<T>,
+    var databaseTime: Double = 0.0,
+    var processingTime: Double = 0.0
+)
 
 fun DatabaseInterfaceOracle.hentSykmeldingerSyfoService(lastIndex: Int, limit: Int): DatabaseResult<String> =
     connection.use { connection ->
@@ -69,7 +74,10 @@ fun DatabaseInterfaceOracle.hentAntallSykmeldingerSyfoService(): List<AntallSykm
         }
     }
 
-fun DatabaseInterfaceOracle.hentSykmeldingStatusSyfoService(lastIndex: Int, limit: Int): DatabaseResult<StatusSyfoService> =
+fun DatabaseInterfaceOracle.hentSykmeldingStatusSyfoService(
+    lastIndex: Int,
+    limit: Int
+): DatabaseResult<StatusSyfoService> =
     connection.use { connection ->
         connection.prepareStatement(
             """
