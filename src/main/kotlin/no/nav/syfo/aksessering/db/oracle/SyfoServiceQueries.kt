@@ -105,8 +105,8 @@ fun ResultSet.toStatus(previusIndex: Int): DatabaseResult<StatusSyfoService> {
 
     val listStatusSyfoService = ArrayList<StatusSyfoService>()
     var lastIndex = previusIndex
-
     while (next()) {
+        lastIndex = getInt("SYKMELDING_DOK_ID")
         val ediLoggId = getString("MOTTAK_ID")
         val status = getString("STATUS")
         listStatusSyfoService.add(
