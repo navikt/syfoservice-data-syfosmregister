@@ -73,7 +73,7 @@ fun DatabaseInterfaceOracle.hentSykmeldingStatusSyfoService(lastIndex: Int, limi
     connection.use { connection ->
         connection.prepareStatement(
             """
-                SELECT mottakid_id, status FROM SYKMELDING_DOK 
+                SELECT mottak_id, status FROM SYKMELDING_DOK 
                 WHERE SYKMELDING_DOK_ID > ?
                 ORDER BY SYKMELDING_DOK_ID ASC
                 FETCH NEXT ? ROWS ONLY
