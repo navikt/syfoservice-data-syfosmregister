@@ -39,6 +39,11 @@ jobs:
           echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin docker.pkg.github.com
       - name: Push Docker image
         run: "docker push $(cat .docker_image):$(cat .docker_tag)"
+      - name: dump token before
+        run: |
+          curl -s "https://api.github.com/rate_limit" -H "Authorization: token $GITHUB_TOKEN"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: deploy to dev-fss
         uses: navikt/deployment-cli/action@0.4.1
         env:
@@ -55,3 +60,8 @@ jobs:
 #          cluster: prod-fss
 #          team: teamsykefravr
 #          resources: naiserator-prod.yaml
+      - name: dump token After
+        run: |
+          curl -s "https://api.github.com/rate_limit" -H "Authorization: token $GITHUB_TOKEN"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
