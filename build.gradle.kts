@@ -35,7 +35,7 @@ val kontrollsystemblokk = "2019.07.29-02-53-86b22e73f7843e422ee500b486dac387a582
 val infotrygdForespVersion = "2019.07.29-02-53-86b22e73f7843e422ee500b486dac387a582f2d1"
 
 plugins {
-    kotlin("jvm") version "1.3.50"
+    kotlin("jvm") version "1.3.60"
     id("org.jmailen.kotlinter") version "2.1.1"
     id("com.diffplug.gradle.spotless") version "3.24.0"
     id("com.github.johnrengelman.shadow") version "5.1.0"
