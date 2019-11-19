@@ -7,6 +7,7 @@ import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.db.toList
 import no.nav.syfo.log
 import no.nav.syfo.model.Eia
+import no.nav.syfo.model.StatusSyfoService
 import no.nav.syfo.model.SykmeldingStatusEvent
 import no.nav.syfo.model.Sykmeldingsdokument
 import no.nav.syfo.model.Sykmeldingsopplysninger
@@ -140,6 +141,30 @@ fun Connection.oppdaterSykmeldingsopplysninger(listEia: List<Eia>) {
                 it.setString(4, eia.legekontorHer)
                 it.setString(5, eia.legekontorResh)
                 it.setString(6, eia.mottakid)
+                it.addBatch()
+            }
+            val numberOfUpdates = it.executeBatch()
+            log.info("Antall oppdateringer {}", numberOfUpdates.size)
+        }
+
+        connection.commit()
+    }
+}
+
+fun Connection.oppdaterSykmeldingStatus(listStatusSyfoService: List<StatusSyfoService>) {
+    use { connection ->
+        connection.prepareStatement(
+            """                
+                UPDATE sykmeldingstatus
+                SET event = ?
+                where sykmelding_id IN (SELECT id
+                    FROM sykmeldingsopplysninger
+                    WHERE mottak_id = ?)
+            """
+        ).use {
+            for (statusSyfoService in listStatusSyfoService) {
+                it.setString(1, statusSyfoService.status)
+                it.setString(2, statusSyfoService.mottakid)
                 it.addBatch()
             }
             val numberOfUpdates = it.executeBatch()

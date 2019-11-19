@@ -76,6 +76,7 @@ fun main() {
 //    val kafkaproducerEiaSykmelding = KafkaProducer<String, Eia>(producerProperties)
 //    val kafkaconsumerrEiaSykmelding = KafkaConsumer<String, String>(consumerProperties)
     val kafkaproducerStatusSyfoServiceSykmelding = KafkaProducer<String, StatusSyfoService>(producerProperties)
+//    val kafkaconsumerStatusSyfoServiceSykmelding = KafkaConsumer<String, String>(consumerProperties)
 
     val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
 //    val vaultCredentialService = VaultCredentialService()
@@ -138,6 +139,13 @@ fun main() {
 //        kafkaconsumerReceivedSykmelding,
 //        databasePostgres,
 //        environment.sm2013SyfoserviceSykmeldingCleanTopic,
+//        applicationState
+//    ).run()
+
+//    SkrivTilSyfosmRegisterSysoServiceStatus(
+//        kafkaconsumerStatusSyfoServiceSykmelding,
+//        databasePostgres,
+//        environment.sm2013SyfoSericeSykmeldingStatusTopic,
 //        applicationState
 //    ).run()
 }
