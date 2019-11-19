@@ -109,8 +109,11 @@ fun ResultSet.toStatus(previusIndex: Int): DatabaseResult<StatusSyfoService> {
         lastIndex = getInt("SYKMELDING_DOK_ID")
         val ediLoggId = getString("MOTTAK_ID")
         val status = getString("STATUS")
+        val createdTimestmap = getTimestamp("CREATED").toLocalDateTime()
+        val sendTilArbeidsgiverDate = getDate("SENDT_TIL_ARBEIDSGIVER_DATO").toLocalDate()
+
         listStatusSyfoService.add(
-            StatusSyfoService(status, ediLoggId)
+            StatusSyfoService(status, ediLoggId, createdTimestmap, sendTilArbeidsgiverDate)
         )
     }
     return DatabaseResult(lastIndex, listStatusSyfoService)

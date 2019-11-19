@@ -35,7 +35,3 @@ data class SykmeldingStatusEvent(
     val timestamp: LocalDateTime,
     val event: StatusEvent
 )
-
-enum class StatusEvent {
-    APEN, AVBRUTT, UTGATT, SENDT, BEKREFTET
-}

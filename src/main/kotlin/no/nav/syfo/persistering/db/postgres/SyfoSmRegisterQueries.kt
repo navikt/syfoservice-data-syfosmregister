@@ -168,7 +168,7 @@ fun Connection.oppdaterSykmeldingStatus(listStatusSyfoService: List<StatusSyfoSe
                 it.addBatch()
             }
             val numberOfUpdates = it.executeBatch()
-            log.info("Antall oppdateringer {}", numberOfUpdates.size)
+//            log.info("Antall oppdateringer {}", numberOfUpdates.size)
         }
 
         connection.commit()

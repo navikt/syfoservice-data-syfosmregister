@@ -8,13 +8,14 @@ data class Environment(
     val sm2013SyfoserviceSykmeldingTopic: String = getEnvVar("KAFKA_SM2013_SYFOSERVICE_SYKMELDING_TOPIC", "privat-syfo-sm2013-syfoservice-sykmelding"),
     val sm2013SyfoserviceSykmeldingCleanTopic: String = getEnvVar("KAFKA_SM2013_SYFOSERVICE_SYKMELDING_CLEAN_TOPIC", "privat-syfo-sm2013-syfoservice-received-sykmelding-clean"),
     val sm2013EiaSykmedlingTopic: String = getEnvVar("KAFKA_SM2013_EIA_SYKMELDING_TOPIC", "privat-syfo-sm2013-eia-sykmelding"),
-    val sm2013SyfoSericeSykmeldingStatusTopic: String = getEnvVar("KAFKA_SM2013_SYFOSERVICE_SYKMELDING_STATUS_TOPIC", "privat-syfo-sm2013-syfoservice-sykmelding-status"),
+    val sm2013SyfoSericeSykmeldingStatusTopic: String = getEnvVar("KAFKA_SM2013_SYFOSERVICE_SYKMELDING_STATUS_TOPIC", "privat-syfo-sm2013-syfoservice-sykmelding-status-2"),
     val applicationName: String = getEnvVar("NAIS_APP_NAME", "syfoservice-data-syfosmregister"),
     val syfosmregisterDBURL: String = getEnvVar("SYFOSMREGISTER_DB_URL"),
     val mountPathVault: String = getEnvVar("MOUNT_PATH_VAULT"),
     val cluster: String = getEnvVar("NAIS_CLUSTER_NAME"),
     val databaseName: String = getEnvVar("DATABASE_NAME", "syfosmregister"),
     val lastIndex: Int = getEnvVar("LAST_INDEX").toInt(),
+    val sykmeldingCleanTopic: String = getEnvVar("SYKEMLDING_CLEAN_TOPIC", "private-syfoservce-clean-sykmelding"),
     override val kafkaBootstrapServers: String = getEnvVar("KAFKA_BOOTSTRAP_SERVERS_URL")
 ) : KafkaConfig
 

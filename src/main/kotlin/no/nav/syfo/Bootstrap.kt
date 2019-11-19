@@ -9,15 +9,16 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
-import no.nav.syfo.db.DatabaseOracle
-import no.nav.syfo.kafka.SyfoServiceSykmeldingStatusKafkaProducer
 import no.nav.syfo.kafka.loadBaseConfig
+import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
-import no.nav.syfo.model.StatusSyfoService
-import no.nav.syfo.service.HentStatusFraSyfoServiceService
+import no.nav.syfo.service.MapSykmeldingStringToSykemldignJsonMap
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
+import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -40,45 +41,45 @@ fun main() {
 //        databaseUsername = getFileAsString("/secrets/eia/credentials/username")
 //    )
 
-    val syfoserviceVaultSecrets = VaultCredentials(
-        databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
-        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
-    )
-
-    val vaultConfig = VaultConfig(
-        jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
-    )
-
-    val vaultServiceuser = VaultServiceUser(
-        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
-        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
-    )
+//    val syfoserviceVaultSecrets = VaultCredentials(
+//        databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
+//        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
+//    )
+//
+//    val vaultConfig = VaultConfig(
+//        jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
+//    )
+//
+//    val vaultServiceuser = VaultServiceUser(
+//        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
+//        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
+//    )
 
 //    val vaultConfig = VaultConfig(
 //        jdbcUrl = getFileAsString("/secrets/eia/config/jdbc_url")
 //    )
 
-    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+//    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 //    val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-//        "${environment.applicationName}-consumer-3",
+//        "${environment.applicationName}-sykmelding-string-consumer",
 //        valueDeserializer = StringDeserializer::class
 //    )
-
-//    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
-
-    val producerProperties =
-        kafkaBaseConfig.toProducerConfig(environment.applicationName, valueSerializer = JacksonKafkaSerializer::class)
+//
+//    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "500")
+//
+//    val producerProperties =
+//        kafkaBaseConfig.toProducerConfig(environment.applicationName, valueSerializer = JacksonKafkaSerializer::class)
 //    val kafkaproducerReceivedSykmelding = KafkaProducer<String, ReceivedSykmelding>(producerProperties)
 //    val kafkaproducerStringSykmelding = KafkaProducer<String, String>(producerProperties)
-//    val kafkaconsumerStringSykmelding = KafkaConsumer<String, String>(consumerProperties)
+
 //    val kafkaconsumerReceivedSykmelding = KafkaConsumer<String, String>(consumerProperties)
 //    val kafkaproducerEiaReceivedSykmelding = KafkaProducer<String, ReceivedSykmelding>(producerProperties)
 //    val kafkaproducerEiaSykmelding = KafkaProducer<String, Eia>(producerProperties)
 //    val kafkaconsumerrEiaSykmelding = KafkaConsumer<String, String>(consumerProperties)
-    val kafkaproducerStatusSyfoServiceSykmelding = KafkaProducer<String, StatusSyfoService>(producerProperties)
+
 //    val kafkaconsumerStatusSyfoServiceSykmelding = KafkaConsumer<String, String>(consumerProperties)
 
-    val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
+//    val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
 //    val vaultCredentialService = VaultCredentialService()
 //    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
 
@@ -90,13 +91,13 @@ fun main() {
     applicationState.ready = true
 
 //    Hent ut sykmeldigStatus fra syfoservice
-    HentStatusFraSyfoServiceService(
-        SyfoServiceSykmeldingStatusKafkaProducer(
-            environment.sm2013SyfoSericeSykmeldingStatusTopic,
-            kafkaproducerStatusSyfoServiceSykmelding
-        ),
-        databaseOracle, 10_000
-    ).run()
+//    HentStatusFraSyfoServiceService(
+//        SyfoServiceSykmeldingStatusKafkaProducer(
+//            environment.sm2013SyfoSericeSykmeldingStatusTopic,
+//            kafkaproducerStatusSyfoServiceSykmelding
+//        ),
+//        databaseOracle, 10_000
+//    ).run()
 
 //    Hent ut sykmeldigner fra eia
 //    HentSykmeldingerFraEiaService(
@@ -148,4 +149,37 @@ fun main() {
 //        environment.sm2013SyfoSericeSykmeldingStatusTopic,
 //        applicationState
 //    ).run()
+
+    runMapStringToJsonMap(applicationState, environment)
+}
+
+fun runMapStringToJsonMap(
+    applicationState: ApplicationState,
+    environment: Environment
+) {
+
+    val vaultServiceuser = VaultServiceUser(
+        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
+        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
+    )
+    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+
+    val consumerProperties = kafkaBaseConfig.toConsumerConfig(
+        "${environment.applicationName}-sykmelding-string-consumer",
+        valueDeserializer = StringDeserializer::class
+    )
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "500")
+    val kafkaConsumerStringSykmelding = KafkaConsumer<String, String>(consumerProperties)
+
+    val producerProperties =
+        kafkaBaseConfig.toProducerConfig(environment.applicationName, valueSerializer = JacksonKafkaSerializer::class)
+    val kafkaProducerClean = KafkaProducer<String, Map<String, String?>>(producerProperties)
+
+    MapSykmeldingStringToSykemldignJsonMap(
+        kafkaConsumerStringSykmelding,
+        kafkaProducerClean,
+        environment.sykmeldingCleanTopic,
+        environment.sm2013SyfoserviceSykmeldingTopic,
+        applicationState
+    ).run()
 }
