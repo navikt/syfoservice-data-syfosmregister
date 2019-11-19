@@ -10,8 +10,14 @@ import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
 import no.nav.syfo.db.DatabaseOracle
+import no.nav.syfo.kafka.SyfoServiceSykmeldingStatusKafkaProducer
+import no.nav.syfo.kafka.loadBaseConfig
+import no.nav.syfo.kafka.toProducerConfig
+import no.nav.syfo.model.StatusSyfoService
 import no.nav.syfo.service.HentStatusFraSyfoServiceService
+import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
+import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -43,16 +49,16 @@ fun main() {
         jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
     )
 
-//    val vaultServiceuser = VaultServiceUser(
-//        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
-//        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
-//    )
+    val vaultServiceuser = VaultServiceUser(
+        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
+        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
+    )
 
 //    val vaultConfig = VaultConfig(
 //        jdbcUrl = getFileAsString("/secrets/eia/config/jdbc_url")
 //    )
 
-//    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 //    val consumerProperties = kafkaBaseConfig.toConsumerConfig(
 //        "${environment.applicationName}-consumer-3",
 //        valueDeserializer = StringDeserializer::class
@@ -60,8 +66,8 @@ fun main() {
 
 //    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
 
-//    val producerProperties =
-//        kafkaBaseConfig.toProducerConfig(environment.applicationName, valueSerializer = JacksonKafkaSerializer::class)
+    val producerProperties =
+        kafkaBaseConfig.toProducerConfig(environment.applicationName, valueSerializer = JacksonKafkaSerializer::class)
 //    val kafkaproducerReceivedSykmelding = KafkaProducer<String, ReceivedSykmelding>(producerProperties)
 //    val kafkaproducerStringSykmelding = KafkaProducer<String, String>(producerProperties)
 //    val kafkaconsumerStringSykmelding = KafkaConsumer<String, String>(consumerProperties)
@@ -69,6 +75,7 @@ fun main() {
 //    val kafkaproducerEiaReceivedSykmelding = KafkaProducer<String, ReceivedSykmelding>(producerProperties)
 //    val kafkaproducerEiaSykmelding = KafkaProducer<String, Eia>(producerProperties)
 //    val kafkaconsumerrEiaSykmelding = KafkaConsumer<String, String>(consumerProperties)
+    val kafkaproducerStatusSyfoServiceSykmelding = KafkaProducer<String, StatusSyfoService>(producerProperties)
 
     val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
 //    val vaultCredentialService = VaultCredentialService()
@@ -83,6 +90,10 @@ fun main() {
 
 //    Hent ut sykmeldigStatus fra syfoservice
     HentStatusFraSyfoServiceService(
+        SyfoServiceSykmeldingStatusKafkaProducer(
+            environment.sm2013SyfoSericeSykmeldingStatusTopic,
+            kafkaproducerStatusSyfoServiceSykmelding
+        ),
         databaseOracle, 10_000
     ).run()
 
