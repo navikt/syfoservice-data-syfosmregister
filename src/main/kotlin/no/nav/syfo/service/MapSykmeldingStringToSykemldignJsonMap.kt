@@ -21,6 +21,7 @@ class MapSykmeldingStringToSykemldignJsonMap(
         kafkaconsumerStringSykmelding.subscribe(
             listOf(sm2013SyfoserviceSykmeldingStringTopic)
         )
+        log.info("Started kafkaConsumer on topic {}", kafkaconsumerStringSykmelding)
         while (applicationState.ready) {
             kafkaconsumerStringSykmelding.poll(Duration.ofMillis(100)).forEach { consumerRecord ->
                 val jsonMap: Map<String, String?> =
