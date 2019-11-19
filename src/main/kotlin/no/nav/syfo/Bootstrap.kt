@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.util.KtorExperimentalAPI
+import java.time.Duration
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
@@ -149,8 +151,38 @@ fun main() {
 //        environment.sm2013SyfoSericeSykmeldingStatusTopic,
 //        applicationState
 //    ).run()
+    readFromJsonMapTopic(applicationState, environment)
+    // runMapStringToJsonMap(applicationState, environment)
+}
 
-    runMapStringToJsonMap(applicationState, environment)
+fun readFromJsonMapTopic(applicationState: ApplicationState, environment: Environment) {
+    val vaultServiceuser = VaultServiceUser(
+        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
+        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
+    )
+    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+
+    val consumerProperties = kafkaBaseConfig.toConsumerConfig(
+        "${environment.applicationName}-sykmelding-clean-consumer-1",
+        valueDeserializer = StringDeserializer::class
+    )
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "500")
+    val kafkaConsumerCleanSykmelding = KafkaConsumer<String, String>(consumerProperties)
+    kafkaConsumerCleanSykmelding.subscribe(
+        listOf(environment.sykmeldingCleanTopic)
+    )
+    var counter = 0
+    while (applicationState.ready) {
+        kafkaConsumerCleanSykmelding.poll(Duration.ofMillis(100)).forEach { consumerRecord ->
+            val jsonMap: Map<String, String?> =
+                objectMapper.readValue(consumerRecord.value())
+            counter++
+            if (counter % 1000 == 0) {
+                log.info(jsonMap["MOTTAK_ID"])
+                log.info("Melding sendt til kafka topic nr {}", counter)
+            }
+        }
+    }
 }
 
 fun runMapStringToJsonMap(
