@@ -35,7 +35,7 @@ class MapSykmeldingStringToSykemldignJsonMap(
                     )
                 )
                 counter++
-                if (counter % 1000 == 0) {
+                if (counter % 10_000 == 0) {
                     log.info("Melding sendt til kafka topic nr {}", counter)
                 }
             }

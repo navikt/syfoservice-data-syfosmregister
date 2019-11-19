@@ -151,8 +151,8 @@ fun main() {
 //        environment.sm2013SyfoSericeSykmeldingStatusTopic,
 //        applicationState
 //    ).run()
-    readFromJsonMapTopic(applicationState, environment)
-    // runMapStringToJsonMap(applicationState, environment)
+    //readFromJsonMapTopic(applicationState, environment)
+     runMapStringToJsonMap(applicationState, environment)
 }
 
 fun readFromJsonMapTopic(applicationState: ApplicationState, environment: Environment) {
@@ -179,7 +179,7 @@ fun readFromJsonMapTopic(applicationState: ApplicationState, environment: Enviro
             counter++
             if (counter % 1000 == 0) {
                 log.info(jsonMap["MOTTAK_ID"])
-                log.info("Melding sendt til kafka topic nr {}", counter)
+                log.info("Melding lest fra kafka topic nr {}", counter)
             }
         }
     }
@@ -200,7 +200,7 @@ fun runMapStringToJsonMap(
         "${environment.applicationName}-sykmelding-string-consumer-1",
         valueDeserializer = StringDeserializer::class
     )
-    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "500")
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1000")
     val kafkaConsumerStringSykmelding = KafkaConsumer<String, String>(consumerProperties)
 
     val producerProperties =
