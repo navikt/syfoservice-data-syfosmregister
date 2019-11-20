@@ -1,12 +1,19 @@
 package no.nav.syfo.model
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 class StatusMapper private constructor() {
     companion object {
+
+        val log: Logger = LoggerFactory.getLogger("no.nav.syfo.syfoservicedatasyfosmregister")
+
+
         fun mapToSyfoserviceStatus(jsonMap: Map<String, String?>): StatusSyfoService {
 
+            log.info("logging date: {}", jsonMap["CREATED"])
             val created = LocalDateTime.parse((jsonMap["CREATED"].toString().substring(0, 19)))
             val status = jsonMap["STATUS"] ?: error("STATUS must not be null")
             val sendtTilArbeidsgiverDato: LocalDate? = getLocalDate(jsonMap["SENDT_TIL_ARBEIDSGIVER_DATO"])
