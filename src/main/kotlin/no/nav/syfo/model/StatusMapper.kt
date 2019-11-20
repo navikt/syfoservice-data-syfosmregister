@@ -15,13 +15,13 @@ class StatusMapper private constructor() {
 
             val created = LocalDateTime.parse((jsonMap["CREATED"].toString().substring(0, 19)))
             val status = jsonMap["STATUS"] ?: error("STATUS must not be null")
-            val sendtTilArbeidsgiverDato: LocalDate? = getLocalDate(jsonMap["SENDT_TIL_ARBEIDSGIVER_DATO"])
+            val sendtTilArbeidsgiverDato: LocalDate? = getLocalDate(jsonMap["SENDT_TIL_ARBEIDSGIVER_DATO"], jsonMap)
             val mottakId = jsonMap["MOTTAK_ID"] ?: error("MOTTAK_ID, must not be null")
             return StatusSyfoService(status, mottakId, created, sendtTilArbeidsgiverDato)
         }
 
-        private fun getLocalDate(localDate: String?): LocalDate? {
-            log.info("Date: {}", localDate)
+        private fun getLocalDate(localDate: String?, jsonMap: Map<String, String?>): LocalDate? {
+            log.info("Sykmelding id {}, Date: {}",jsonMap["SYKMELDING_DOK_ID"], localDate)
             return when (localDate) {
                 null -> null
                 else -> LocalDate.parse(localDate)
