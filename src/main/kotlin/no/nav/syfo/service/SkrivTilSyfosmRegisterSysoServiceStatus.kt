@@ -5,7 +5,9 @@ import java.time.Duration
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.log
-import no.nav.syfo.model.StatusSyfoService
+import no.nav.syfo.model.StatusMapper.Companion.mapToSyfoserviceStatus
+import no.nav.syfo.model.StatusMapper.Companion.toStatusEventList
+import no.nav.syfo.model.SykmeldingStatusEvent
 import no.nav.syfo.objectMapper
 import no.nav.syfo.persistering.db.postgres.oppdaterSykmeldingStatus
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -13,7 +15,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer
 class SkrivTilSyfosmRegisterSysoServiceStatus(
     private val kafkaconsumerSyfoServiceSykmeldingStatus: KafkaConsumer<String, String>,
     private val databasePostgres: DatabaseInterfacePostgres,
-    private val sm2013SyfoSericeSykmeldingStatusTopic: String,
+    private val sykmeldingStatusCleanTopic: String,
     private val applicationState: ApplicationState
 ) {
 
@@ -21,14 +23,18 @@ class SkrivTilSyfosmRegisterSysoServiceStatus(
         var counter = 0
         kafkaconsumerSyfoServiceSykmeldingStatus.subscribe(
             listOf(
-                sm2013SyfoSericeSykmeldingStatusTopic
+                sykmeldingStatusCleanTopic
             )
         )
         log.info("Started kafkakonsumer")
         while (applicationState.ready) {
-            val listStatusSyfoService: List<StatusSyfoService> = kafkaconsumerSyfoServiceSykmeldingStatus.poll(Duration.ofMillis(100)).map {
-                objectMapper.readValue<StatusSyfoService>(it.value())
-            }
+            val listStatusSyfoService: List<SykmeldingStatusEvent> =
+                kafkaconsumerSyfoServiceSykmeldingStatus.poll(Duration.ofMillis(100)).map {
+                    objectMapper.readValue<Map<String, String?>>(it.value()) }
+                    .map { mapToSyfoserviceStatus(it) }
+                    .map { toStatusEventList(it) }
+                    .flatten()
+
             if (listStatusSyfoService.isNotEmpty()) {
                 counter += listStatusSyfoService.size
                 if (counter % 10_000 == 0) {

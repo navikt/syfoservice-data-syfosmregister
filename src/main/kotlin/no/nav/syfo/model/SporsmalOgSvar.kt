@@ -22,7 +22,3 @@ data class Svar(
     val svartype: Svartype,
     val svar: String
 )
-
-enum class StatusEvent {
-    APEN, AVBRUTT, UTGATT, SENDT, BEKREFTET
-}

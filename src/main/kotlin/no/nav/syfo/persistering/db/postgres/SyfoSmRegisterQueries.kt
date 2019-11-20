@@ -7,7 +7,6 @@ import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.db.toList
 import no.nav.syfo.log
 import no.nav.syfo.model.Eia
-import no.nav.syfo.model.StatusSyfoService
 import no.nav.syfo.model.SykmeldingStatusEvent
 import no.nav.syfo.model.Sykmeldingsdokument
 import no.nav.syfo.model.Sykmeldingsopplysninger
@@ -104,22 +103,6 @@ fun Connection.erSykmeldingsopplysningerLagret(id: String, mottakId: String) =
         }
     }
 
-fun DatabaseInterfacePostgres.registerStatus(sykmeldingStatusEvent: SykmeldingStatusEvent) {
-    connection.use { connection ->
-        connection.prepareStatement(
-            """
-                    INSERT INTO sykmeldingstatus(sykmelding_id, event_timestamp, event) VALUES (?, ?, ?)
-                    """
-        ).use {
-            it.setString(1, sykmeldingStatusEvent.id)
-            it.setTimestamp(2, Timestamp.valueOf(sykmeldingStatusEvent.timestamp))
-            it.setString(3, sykmeldingStatusEvent.event.name)
-            it.execute()
-        }
-        connection.commit()
-    }
-}
-
 fun Connection.oppdaterSykmeldingsopplysninger(listEia: List<Eia>) {
     use { connection ->
         connection.prepareStatement(
@@ -151,23 +134,21 @@ fun Connection.oppdaterSykmeldingsopplysninger(listEia: List<Eia>) {
     }
 }
 
-fun Connection.oppdaterSykmeldingStatus(listStatusSyfoService: List<StatusSyfoService>) {
+fun Connection.oppdaterSykmeldingStatus(sykmeldingStatusEvents: List<SykmeldingStatusEvent>) {
     use { connection ->
         connection.prepareStatement(
             """                
-                UPDATE sykmeldingstatus
-                SET event = ?
-                where sykmelding_id IN (SELECT id
-                    FROM sykmeldingsopplysninger
-                    WHERE mottak_id = ?)
+                INSERT INTO sykmeldingstatus(sykmelding_id, event_timestamp, event) 
+                VALUES ((SELECT id FROM sykmeldingsopplysninger WHERE mottak_id = ?), ?, ?)
             """
         ).use {
-            for (statusSyfoService in listStatusSyfoService) {
-                it.setString(1, statusSyfoService.status)
-                it.setString(2, statusSyfoService.mottakid)
+            for (status in sykmeldingStatusEvents) {
+                it.setString(1, status.mottakId)
+                it.setTimestamp(1, Timestamp.valueOf(status.timestamp))
+                it.setString(2, status.event.name)
                 it.addBatch()
             }
-            val numberOfUpdates = it.executeBatch()
+            it.executeBatch()
 //            log.info("Antall oppdateringer {}", numberOfUpdates.size)
         }
 

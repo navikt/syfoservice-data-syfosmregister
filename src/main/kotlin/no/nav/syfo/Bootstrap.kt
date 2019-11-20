@@ -4,19 +4,21 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.util.KtorExperimentalAPI
-import java.time.Duration
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
+import no.nav.syfo.db.DatabasePostgres
+import no.nav.syfo.db.VaultCredentialService
 import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
 import no.nav.syfo.service.MapSykmeldingStringToSykemldignJsonMap
+import no.nav.syfo.service.SkrivTilSyfosmRegisterSysoServiceStatus
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
+import no.nav.syfo.vault.RenewVaultService
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -151,8 +153,9 @@ fun main() {
 //        environment.sm2013SyfoSericeSykmeldingStatusTopic,
 //        applicationState
 //    ).run()
-    //readFromJsonMapTopic(applicationState, environment)
-     runMapStringToJsonMap(applicationState, environment)
+    // readFromJsonMapTopic(applicationState, environment)
+
+    runMapStringToJsonMap(applicationState, environment)
 }
 
 fun readFromJsonMapTopic(applicationState: ApplicationState, environment: Environment) {
@@ -171,18 +174,16 @@ fun readFromJsonMapTopic(applicationState: ApplicationState, environment: Enviro
     kafkaConsumerCleanSykmelding.subscribe(
         listOf(environment.sykmeldingCleanTopic)
     )
-    var counter = 0
-    while (applicationState.ready) {
-        kafkaConsumerCleanSykmelding.poll(Duration.ofMillis(100)).forEach { consumerRecord ->
-            val jsonMap: Map<String, String?> =
-                objectMapper.readValue(consumerRecord.value())
-            counter++
-            if (counter % 1000 == 0) {
-                log.info(jsonMap["MOTTAK_ID"])
-                log.info("Melding lest fra kafka topic nr {}", counter)
-            }
-        }
-    }
+    val vaultCredentialService = VaultCredentialService()
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
+    val skrivTilSyfosmRegisterSysoService = SkrivTilSyfosmRegisterSysoServiceStatus(
+        kafkaConsumerCleanSykmelding,
+        databasePostgres,
+        environment.sykmeldingCleanTopic,
+        applicationState
+    )
+    skrivTilSyfosmRegisterSysoService.run()
 }
 
 fun runMapStringToJsonMap(

@@ -7,5 +7,5 @@ data class StatusSyfoService(
     val status: String,
     val mottakid: String,
     val createdTimestmap: LocalDateTime,
-    val sendTilArbeidsgiverDate: LocalDate
+    val sendTilArbeidsgiverDate: LocalDate?
 )

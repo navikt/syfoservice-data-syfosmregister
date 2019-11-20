@@ -6,14 +6,11 @@ import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.log
 import no.nav.syfo.model.ReceivedSykmelding
-import no.nav.syfo.model.StatusEvent
-import no.nav.syfo.model.SykmeldingStatusEvent
 import no.nav.syfo.model.Sykmeldingsdokument
 import no.nav.syfo.model.Sykmeldingsopplysninger
 import no.nav.syfo.objectMapper
 import no.nav.syfo.persistering.db.postgres.opprettSykmeldingsdokument
 import no.nav.syfo.persistering.db.postgres.opprettSykmeldingsopplysninger
-import no.nav.syfo.persistering.db.postgres.registerStatus
 import org.apache.kafka.clients.consumer.KafkaConsumer
 
 class SkrivTilSyfosmRegisterService(
@@ -25,7 +22,6 @@ class SkrivTilSyfosmRegisterService(
 
     fun run() {
         var counter = 0
-        var counterDuplicates = 0
         var invalidCounter = 0
         kafkaconsumerReceivedSykmelding.subscribe(
             listOf(
@@ -85,13 +81,6 @@ class SkrivTilSyfosmRegisterService(
             Sykmeldingsdokument(
                 id = receivedSykmelding.sykmelding.id,
                 sykmelding = receivedSykmelding.sykmelding
-            )
-        )
-
-        databasePostgres.registerStatus(
-            SykmeldingStatusEvent(
-                receivedSykmelding.sykmelding.id,
-                receivedSykmelding.mottattDato, StatusEvent.APEN
             )
         )
     }
