@@ -8,7 +8,7 @@ class StatusMapper private constructor() {
         fun mapToSyfoserviceStatus(jsonMap: Map<String, String?>): StatusSyfoService {
 
             val created = LocalDateTime.parse(
-                (jsonMap["CREATED"] ?: error("CREATED timestamp must not be null")).substring(
+                (jsonMap["CREATED"] ?: error("CREATED timestamp must not be null")).toString().substring(
                     0,
                     19
                 )
