@@ -41,13 +41,13 @@ jobs:
         run: "docker push $(cat .docker_image):$(cat .docker_tag)"
       - name: dump token before
         run: |
-          curl -s "https://api.github.com/rate_limit" -H "Authorization: token $GITHUB_TOKEN"
+          curl -s "https://api.github.com/rate_limit" -H "Authorization: token $GITHUB_ACCESS_TOKEN"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_ACCESS_TOKEN }}
       - name: deploy to dev-fss
         uses: navikt/deployment-cli/action@0.4.1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_ACCESS_TOKEN }}
         with:
           cluster: dev-fss
           team: teamsykefravr
@@ -55,13 +55,13 @@ jobs:
       - name: deploy to prod-fss
         uses: navikt/deployment-cli/action@0.4.1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_ACCESS_TOKEN }}
         with:
           cluster: prod-fss
           team: teamsykefravr
           resources: naiserator-prod.yaml
       - name: dump token After
         run: |
-          curl -s "https://api.github.com/rate_limit" -H "Authorization: token $GITHUB_TOKEN"
+          curl -s "https://api.github.com/rate_limit" -H "Authorization: token GITHUB_ACCESS_TOKEN"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_ACCESS_TOKEN }}
