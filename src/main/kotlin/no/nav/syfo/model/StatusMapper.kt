@@ -7,12 +7,7 @@ class StatusMapper private constructor() {
     companion object {
         fun mapToSyfoserviceStatus(jsonMap: Map<String, String?>): StatusSyfoService {
 
-            val created = LocalDateTime.parse(
-                (jsonMap["CREATED"] ?: error("CREATED timestamp must not be null")).toString().substring(
-                    0,
-                    19
-                )
-            )
+            val created = LocalDateTime.parse((jsonMap["CREATED"].toString().substring(0, 19)))
             val status = jsonMap["STATUS"] ?: error("STATUS must not be null")
             val sendtTilArbeidsgiverDato: LocalDate? = getLocalDate(jsonMap["SENDT_TIL_ARBEIDSGIVER_DATO"])
             val mottakId = jsonMap["MOTTAK_ID"] ?: error("MOTTAK_ID, must not be null")
