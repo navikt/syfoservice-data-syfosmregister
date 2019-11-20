@@ -21,7 +21,7 @@ class StatusMapper private constructor() {
         private fun getLocalDate(localDate: String?): LocalDateTime? {
             return when (localDate) {
                 null -> null
-                else -> LocalDateTime.parse(localDate)
+                else -> LocalDateTime.parse(localDate.substring(0, 19))
             }
         }
 
