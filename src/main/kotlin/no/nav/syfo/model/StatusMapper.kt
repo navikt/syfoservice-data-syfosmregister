@@ -1,30 +1,27 @@
 package no.nav.syfo.model
 
+import java.time.LocalDateTime
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
-import java.time.LocalDateTime
 
 class StatusMapper private constructor() {
     companion object {
 
         val log: Logger = LoggerFactory.getLogger("no.nav.syfo.syfoservicedatasyfosmregister")
 
-
         fun mapToSyfoserviceStatus(jsonMap: Map<String, String?>): StatusSyfoService {
 
             val created = LocalDateTime.parse((jsonMap["CREATED"].toString().substring(0, 19)))
             val status = jsonMap["STATUS"] ?: error("STATUS must not be null")
-            val sendtTilArbeidsgiverDato: LocalDate? = getLocalDate(jsonMap["SENDT_TIL_ARBEIDSGIVER_DATO"], jsonMap)
+            val sendtTilArbeidsgiverDato: LocalDateTime? = getLocalDate(jsonMap["SENDT_TIL_ARBEIDSGIVER_DATO"])
             val mottakId = jsonMap["MOTTAK_ID"] ?: error("MOTTAK_ID, must not be null")
             return StatusSyfoService(status, mottakId, created, sendtTilArbeidsgiverDato)
         }
 
-        private fun getLocalDate(localDate: String?, jsonMap: Map<String, String?>): LocalDate? {
-            log.info("Sykmelding id {}, Date: {}",jsonMap["SYKMELDING_DOK_ID"], localDate)
+        private fun getLocalDate(localDate: String?): LocalDateTime? {
             return when (localDate) {
                 null -> null
-                else -> LocalDate.parse(localDate)
+                else -> LocalDateTime.parse(localDate)
             }
         }
 
@@ -63,10 +60,10 @@ class StatusMapper private constructor() {
         }
 
         private fun getSendtTimestamp(statusSyfoService: StatusSyfoService): LocalDateTime {
-            val createdDate = statusSyfoService.createdTimestmap.toLocalDate()
-            val sendtDate = statusSyfoService.sendTilArbeidsgiverDate ?: createdDate
+            val createdDateTime = statusSyfoService.createdTimestmap
+            val sendtDate = statusSyfoService.sendTilArbeidsgiverDate ?: createdDateTime
             return when {
-                sendtDate.isAfter(createdDate) -> sendtDate.atTime(12, 0)
+                sendtDate.isAfter(createdDateTime) -> sendtDate
                 else -> statusSyfoService.createdTimestmap.plusHours(1)
             }
         }

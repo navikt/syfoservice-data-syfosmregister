@@ -1,5 +1,6 @@
 import java.io.StringReader
 import java.time.LocalDate
+import java.time.LocalDateTime
 import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.syfo.utils.fellesformatUnmarshaller
 import no.nav.syfo.utils.getFileAsString
@@ -18,6 +19,14 @@ object UnmarshalSpek : Spek({
 
             expectedFomDate shouldEqual healthInformation.aktivitet.periode.first().periodeFOMDato
             expectedTomDate shouldEqual healthInformation.aktivitet.periode.first().periodeTOMDato
+        }
+        it("test ") {
+            val string = "2016-11-25"
+            if (string.length > 10) {
+                LocalDateTime.parse(string.substring(0, 19))
+            } else {
+                LocalDate.parse(string).atTime(12, 0)
+            }
         }
     }
 })
