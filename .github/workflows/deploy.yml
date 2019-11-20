@@ -41,7 +41,7 @@ jobs:
         run: "docker push $(cat .docker_image):$(cat .docker_tag)"
       - name: dump token before
         run: |
-          curl -s "https://api.github.com/rate_limit" -H "Authorization: token $GITHUB_ACCESS_TOKEN"
+          curl -s "https://api.github.com/rate_limit" -H "Authorization: token $GITHUB_TOKEN"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_ACCESS_TOKEN }}
       - name: deploy to dev-fss
@@ -62,6 +62,6 @@ jobs:
 #          resources: naiserator-prod.yaml
       - name: dump token After
         run: |
-          curl -s "https://api.github.com/rate_limit" -H "Authorization: token GITHUB_ACCESS_TOKEN"
+          curl -s "https://api.github.com/rate_limit" -H "Authorization: token $GITHUB_TOKEN"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_ACCESS_TOKEN }}
