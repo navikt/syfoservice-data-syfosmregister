@@ -155,7 +155,7 @@ fun main() {
 //    ).run()
     // readFromJsonMapTopic(applicationState, environment)
 
-    runMapStringToJsonMap(applicationState, environment)
+    readFromJsonMapTopic(applicationState, environment)
 }
 
 fun readFromJsonMapTopic(applicationState: ApplicationState, environment: Environment) {

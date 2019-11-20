@@ -37,7 +37,7 @@ class SkrivTilSyfosmRegisterSysoServiceStatus(
 
             if (listStatusSyfoService.isNotEmpty()) {
                 counter += listStatusSyfoService.size
-                if (counter % 10_000 == 0) {
+                if (counter % 1_000 == 0) {
                     log.info("searched through : {} sykmeldinger status", counter)
                 } else {
                     databasePostgres.connection.oppdaterSykmeldingStatus(listStatusSyfoService)
