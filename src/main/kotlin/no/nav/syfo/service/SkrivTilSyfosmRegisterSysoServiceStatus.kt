@@ -21,6 +21,7 @@ class SkrivTilSyfosmRegisterSysoServiceStatus(
 
     fun run() {
         var counter = 0
+        var lastCounter = 0
         kafkaconsumerSyfoServiceSykmeldingStatus.subscribe(
             listOf(
                 sykmeldingStatusCleanTopic
@@ -37,8 +38,9 @@ class SkrivTilSyfosmRegisterSysoServiceStatus(
 
             if (listStatusSyfoService.isNotEmpty()) {
                 counter += listStatusSyfoService.size
-                if (counter % 10_000 == 0) {
-                    log.info("searched through : {} sykmeldinger status", counter)
+                if (counter >= lastCounter + 10_000) {
+                    log.info("searched through : {} sykmeldinger", counter)
+                    lastCounter = counter
                 }
                 //databasePostgres.connection.oppdaterSykmeldingStatus(listStatusSyfoService)
             }
