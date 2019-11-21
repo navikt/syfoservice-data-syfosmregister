@@ -40,7 +40,7 @@ class SkrivTilSyfosmRegisterSysoServiceStatus(
                 if (counter % 10_000 == 0) {
                     log.info("searched through : {} sykmeldinger status", counter)
                 }
-                databasePostgres.connection.oppdaterSykmeldingStatus(listStatusSyfoService)
+                //databasePostgres.connection.oppdaterSykmeldingStatus(listStatusSyfoService)
             }
         }
     }

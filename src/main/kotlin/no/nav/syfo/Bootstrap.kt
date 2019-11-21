@@ -148,8 +148,8 @@ fun main() {
 //        applicationState
 //    ).run()
     // readFromJsonMapTopic(applicationState, environment)
-    oppdaterFraEia(applicationState, environment)
-//    readFromJsonMapTopic(applicationState, environment)
+    //  oppdaterFraEia(applicationState, environment)
+    readFromJsonMapTopic(applicationState, environment)
 }
 
 fun oppdaterFraEia(applicationState: ApplicationState, environment: Environment) {
