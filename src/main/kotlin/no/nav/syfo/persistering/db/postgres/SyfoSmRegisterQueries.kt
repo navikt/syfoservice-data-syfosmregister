@@ -144,8 +144,8 @@ fun Connection.oppdaterSykmeldingStatus(sykmeldingStatusEvents: List<SykmeldingS
         ).use {
             for (status in sykmeldingStatusEvents) {
                 it.setString(1, status.mottakId)
-                it.setTimestamp(1, Timestamp.valueOf(status.timestamp))
-                it.setString(2, status.event.name)
+                it.setTimestamp(2, Timestamp.valueOf(status.timestamp))
+                it.setString(3, status.event.name)
                 it.addBatch()
             }
             it.executeBatch()
