@@ -15,6 +15,7 @@ import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
 import no.nav.syfo.service.MapSykmeldingStringToSykemldignJsonMap
+import no.nav.syfo.service.SkrivTilSyfosmRegisterServiceEia
 import no.nav.syfo.service.SkrivTilSyfosmRegisterSysoServiceStatus
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
@@ -130,13 +131,6 @@ fun main() {
 
 //    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
 
-//    SkrivTilSyfosmRegisterServiceEia(
-//        kafkaconsumerrEiaSykmelding,
-//        databasePostgres,
-//        environment.sm2013EiaSykmedlingTopic,
-//        applicationState
-//    ).run()
-
 //    val antallSykmeldingerFor = databasePostgres.hentAntallSykmeldinger()
 //    log.info("Antall sykmeldinger i datbasen for oppdatering, {}", antallSykmeldingerFor.first().antall)
 
@@ -154,8 +148,31 @@ fun main() {
 //        applicationState
 //    ).run()
     // readFromJsonMapTopic(applicationState, environment)
+    oppdaterFraEia(applicationState, environment)
+//    readFromJsonMapTopic(applicationState, environment)
+}
 
-    readFromJsonMapTopic(applicationState, environment)
+fun oppdaterFraEia(applicationState: ApplicationState, environment: Environment) {
+    val vaultServiceuser = VaultServiceUser(
+        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
+        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
+    )
+    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+    val consumerProperties = kafkaBaseConfig.toConsumerConfig(
+        "${environment.applicationName}-eia-consumer-10",
+        valueDeserializer = StringDeserializer::class
+    )
+    val vaultCredentialService = VaultCredentialService()
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "500")
+    val kafkaconsumerrEiaSykmelding = KafkaConsumer<String, String>(consumerProperties)
+    SkrivTilSyfosmRegisterServiceEia(
+        kafkaconsumerrEiaSykmelding,
+        databasePostgres,
+        environment.sm2013EiaSykmedlingTopic,
+        applicationState
+    ).run()
 }
 
 fun readFromJsonMapTopic(applicationState: ApplicationState, environment: Environment) {
