@@ -108,8 +108,7 @@ fun Connection.oppdaterSykmeldingsopplysninger(listEia: List<Eia>) {
         connection.prepareStatement(
             """
                 UPDATE SYKMELDINGSOPPLYSNINGER
-                SET pasient_fnr = ?,
-                    lege_fnr = ?,
+                SET lege_fnr = ?,
                     legekontor_org_nr = ?,
                     legekontor_her_id = ?,
                     legekontor_resh_id = ?
@@ -118,18 +117,15 @@ fun Connection.oppdaterSykmeldingsopplysninger(listEia: List<Eia>) {
             """
         ).use {
             for (eia in listEia) {
-                it.setString(1, eia.pasientfnr)
-                it.setString(2, eia.legefnr)
-                it.setString(3, eia.legekontorOrgnr)
-                it.setString(4, eia.legekontorHer)
-                it.setString(5, eia.legekontorResh)
-                it.setString(6, eia.mottakid)
+                it.setString(1, eia.legefnr)
+                it.setString(2, eia.legekontorOrgnr)
+                it.setString(3, eia.legekontorHer)
+                it.setString(4, eia.legekontorResh)
+                it.setString(5, eia.mottakid)
                 it.addBatch()
             }
-            val numberOfUpdates = it.executeBatch()
-            log.info("Antall oppdateringer {}", numberOfUpdates.size)
+            it.executeBatch()
         }
-
         connection.commit()
     }
 }
