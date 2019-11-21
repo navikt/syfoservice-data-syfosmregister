@@ -139,7 +139,7 @@ fun Connection.oppdaterSykmeldingStatus(sykmeldingStatusEvents: List<SykmeldingS
         connection.prepareStatement(
             """                
                 INSERT INTO sykmeldingstatus(sykmelding_id, event_timestamp, event) 
-                VALUES ((SELECT id FROM sykmeldingsopplysninger WHERE mottak_id = ?), ?, ?) 
+                VALUES ((SELECT id FROM sykmeldingsopplysninger WHERE mottak_id = ? limit 1), ?, ?) 
             """
         ).use {
             for (status in sykmeldingStatusEvents) {
