@@ -138,14 +138,17 @@ fun Connection.oppdaterSykmeldingStatus(sykmeldingStatusEvents: List<SykmeldingS
     use { connection ->
         connection.prepareStatement(
             """                
-                INSERT INTO sykmeldingstatus(sykmelding_id, event_timestamp, event) 
-                VALUES ((SELECT id FROM sykmeldingsopplysninger WHERE mottak_id = ? limit 1), ?, ?)  on conflict DO NOTHING
+                INSERT INTO sykmeldingstatus
+                (sykmelding_id, event_timestamp, event)
+                SELECT id, ?, ?
+                FROM sykmeldingsopplysninger where mottak_id = ? 
+                on conflict do nothing
             """
         ).use {
             for (status in sykmeldingStatusEvents) {
-                it.setString(1, convertToMottakid(status.mottakId))
-                it.setTimestamp(2, Timestamp.valueOf(status.timestamp))
-                it.setString(3, status.event.name)
+                it.setTimestamp(1, Timestamp.valueOf(status.timestamp))
+                it.setString(2, status.event.name)
+                it.setString(3, convertToMottakid(status.mottakId))
                 it.addBatch()
             }
             it.executeBatch()
