@@ -139,11 +139,11 @@ fun Connection.oppdaterSykmeldingStatus(sykmeldingStatusEvents: List<SykmeldingS
         connection.prepareStatement(
             """                
                 INSERT INTO sykmeldingstatus(sykmelding_id, event_timestamp, event) 
-                VALUES ((SELECT id FROM sykmeldingsopplysninger WHERE mottak_id = ?), ?, ?)
+                VALUES ((SELECT id FROM sykmeldingsopplysninger WHERE mottak_id = ?), ?, ?) 
             """
         ).use {
             for (status in sykmeldingStatusEvents) {
-                it.setString(1, status.mottakId)
+                it.setString(1, convertToMottakid(status.mottakId))
                 it.setTimestamp(2, Timestamp.valueOf(status.timestamp))
                 it.setString(3, status.event.name)
                 it.addBatch()
@@ -155,6 +155,15 @@ fun Connection.oppdaterSykmeldingStatus(sykmeldingStatusEvents: List<SykmeldingS
         connection.commit()
     }
 }
+
+fun convertToMottakid(mottakid: String): String =
+    when (mottakid.length <= 63) {
+        true -> mottakid
+        else -> {
+            log.info("Størrelsen på mottakid er: {}, mottakid: {}", mottakid.length, mottakid)
+            mottakid.substring(0, 63)
+        }
+    }
 
 data class AntallSykmeldinger(
     val antall: String
