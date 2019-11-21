@@ -37,12 +37,13 @@ class SkrivTilSyfosmRegisterSysoServiceStatus(
                     .flatten()
 
             if (listStatusSyfoService.isNotEmpty()) {
+                databasePostgres.connection.oppdaterSykmeldingStatus(listStatusSyfoService)
+
                 counter += listStatusSyfoService.size
-                if (counter >= lastCounter + 10_000) {
-                    log.info("searched through : {} sykmeldinger", counter)
+                if (counter >= lastCounter + 50_000) {
+                    log.info("Inserted {} statuses", counter)
                     lastCounter = counter
                 }
-                //databasePostgres.connection.oppdaterSykmeldingStatus(listStatusSyfoService)
             }
         }
     }
