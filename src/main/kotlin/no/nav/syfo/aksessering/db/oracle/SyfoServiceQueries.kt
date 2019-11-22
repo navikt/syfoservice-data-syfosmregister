@@ -73,6 +73,32 @@ fun DatabaseInterfaceOracle.hentAntallSykmeldingerSyfoService(): List<AntallSykm
         }
     }
 
+fun DatabaseInterfaceOracle.hentArbeidsgiverSyfoService(lastIndex: Int, limit: Int): DatabaseResult<String> =
+    connection.use { connection ->
+        connection.prepareStatement(
+            """
+                SELECT * FROM SYKMELDING_DOK
+                INNER JOIN SM_ARBEIDSGIVER
+                ON SYKMELDING_DOK.ARBEIDSGIVER_ID = SM_ARBEIDSGIVER.ARBEIDSGIVER_ID
+                WHERE SYKMELDING_DOK_ID > ?
+                ORDER BY SYKMELDING_DOK_ID ASC
+                FETCH NEXT ? ROWS ONLY
+                """
+        ).use {
+            it.setInt(1, lastIndex)
+            it.setInt(2, limit)
+            val currentMillies = System.currentTimeMillis()
+            val resultSet = it.executeQuery()
+            val databaseEndMillies = System.currentTimeMillis()
+            val databaseResult = resultSet.toJsonStringSyfoService(lastIndex)
+            val processingMillies = System.currentTimeMillis()
+
+            databaseResult.databaseTime = (databaseEndMillies - currentMillies) / 1000.0
+            databaseResult.processingTime = (processingMillies - databaseEndMillies) / 1000.0
+            return databaseResult
+        }
+    }
+
 data class AntallSykmeldinger(
     val antall: String
 )

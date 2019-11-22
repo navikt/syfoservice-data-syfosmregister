@@ -9,11 +9,14 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
+import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.db.VaultCredentialService
+import no.nav.syfo.kafka.ArbeidsgiverSykmeldingKafkaProducer
 import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
+import no.nav.syfo.service.HentArbeidsGiverOgSporsmalFraSyfoServiceService
 import no.nav.syfo.service.MapSykmeldingStringToSykemldignJsonMap
 import no.nav.syfo.service.SkrivTilSyfosmRegisterServiceEia
 import no.nav.syfo.service.SkrivTilSyfosmRegisterSysoServiceStatus
@@ -149,7 +152,51 @@ fun main() {
 //    ).run()
     // readFromJsonMapTopic(applicationState, environment)
     //  oppdaterFraEia(applicationState, environment)
-    readFromJsonMapTopic(applicationState, environment)
+    // readFromJsonMapTopic(applicationState, environment)
+    hentArbeidsgiverInformasjonPaaSykmelding(applicationState, environment)
+}
+
+fun hentArbeidsgiverInformasjonPaaSykmelding(
+    applicationState: ApplicationState,
+    environment: Environment
+) {
+
+    val vaultServiceuser = VaultServiceUser(
+        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
+        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
+    )
+
+    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+    val producerProperties =
+        kafkaBaseConfig.toProducerConfig(
+            environment.applicationName,
+            valueSerializer = JacksonKafkaSerializer::class
+        )
+
+    val kafkaproducerArbeidsgiverSykmeldingString = KafkaProducer<String, String>(producerProperties)
+
+    val arbeidsgiverSykmeldingKafkaProducer =
+        ArbeidsgiverSykmeldingKafkaProducer(
+            environment.sm2013SyfoSericeSykmeldingArbeidsgiverTopic,
+            kafkaproducerArbeidsgiverSykmeldingString
+        )
+
+    val syfoserviceVaultSecrets = VaultCredentials(
+        databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
+        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
+    )
+
+    val vaultConfig = VaultConfig(
+        jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
+    )
+
+    val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
+
+    HentArbeidsGiverOgSporsmalFraSyfoServiceService(
+        arbeidsgiverSykmeldingKafkaProducer,
+        databaseOracle,
+        1_000
+    ).run()
 }
 
 fun oppdaterFraEia(applicationState: ApplicationState, environment: Environment) {
