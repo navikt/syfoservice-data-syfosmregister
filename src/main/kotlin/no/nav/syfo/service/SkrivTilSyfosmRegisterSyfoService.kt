@@ -16,6 +16,7 @@ import no.nav.syfo.persistering.db.postgres.hentSykmelding
 import no.nav.syfo.persistering.db.postgres.oppdaterSykmeldingStatus
 import no.nav.syfo.persistering.db.postgres.updateMottattTidspunkt
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import java.lang.Exception
 
 class SkrivTilSyfosmRegisterSyfoService(
     private val kafkaConsumer: KafkaConsumer<String, String>,
@@ -75,28 +76,33 @@ class SkrivTilSyfosmRegisterSyfoService(
                 val sykmeldingDb = databasePostgres.connection.hentSykmelding(update.mottakId)
                 counter++
                 if (sykmeldingDb != null) {
-                    sykmeldingDb.sykmeldingsopplysninger.mottattTidspunkt = update.created
-                    if (sykmeldingDb.sykmeldingsopplysninger.id != update.sykmeldingId) {
-                        val oldId = sykmeldingDb.sykmeldingsopplysninger.id
-                        sykmeldingDb.sykmeldingsopplysninger.id = update.sykmeldingId
-                        sykmeldingDb.sykmeldingsdokument.sykmelding =
-                            sykmeldingDb.sykmeldingsdokument.sykmelding.copy(id = update.sykmeldingId)
-                        sykmeldingDb.sykmeldingsdokument.id = update.sykmeldingId
-                        databasePostgres.connection.deleteAndInsertSykmelding(
-                            oldId,
-                            sykmeldingDb
-                        )
-                        counterIdUpdates++
-                    } else {
-                        databasePostgres.connection.updateMottattTidspunkt(
-                            sykmeldingDb.sykmeldingsopplysninger.id,
-                            sykmeldingDb.sykmeldingsopplysninger.mottattTidspunkt
-                        )
-                        counterCreatedUpdated++
+                    try {
+                        sykmeldingDb.sykmeldingsopplysninger.mottattTidspunkt = update.created
+                        if (sykmeldingDb.sykmeldingsopplysninger.id != update.sykmeldingId) {
+                            val oldId = sykmeldingDb.sykmeldingsopplysninger.id
+                            sykmeldingDb.sykmeldingsopplysninger.id = update.sykmeldingId
+                            sykmeldingDb.sykmeldingsdokument.sykmelding =
+                                sykmeldingDb.sykmeldingsdokument.sykmelding.copy(id = update.sykmeldingId)
+                            sykmeldingDb.sykmeldingsdokument.id = update.sykmeldingId
+                            databasePostgres.connection.deleteAndInsertSykmelding(
+                                oldId,
+                                sykmeldingDb
+                            )
+                            counterIdUpdates++
+                        } else {
+                            databasePostgres.connection.updateMottattTidspunkt(
+                                sykmeldingDb.sykmeldingsopplysninger.id,
+                                sykmeldingDb.sykmeldingsopplysninger.mottattTidspunkt
+                            )
+                            counterCreatedUpdated++
+                        }
+                    } catch (ex: Exception) {
+                        log.error("Noe gikk galt med mottakid {}, exeption type {}", update.mottakId, ex.javaClass)
                     }
+
                 }
                 counter++
-                if (counter >= lastCounter + 100) {
+                if (counter >= lastCounter + 10_000) {
                     log.info(
                         "Updated {} sykmeldinger, mottattTidspunkt oppdatert: {}, Ider og tidspunkt oppdatert: {}",
                         counter,
