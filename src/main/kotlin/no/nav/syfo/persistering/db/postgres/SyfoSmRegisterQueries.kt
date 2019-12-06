@@ -249,10 +249,11 @@ fun Connection.updateMottattTidspunkt(id: String, mottattTidspunkt: LocalDateTim
 
 fun ResultSet.toSykmelding(mottakId: String): SykmeldingDbModel? {
     if (next()) {
+        val sykmeldingId = getString("id")
         val sykmeldingsdokument =
-            Sykmeldingsdokument(getString("sd.id"), objectMapper.readValue(getString("sykmelding")))
+            Sykmeldingsdokument(sykmeldingId, objectMapper.readValue(getString("sykmelding")))
         val sykmeldingsopplysninger = Sykmeldingsopplysninger(
-            id = getString("sm.id"),
+            id = sykmeldingId,
             mottakId = getString("mottak_id"),
             pasientFnr = getString("pasient_fnr"),
             pasientAktoerId = getString("pasient_aktoer_id"),
