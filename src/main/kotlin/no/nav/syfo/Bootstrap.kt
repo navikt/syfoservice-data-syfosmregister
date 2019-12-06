@@ -150,7 +150,52 @@ fun main() {
     // readFromJsonMapTopic(applicationState, environment)
     //  oppdaterFraEia(applicationState, environment)
     readFromJsonMapTopicAndUpdateId(applicationState, environment)
+    // readFromJsonMapTopic(applicationState, environment)
+    //hentArbeidsgiverInformasjonPaaSykmelding(applicationState, environment)
 }
+//
+//fun hentArbeidsgiverInformasjonPaaSykmelding(
+//    applicationState: ApplicationState,
+//    environment: Environment
+//) {
+//
+//    val vaultServiceuser = VaultServiceUser(
+//        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
+//        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
+//    )
+//
+//    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+//    val producerProperties =
+//        kafkaBaseConfig.toProducerConfig(
+//            environment.applicationName,
+//            valueSerializer = JacksonKafkaSerializer::class
+//        )
+//
+//    val kafkaproducerArbeidsgiverSykmeldingString = KafkaProducer<String, String>(producerProperties)
+//
+//    val arbeidsgiverSykmeldingKafkaProducer =
+//        ArbeidsgiverSykmeldingKafkaProducer(
+//            environment.sm2013SyfoSericeSykmeldingArbeidsgiverTopic,
+//            kafkaproducerArbeidsgiverSykmeldingString
+//        )
+//
+//    val syfoserviceVaultSecrets = VaultCredentials(
+//        databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
+//        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
+//    )
+//
+//    val vaultConfig = VaultConfig(
+//        jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
+//    )
+//
+//    val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
+//
+//    HentArbeidsGiverOgSporsmalFraSyfoServiceService(
+//        arbeidsgiverSykmeldingKafkaProducer,
+//        databaseOracle,
+//        1_000
+//    ).run()
+//}
 
 fun oppdaterFraEia(applicationState: ApplicationState, environment: Environment) {
     val vaultServiceuser = VaultServiceUser(
