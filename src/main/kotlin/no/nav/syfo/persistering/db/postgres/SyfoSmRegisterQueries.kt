@@ -205,7 +205,7 @@ fun Connection.hentSykmelding(mottakId: String): SykmeldingDbModel? =
     }
 
 fun Connection.deleteAndInsertSykmelding(
-    id: String,
+    oldId: String,
     sykmeldingDb: SykmeldingDbModel
 ) {
     use { connection ->
@@ -214,7 +214,7 @@ fun Connection.deleteAndInsertSykmelding(
             delete from sykmeldingstatus where sykmelding_id = ?
         """
         ).use {
-            it.setString(1, id)
+            it.setString(1, oldId)
             it.execute()
         }
         connection.prepareStatement(
@@ -222,7 +222,7 @@ fun Connection.deleteAndInsertSykmelding(
             delete from sykmeldingsopplysninger where id = ?
         """
         ).use {
-            it.setString(1, id)
+            it.setString(1, oldId)
             it.execute()
         }
 
@@ -269,6 +269,5 @@ fun ResultSet.toSykmelding(mottakId: String): SykmeldingDbModel? {
         )
         return SykmeldingDbModel(sykmeldingsopplysninger, sykmeldingsdokument)
     }
-    log.error("Fant ikke sykmelding med mottakId {}", mottakId)
     return null
 }

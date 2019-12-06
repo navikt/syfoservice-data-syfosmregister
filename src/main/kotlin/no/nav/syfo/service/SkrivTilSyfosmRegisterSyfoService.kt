@@ -73,16 +73,17 @@ class SkrivTilSyfosmRegisterSyfoService(
 
             updateEvents.forEach { update ->
                 val sykmeldingDb = databasePostgres.connection.hentSykmelding(update.mottakId)
+                counter++
                 if (sykmeldingDb != null) {
                     sykmeldingDb.sykmeldingsopplysninger.mottattTidspunkt = update.created
-
                     if (sykmeldingDb.sykmeldingsopplysninger.id != update.sykmeldingId) {
+                        val oldId = sykmeldingDb.sykmeldingsopplysninger.id
                         sykmeldingDb.sykmeldingsopplysninger.id = update.sykmeldingId
                         sykmeldingDb.sykmeldingsdokument.sykmelding =
                             sykmeldingDb.sykmeldingsdokument.sykmelding.copy(id = update.sykmeldingId)
                         sykmeldingDb.sykmeldingsdokument.id = update.sykmeldingId
                         databasePostgres.connection.deleteAndInsertSykmelding(
-                            sykmeldingDb.sykmeldingsopplysninger.id,
+                            oldId,
                             sykmeldingDb
                         )
                         counterIdUpdates++
@@ -93,16 +94,16 @@ class SkrivTilSyfosmRegisterSyfoService(
                         )
                         counterCreatedUpdated++
                     }
-                    counter++
-                    if (counter >= lastCounter + 100) {
-                        log.info(
-                            "Updated {} sykmeldinger, mottattTidspunkt oppdatert: {}, Ider og tidspunkt oppdatert: {}",
-                            counter,
-                            counterCreatedUpdated,
-                            counterIdUpdates
-                        )
-                        lastCounter = counter
-                    }
+                }
+                counter++
+                if (counter >= lastCounter + 100) {
+                    log.info(
+                        "Updated {} sykmeldinger, mottattTidspunkt oppdatert: {}, Ider og tidspunkt oppdatert: {}",
+                        counter,
+                        counterCreatedUpdated,
+                        counterIdUpdates
+                    )
+                    lastCounter = counter
                 }
             }
         }
