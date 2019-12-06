@@ -228,7 +228,7 @@ fun readFromJsonMapTopicAndUpdateId(applicationState: ApplicationState, environm
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sykmelding-clean-consumer-5",
+        "${environment.applicationName}-sykmelding-clean-consumer-6",
         valueDeserializer = StringDeserializer::class
     )
     consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
