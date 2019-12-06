@@ -5,7 +5,7 @@ import no.nav.syfo.objectMapper
 import org.postgresql.util.PGobject
 
 data class Sykmeldingsopplysninger(
-    val id: String,
+    var id: String,
     val pasientFnr: String,
     val pasientAktoerId: String,
     val legeFnr: String,
@@ -16,13 +16,13 @@ data class Sykmeldingsopplysninger(
     val legekontorReshId: String?,
     val epjSystemNavn: String,
     val epjSystemVersjon: String,
-    val mottattTidspunkt: LocalDateTime,
+    var mottattTidspunkt: LocalDateTime,
     val tssid: String?
 )
 
 data class Sykmeldingsdokument(
-    val id: String,
-    val sykmelding: Sykmelding
+    var id: String,
+    var sykmelding: Sykmelding
 )
 
 fun Sykmelding.toPGObject() = PGobject().also {

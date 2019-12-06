@@ -1,8 +1,10 @@
 package no.nav.syfo.persistering.db.postgres
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.Timestamp
+import java.time.LocalDateTime
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.db.toList
 import no.nav.syfo.log
@@ -11,6 +13,7 @@ import no.nav.syfo.model.SykmeldingStatusEvent
 import no.nav.syfo.model.Sykmeldingsdokument
 import no.nav.syfo.model.Sykmeldingsopplysninger
 import no.nav.syfo.model.toPGObject
+import no.nav.syfo.objectMapper
 
 data class DatabaseResult(
     val lastIndex: Int,
@@ -21,8 +24,18 @@ data class DatabaseResult(
 
 fun Connection.opprettSykmeldingsopplysninger(sykmeldingsopplysninger: Sykmeldingsopplysninger) {
     use { connection ->
-        connection.prepareStatement(
-            """
+        insertSykmeldingsopplysninger(connection, sykmeldingsopplysninger)
+
+        connection.commit()
+    }
+}
+
+private fun insertSykmeldingsopplysninger(
+    connection: Connection,
+    sykmeldingsopplysninger: Sykmeldingsopplysninger
+) {
+    connection.prepareStatement(
+        """
             INSERT INTO SYKMELDINGSOPPLYSNINGER(
                 id,
                 pasient_fnr,
@@ -39,40 +52,44 @@ fun Connection.opprettSykmeldingsopplysninger(sykmeldingsopplysninger: Sykmeldin
                 tss_id)
             VALUES  (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
-        ).use {
-            it.setString(1, sykmeldingsopplysninger.id)
-            it.setString(2, sykmeldingsopplysninger.pasientFnr)
-            it.setString(3, sykmeldingsopplysninger.pasientAktoerId)
-            it.setString(4, sykmeldingsopplysninger.legeFnr)
-            it.setString(5, sykmeldingsopplysninger.legeAktoerId)
-            it.setString(6, sykmeldingsopplysninger.mottakId)
-            it.setString(7, sykmeldingsopplysninger.legekontorOrgNr)
-            it.setString(8, sykmeldingsopplysninger.legekontorHerId)
-            it.setString(9, sykmeldingsopplysninger.legekontorReshId)
-            it.setString(10, sykmeldingsopplysninger.epjSystemNavn)
-            it.setString(11, sykmeldingsopplysninger.epjSystemVersjon)
-            it.setTimestamp(12, Timestamp.valueOf(sykmeldingsopplysninger.mottattTidspunkt))
-            it.setString(13, sykmeldingsopplysninger.tssid)
-            it.executeUpdate()
-        }
-
-        connection.commit()
+    ).use {
+        it.setString(1, sykmeldingsopplysninger.id)
+        it.setString(2, sykmeldingsopplysninger.pasientFnr)
+        it.setString(3, sykmeldingsopplysninger.pasientAktoerId)
+        it.setString(4, sykmeldingsopplysninger.legeFnr)
+        it.setString(5, sykmeldingsopplysninger.legeAktoerId)
+        it.setString(6, sykmeldingsopplysninger.mottakId)
+        it.setString(7, sykmeldingsopplysninger.legekontorOrgNr)
+        it.setString(8, sykmeldingsopplysninger.legekontorHerId)
+        it.setString(9, sykmeldingsopplysninger.legekontorReshId)
+        it.setString(10, sykmeldingsopplysninger.epjSystemNavn)
+        it.setString(11, sykmeldingsopplysninger.epjSystemVersjon)
+        it.setTimestamp(12, Timestamp.valueOf(sykmeldingsopplysninger.mottattTidspunkt))
+        it.setString(13, sykmeldingsopplysninger.tssid)
+        it.executeUpdate()
     }
 }
 
 fun Connection.opprettSykmeldingsdokument(sykmeldingsdokument: Sykmeldingsdokument) {
     use { connection ->
-        connection.prepareStatement(
-            """
-            INSERT INTO SYKMELDINGSDOKUMENT(id, sykmelding) VALUES  (?, ?)
-            """
-        ).use {
-            it.setString(1, sykmeldingsdokument.id)
-            it.setObject(2, sykmeldingsdokument.sykmelding.toPGObject())
-            it.executeUpdate()
-        }
+        insertSykmeldingsdokument(connection, sykmeldingsdokument)
 
         connection.commit()
+    }
+}
+
+private fun insertSykmeldingsdokument(
+    connection: Connection,
+    sykmeldingsdokument: Sykmeldingsdokument
+) {
+    connection.prepareStatement(
+        """
+            INSERT INTO SYKMELDINGSDOKUMENT(id, sykmelding) VALUES  (?, ?)
+            """
+    ).use {
+        it.setString(1, sykmeldingsdokument.id)
+        it.setObject(2, sykmeldingsdokument.sykmelding.toPGObject())
+        it.executeUpdate()
     }
 }
 
@@ -172,3 +189,85 @@ fun ResultSet.toAntallSykmeldinger(): AntallSykmeldinger =
     AntallSykmeldinger(
         antall = getString("antall")
     )
+
+fun Connection.hentSykmelding(mottakId: String): SykmeldingDbModel? =
+    use { connection ->
+        connection.prepareStatement(
+            """
+                select * from sykmeldingsopplysninger sm 
+                INNER JOIN sykmeldingsdokument sd on sm.id = sd.id
+                where sm.mottak_id = ?
+            """
+        ).use {
+            it.setString(1, mottakId)
+            it.executeQuery().toSykmelding(mottakId)
+        }
+    }
+
+fun Connection.deleteAndInsertSykmelding(
+    id: String,
+    sykmeldingDb: SykmeldingDbModel
+) {
+    use { connection ->
+        connection.prepareStatement(
+            """
+            delete from sykmeldingstatus where sykmelding_id = ?
+        """
+        ).use {
+            it.setString(1, id)
+            it.execute()
+        }
+        connection.prepareStatement(
+            """
+            delete from sykmeldingsopplysninger where id = ?
+        """
+        ).use {
+            it.setString(1, id)
+            it.execute()
+        }
+
+        insertSykmeldingsopplysninger(connection, sykmeldingDb.sykmeldingsopplysninger)
+        insertSykmeldingsdokument(connection, sykmeldingDb.sykmeldingsdokument)
+        connection.commit()
+    }
+}
+
+fun Connection.updateMottattTidspunkt(id: String, mottattTidspunkt: LocalDateTime) {
+    use { connection ->
+        connection.prepareStatement("""
+            update sykmeldingsopplysninger set mottatt_tidspunkt = ?
+            where id = ?
+        """
+        ).use {
+            it.setTimestamp(1, Timestamp.valueOf(mottattTidspunkt))
+            it.setString(2, id)
+            it.executeUpdate()
+        }
+        connection.commit()
+    }
+}
+
+fun ResultSet.toSykmelding(mottakId: String): SykmeldingDbModel? {
+    if (next()) {
+        val sykmeldingsdokument =
+            Sykmeldingsdokument(getString("sd.id"), objectMapper.readValue(getString("sykmelding")))
+        val sykmeldingsopplysninger = Sykmeldingsopplysninger(
+            id = getString("sm.id"),
+            mottakId = getString("mottak_id"),
+            pasientFnr = getString("pasient_fnr"),
+            pasientAktoerId = getString("pasient_aktoer_id"),
+            legeFnr = getString("lege_fnr"),
+            legeAktoerId = getString("lege_aktoer_id"),
+            legekontorOrgNr = getString("legekontor_org_nr"),
+            legekontorHerId = getString("legekontor_her_id"),
+            legekontorReshId = getString("legekontor_resh_id"),
+            epjSystemNavn = getString("epj_system_navn"),
+            epjSystemVersjon = getString("epj_system_versjon"),
+            mottattTidspunkt = getTimestamp("mottatt_tidspunkt").toLocalDateTime(),
+            tssid = getString("tss_id")
+        )
+        return SykmeldingDbModel(sykmeldingsopplysninger, sykmeldingsdokument)
+    }
+    log.error("Fant ikke sykmelding med mottakId {}", mottakId)
+    return null
+}

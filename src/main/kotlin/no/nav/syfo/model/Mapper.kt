@@ -1,10 +1,11 @@
 package no.nav.syfo.model
 
 import java.time.LocalDateTime
+import kotlin.collections.ArrayList
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-class StatusMapper private constructor() {
+class Mapper private constructor() {
     companion object {
 
         val log: Logger = LoggerFactory.getLogger("no.nav.syfo.syfoservicedatasyfosmregister")
@@ -23,6 +24,13 @@ class StatusMapper private constructor() {
                 null -> null
                 else -> LocalDateTime.parse(localDate.substring(0, 19))
             }
+        }
+
+        fun mapToUpdateEvent(jsonMap: Map<String, String?>): UpdateEvent {
+            val created = LocalDateTime.parse((jsonMap["CREATED"].toString().substring(0, 19)))
+            val mottakId = jsonMap["MOTTAK_ID"] ?: error("MOTTAK_ID, must not be null")
+            val meldingId: String = jsonMap["MELDING_ID"] ?: error("MELDIGN_ID, must not be null")
+            return UpdateEvent(sykmeldingId = meldingId, created = created, mottakId = mottakId)
         }
 
         fun toStatusEventList(statusSyfoService: StatusSyfoService): List<SykmeldingStatusEvent> {

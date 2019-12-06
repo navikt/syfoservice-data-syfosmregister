@@ -16,7 +16,7 @@ import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
 import no.nav.syfo.service.MapSykmeldingStringToSykemldignJsonMap
 import no.nav.syfo.service.SkrivTilSyfosmRegisterServiceEia
-import no.nav.syfo.service.SkrivTilSyfosmRegisterSysoServiceStatus
+import no.nav.syfo.service.SkrivTilSyfosmRegisterSyfoService
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
 import no.nav.syfo.vault.RenewVaultService
@@ -149,7 +149,7 @@ fun main() {
 //    ).run()
     // readFromJsonMapTopic(applicationState, environment)
     //  oppdaterFraEia(applicationState, environment)
-    readFromJsonMapTopic(applicationState, environment)
+    readFromJsonMapTopicAndUpdateId(applicationState, environment)
 }
 
 fun oppdaterFraEia(applicationState: ApplicationState, environment: Environment) {
@@ -175,7 +175,7 @@ fun oppdaterFraEia(applicationState: ApplicationState, environment: Environment)
     ).run()
 }
 
-fun readFromJsonMapTopic(applicationState: ApplicationState, environment: Environment) {
+fun readFromJsonMapTopicAndUpdateId(applicationState: ApplicationState, environment: Environment) {
     val vaultServiceuser = VaultServiceUser(
         serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
         serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
@@ -183,10 +183,10 @@ fun readFromJsonMapTopic(applicationState: ApplicationState, environment: Enviro
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sykmelding-clean-consumer-4",
+        "${environment.applicationName}-sykmelding-clean-consumer-5",
         valueDeserializer = StringDeserializer::class
     )
-    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "500")
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
     val kafkaConsumerCleanSykmelding = KafkaConsumer<String, String>(consumerProperties)
     kafkaConsumerCleanSykmelding.subscribe(
         listOf(environment.sykmeldingCleanTopic)
@@ -194,13 +194,13 @@ fun readFromJsonMapTopic(applicationState: ApplicationState, environment: Enviro
     val vaultCredentialService = VaultCredentialService()
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
     val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
-    val skrivTilSyfosmRegisterSysoService = SkrivTilSyfosmRegisterSysoServiceStatus(
+    val skrivTilSyfosmRegisterSysoService = SkrivTilSyfosmRegisterSyfoService(
         kafkaConsumerCleanSykmelding,
         databasePostgres,
         environment.sykmeldingCleanTopic,
         applicationState
     )
-    skrivTilSyfosmRegisterSysoService.run()
+    skrivTilSyfosmRegisterSysoService.updateId()
 }
 
 fun runMapStringToJsonMap(

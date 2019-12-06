@@ -52,14 +52,14 @@ jobs:
           cluster: dev-fss
           team: teamsykefravr
           resources: naiserator-dev.yaml
-      - name: deploy to prod-fss
-        uses: navikt/deployment-cli/action@0.4.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_ACCESS_TOKEN }}
-        with:
-          cluster: prod-fss
-          team: teamsykefravr
-          resources: naiserator-prod.yaml
+#      - name: deploy to prod-fss
+#        uses: navikt/deployment-cli/action@0.4.1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_ACCESS_TOKEN }}
+#        with:
+#          cluster: prod-fss
+#          team: teamsykefravr
+#          resources: naiserator-prod.yaml
       - name: dump token After
         run: |
           curl -s "https://api.github.com/rate_limit" -H "Authorization: token $GITHUB_TOKEN"
