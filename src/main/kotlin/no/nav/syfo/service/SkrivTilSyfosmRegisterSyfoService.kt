@@ -74,25 +74,34 @@ class SkrivTilSyfosmRegisterSyfoService(
             updateEvents.forEach { update ->
                 val sykmeldingDb = databasePostgres.connection.hentSykmelding(update.mottakId)
                 if (sykmeldingDb != null) {
-                    if (sykmeldingDb.sykmeldingsopplysninger.epjSystemNavn == "SYFOSERVICE") {
-                        sykmeldingDb.sykmeldingsopplysninger.mottattTidspunkt = update.created
+                    sykmeldingDb.sykmeldingsopplysninger.mottattTidspunkt = update.created
 
-                        if (sykmeldingDb.sykmeldingsopplysninger.id != update.sykmeldingId) {
-                            sykmeldingDb.sykmeldingsopplysninger.id = update.sykmeldingId
-                            sykmeldingDb.sykmeldingsdokument.sykmelding =
-                                sykmeldingDb.sykmeldingsdokument.sykmelding.copy(id = update.sykmeldingId)
-                            sykmeldingDb.sykmeldingsdokument.id = update.sykmeldingId
-                            databasePostgres.connection.deleteAndInsertSykmelding(sykmeldingDb.sykmeldingsopplysninger.id, sykmeldingDb)
-                            counterIdUpdates++
-                        } else {
-                            databasePostgres.connection.updateMottattTidspunkt(sykmeldingDb.sykmeldingsopplysninger.id, sykmeldingDb.sykmeldingsopplysninger.mottattTidspunkt)
-                            counterCreatedUpdated++
-                        }
-                        counter++
-                        if (counter >= lastCounter + 100) {
-                            log.info("Updated {} sykmeldinger, mottattTidspunkt oppdatert: {}, Ider og tidspunkt oppdatert: {}", counter, counterCreatedUpdated, counterIdUpdates)
-                            lastCounter = counter
-                        }
+                    if (sykmeldingDb.sykmeldingsopplysninger.id != update.sykmeldingId) {
+                        sykmeldingDb.sykmeldingsopplysninger.id = update.sykmeldingId
+                        sykmeldingDb.sykmeldingsdokument.sykmelding =
+                            sykmeldingDb.sykmeldingsdokument.sykmelding.copy(id = update.sykmeldingId)
+                        sykmeldingDb.sykmeldingsdokument.id = update.sykmeldingId
+                        databasePostgres.connection.deleteAndInsertSykmelding(
+                            sykmeldingDb.sykmeldingsopplysninger.id,
+                            sykmeldingDb
+                        )
+                        counterIdUpdates++
+                    } else {
+                        databasePostgres.connection.updateMottattTidspunkt(
+                            sykmeldingDb.sykmeldingsopplysninger.id,
+                            sykmeldingDb.sykmeldingsopplysninger.mottattTidspunkt
+                        )
+                        counterCreatedUpdated++
+                    }
+                    counter++
+                    if (counter >= lastCounter + 100) {
+                        log.info(
+                            "Updated {} sykmeldinger, mottattTidspunkt oppdatert: {}, Ider og tidspunkt oppdatert: {}",
+                            counter,
+                            counterCreatedUpdated,
+                            counterIdUpdates
+                        )
+                        lastCounter = counter
                     }
                 }
             }

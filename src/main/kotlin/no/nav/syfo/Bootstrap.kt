@@ -151,13 +151,13 @@ fun main() {
     //  oppdaterFraEia(applicationState, environment)
     readFromJsonMapTopicAndUpdateId(applicationState, environment)
     // readFromJsonMapTopic(applicationState, environment)
-    //hentArbeidsgiverInformasjonPaaSykmelding(applicationState, environment)
+    // hentArbeidsgiverInformasjonPaaSykmelding(applicationState, environment)
 }
 //
-//fun hentArbeidsgiverInformasjonPaaSykmelding(
+// fun hentArbeidsgiverInformasjonPaaSykmelding(
 //    applicationState: ApplicationState,
 //    environment: Environment
-//) {
+// ) {
 //
 //    val vaultServiceuser = VaultServiceUser(
 //        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
@@ -195,7 +195,7 @@ fun main() {
 //        databaseOracle,
 //        1_000
 //    ).run()
-//}
+// }
 
 fun oppdaterFraEia(applicationState: ApplicationState, environment: Environment) {
     val vaultServiceuser = VaultServiceUser(
