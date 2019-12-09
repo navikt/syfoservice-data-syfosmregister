@@ -1,6 +1,7 @@
 package no.nav.syfo.service
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import java.lang.Exception
 import java.time.Duration
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabaseInterfacePostgres
@@ -14,9 +15,7 @@ import no.nav.syfo.objectMapper
 import no.nav.syfo.persistering.db.postgres.deleteAndInsertSykmelding
 import no.nav.syfo.persistering.db.postgres.hentSykmelding
 import no.nav.syfo.persistering.db.postgres.oppdaterSykmeldingStatus
-import no.nav.syfo.persistering.db.postgres.updateMottattTidspunkt
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import java.lang.Exception
 
 class SkrivTilSyfosmRegisterSyfoService(
     private val kafkaConsumer: KafkaConsumer<String, String>,
@@ -63,7 +62,6 @@ class SkrivTilSyfosmRegisterSyfoService(
         )
         var counter = 0
         var counterIdUpdates = 0
-        var counterCreatedUpdated = 0
         var lastCounter = 0
         while (applicationState.ready) {
             val updateEvents: List<UpdateEvent> =
@@ -77,7 +75,6 @@ class SkrivTilSyfosmRegisterSyfoService(
                 counter++
                 if (sykmeldingDb != null) {
                     try {
-                        sykmeldingDb.sykmeldingsopplysninger.mottattTidspunkt = update.created
                         if (sykmeldingDb.sykmeldingsopplysninger.id != update.sykmeldingId) {
                             val oldId = sykmeldingDb.sykmeldingsopplysninger.id
                             sykmeldingDb.sykmeldingsopplysninger.id = update.sykmeldingId
@@ -89,24 +86,15 @@ class SkrivTilSyfosmRegisterSyfoService(
                                 sykmeldingDb
                             )
                             counterIdUpdates++
-                        } else {
-                            databasePostgres.connection.updateMottattTidspunkt(
-                                sykmeldingDb.sykmeldingsopplysninger.id,
-                                sykmeldingDb.sykmeldingsopplysninger.mottattTidspunkt
-                            )
-                            counterCreatedUpdated++
                         }
                     } catch (ex: Exception) {
                         log.error("Noe gikk galt med mottakid {}, exeption type {}", update.mottakId, ex.javaClass)
                     }
-
                 }
-                counter++
                 if (counter >= lastCounter + 10_000) {
                     log.info(
                         "Updated {} sykmeldinger, mottattTidspunkt oppdatert: {}, Ider og tidspunkt oppdatert: {}",
                         counter,
-                        counterCreatedUpdated,
                         counterIdUpdates
                     )
                     lastCounter = counter

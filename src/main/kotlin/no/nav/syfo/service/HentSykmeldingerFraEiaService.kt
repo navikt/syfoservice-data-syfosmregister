@@ -20,25 +20,21 @@ class HentSykmeldingerFraEiaService(
         var counter = 0
 
         while (true) {
-
-            val result = databaseOracle.hentSykmeldingerEia(lastIndex, batchSize)
-
             val currentMillies = System.currentTimeMillis()
+            val result = databaseOracle.hentSykmeldingerEia(lastIndex, batchSize)
 
             for (eiaSykmelding in result.rows) {
                 eiaKafkaProducer.publishToKafka(eiaSykmelding)
             }
-            val kafkaTime = (System.currentTimeMillis() - currentMillies) / 1000.0
+            val time = (System.currentTimeMillis() - currentMillies) / 1000.0
             lastIndex = result.lastIndex
             counter += result.rows.size
             log.info(
-                "Antall sykmeldinger som er hentet i dette forsoket:  {} totalt {}, DB time used {}, processing time {}, lastIndex {}, kafkatime {}",
+                "Antall sykmeldinger som er hentet i dette forsoket:  {} totalt {}, lastIndex {}, time {}",
                 result.rows.size,
                 counter,
-                result.databaseTime,
-                result.processingTime,
                 lastIndex,
-                kafkaTime
+                time
             )
             if (result.rows.isEmpty()) {
                 log.info("no more sykmelinger in database")

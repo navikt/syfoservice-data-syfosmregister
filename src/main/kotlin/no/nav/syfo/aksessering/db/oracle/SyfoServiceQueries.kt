@@ -7,9 +7,7 @@ import no.nav.syfo.objectMapper
 
 data class DatabaseResult<T>(
     val lastIndex: Int,
-    val rows: List<T>,
-    var databaseTime: Double = 0.0,
-    var processingTime: Double = 0.0
+    val rows: List<T>
 )
 
 fun DatabaseInterfaceOracle.hentSykmeldingerSyfoService(lastIndex: Int, limit: Int): DatabaseResult<String> =
@@ -24,14 +22,9 @@ fun DatabaseInterfaceOracle.hentSykmeldingerSyfoService(lastIndex: Int, limit: I
         ).use {
             it.setInt(1, lastIndex)
             it.setInt(2, limit)
-            val currentMillies = System.currentTimeMillis()
             val resultSet = it.executeQuery()
-            val databaseEndMillies = System.currentTimeMillis()
             val databaseResult = resultSet.toJsonStringSyfoService(lastIndex)
-            val processingMillies = System.currentTimeMillis()
 
-            databaseResult.databaseTime = (databaseEndMillies - currentMillies) / 1000.0
-            databaseResult.processingTime = (processingMillies - databaseEndMillies) / 1000.0
             return databaseResult
         }
     }
@@ -93,8 +86,6 @@ fun DatabaseInterfaceOracle.hentArbeidsgiverSyfoService(lastIndex: Int, limit: I
             val databaseResult = resultSet.toJsonStringSyfoService(lastIndex)
             val processingMillies = System.currentTimeMillis()
 
-            databaseResult.databaseTime = (databaseEndMillies - currentMillies) / 1000.0
-            databaseResult.processingTime = (processingMillies - databaseEndMillies) / 1000.0
             return databaseResult
         }
     }

@@ -22,14 +22,8 @@ fun DatabaseInterfaceOracle.hentSykmeldingerEia(lastIndex: Int, limit: Int): Dat
         ).use {
             it.setInt(1, lastIndex)
             it.setInt(2, limit)
-            val currentMillies = System.currentTimeMillis()
             val resultSet = it.executeQuery()
-            val databaseEndMillies = System.currentTimeMillis()
             val databaseResult = resultSet.toEia(lastIndex)
-            val processingMillies = System.currentTimeMillis()
-
-            databaseResult.databaseTime = (databaseEndMillies - currentMillies) / 1000.0
-            databaseResult.processingTime = (processingMillies - databaseEndMillies) / 1000.0
             return databaseResult
         }
     }

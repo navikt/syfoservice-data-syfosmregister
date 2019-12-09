@@ -17,15 +17,16 @@ class HentArbeidsGiverOgSporsmalFraSyfoServiceService(
         var counter = 0
 
         while (true) {
-            val result = databaseOracle.hentArbeidsgiverSyfoService(lastIndex, batchSize)
             val currentMillies = System.currentTimeMillis()
+            val result = databaseOracle.hentArbeidsgiverSyfoService(lastIndex, batchSize)
+
             for (sykmelding in result.rows) {
                 arbeidsgiverSykmeldingKafkaProducer.publishToKafka(sykmelding)
             }
-            val kafkaTime = (System.currentTimeMillis() - currentMillies) / 1000.0
+            val time = (System.currentTimeMillis() - currentMillies) / 1000.0
             lastIndex = result.lastIndex
             counter += result.rows.size
-            log.info("Antall sykmeldinger som er hentet i dette forsoket:  {} totalt {}, DB time used {}, processing time {}, lastIndex {}, kafkatime {}", result.rows.size, counter, result.databaseTime, result.processingTime, lastIndex, kafkaTime)
+            log.info("Antall sykmeldinger som er hentet i dette forsoket:  {} totalt {}, time used {}, lastIndex {}", result.rows.size, counter, time, lastIndex)
             if (result.rows.isEmpty()) {
                 log.info("no more sykmelinger in database")
                 break
