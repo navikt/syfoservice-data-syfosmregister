@@ -9,11 +9,14 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
+import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.db.VaultCredentialService
+import no.nav.syfo.kafka.SykmeldingKafkaProducer
 import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
+import no.nav.syfo.service.HentSykmeldingerFraSyfoServiceService
 import no.nav.syfo.service.MapSykmeldingStringToSykemldignJsonMap
 import no.nav.syfo.service.SkrivTilSyfosmRegisterServiceEia
 import no.nav.syfo.service.SkrivTilSyfosmRegisterSyfoService
@@ -41,20 +44,12 @@ val log: Logger = LoggerFactory.getLogger("no.nav.syfo.syfoservicedatasyfosmregi
 fun main() {
     val environment = Environment()
 
+//
+
 //    val vaultSecrets = VaultCredentials(
 //        databasePassword = getFileAsString("/secrets/eia/credentials/password"),
 //        databaseUsername = getFileAsString("/secrets/eia/credentials/username")
 //    )
-
-//    val syfoserviceVaultSecrets = VaultCredentials(
-//        databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
-//        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
-//    )
-//
-//    val vaultConfig = VaultConfig(
-//        jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
-//    )
-//
 //    val vaultServiceuser = VaultServiceUser(
 //        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
 //        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
@@ -64,7 +59,7 @@ fun main() {
 //        jdbcUrl = getFileAsString("/secrets/eia/config/jdbc_url")
 //    )
 
-//    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+//
 //    val consumerProperties = kafkaBaseConfig.toConsumerConfig(
 //        "${environment.applicationName}-sykmelding-string-consumer",
 //        valueDeserializer = StringDeserializer::class
@@ -72,10 +67,7 @@ fun main() {
 //
 //    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "500")
 //
-//    val producerProperties =
-//        kafkaBaseConfig.toProducerConfig(environment.applicationName, valueSerializer = JacksonKafkaSerializer::class)
-//    val kafkaproducerReceivedSykmelding = KafkaProducer<String, ReceivedSykmelding>(producerProperties)
-//    val kafkaproducerStringSykmelding = KafkaProducer<String, String>(producerProperties)
+//
 
 //    val kafkaconsumerReceivedSykmelding = KafkaConsumer<String, String>(consumerProperties)
 //    val kafkaproducerEiaReceivedSykmelding = KafkaProducer<String, ReceivedSykmelding>(producerProperties)
@@ -84,7 +76,7 @@ fun main() {
 
 //    val kafkaconsumerStatusSyfoServiceSykmelding = KafkaConsumer<String, String>(consumerProperties)
 
-//    val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
+//
 //    val vaultCredentialService = VaultCredentialService()
 //    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
 
@@ -112,11 +104,6 @@ fun main() {
 //        ),
 //        databaseOracle, 10_000, environment.lastIndex
 //    ).run()
-
-    // Hent ut sykmeldigner fra syfoservice
-    // HentSykmeldingerFraSyfoServiceService(
-    // SykmeldingKafkaProducer(environment.sm2013SyfoserviceSykmeldingTopic, kafkaproducerStringSykmelding),
-    // databaseOracle, 10_000).run()
 
     // mapper som sykmelding som er av typen string og sender dei til ny topic
     /*
@@ -196,6 +183,63 @@ fun main() {
 //        1_000
 //    ).run()
 // }
+
+// fun hentSykemldingerFraEia(environment: Environment) {
+//    val vaultSecrets = VaultCredentials(
+//        databasePassword = getFileAsString("/secrets/eia/credentials/password"),
+//        databaseUsername = getFileAsString("/secrets/eia/credentials/username")
+//    )
+//    val vaultServiceuser = VaultServiceUser(
+//        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
+//        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
+//    )
+//
+//    val vaultConfig = VaultConfig(
+//        jdbcUrl = getFileAsString("/secrets/eia/config/jdbc_url")
+//    )
+//
+//    val databaseOracle = DatabaseOracle(vaultConfig, vaultSecrets)
+//    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+//    val producerProperties =
+//        kafkaBaseConfig.toProducerConfig(
+//            environment.applicationName,
+//            valueSerializer = JacksonKafkaSerializer::class
+//        )
+//
+//    val kafkaproducerEiaSykmelding = KafkaProducer<String, Eia>(producerProperties)
+//    HentSykmeldingerFraEiaService(
+//        EiaSykmeldingKafkaProducer(
+//            environment.sm2013EiaSykmedlingTopic,
+//            kafkaproducerEiaSykmelding
+//        ),
+//        databaseOracle, 10_000,
+//    ).run()
+// }
+
+fun hentSykemeldingerFraSyfoserviceOgPubliserTilTopic(environment: Environment) {
+    val vaultConfig = VaultConfig(
+        jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
+    )
+    val vaultServiceuser = VaultServiceUser(
+        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
+        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
+    )
+
+    val syfoserviceVaultSecrets = VaultCredentials(
+        databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
+        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
+    )
+    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+    val producerProperties =
+        kafkaBaseConfig.toProducerConfig(environment.applicationName, valueSerializer = JacksonKafkaSerializer::class)
+    val kafkaProducerClean = KafkaProducer<String, Map<String, Any?>>(producerProperties)
+
+    val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
+    HentSykmeldingerFraSyfoServiceService(
+        SykmeldingKafkaProducer(environment.sykmeldingCleanTopic, kafkaProducerClean),
+        databaseOracle, 10_000
+    ).run()
+}
 
 fun oppdaterFraEia(applicationState: ApplicationState, environment: Environment) {
     val vaultServiceuser = VaultServiceUser(

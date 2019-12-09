@@ -4,11 +4,11 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 
 class SykmeldingKafkaProducer(
-    val sm2013SyfoserviceSykmeldingTopic: String,
-    val kafkaproducerStringSykmelding: KafkaProducer<String, String>
+    val sykmeldingCleanTopic: String,
+    val kafkaproducerStringSykmelding: KafkaProducer<String, Map<String, Any?>>
 ) {
 
-    fun publishToKafka(sykmelding: String) {
-        kafkaproducerStringSykmelding.send(ProducerRecord(sm2013SyfoserviceSykmeldingTopic, sykmelding))
+    fun publishToKafka(sykmelding: Map<String, Any?>) {
+        kafkaproducerStringSykmelding.send(ProducerRecord(sykmeldingCleanTopic, sykmelding))
     }
 }

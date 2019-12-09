@@ -21,7 +21,7 @@ class HentArbeidsGiverOgSporsmalFraSyfoServiceService(
             val result = databaseOracle.hentArbeidsgiverSyfoService(lastIndex, batchSize)
 
             for (sykmelding in result.rows) {
-                arbeidsgiverSykmeldingKafkaProducer.publishToKafka(sykmelding)
+//                arbeidsgiverSykmeldingKafkaProducer.publishToKafka(sykmelding)
             }
             val time = (System.currentTimeMillis() - currentMillies) / 1000.0
             lastIndex = result.lastIndex

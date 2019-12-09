@@ -3,14 +3,13 @@ package no.nav.syfo.aksessering.db.oracle
 import java.sql.ResultSet
 import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.db.toList
-import no.nav.syfo.objectMapper
 
 data class DatabaseResult<T>(
     val lastIndex: Int,
     val rows: List<T>
 )
 
-fun DatabaseInterfaceOracle.hentSykmeldingerSyfoService(lastIndex: Int, limit: Int): DatabaseResult<String> =
+fun DatabaseInterfaceOracle.hentSykmeldingerSyfoService(lastIndex: Int, limit: Int): DatabaseResult<Map<String, Any?>> =
     connection.use { connection ->
         connection.prepareStatement(
             """
@@ -29,8 +28,8 @@ fun DatabaseInterfaceOracle.hentSykmeldingerSyfoService(lastIndex: Int, limit: I
         }
     }
 
-fun ResultSet.toJsonStringSyfoService(previusIndex: Int): DatabaseResult<String> {
-    val listOfRows = ArrayList<String>()
+fun ResultSet.toJsonStringSyfoService(previusIndex: Int): DatabaseResult<Map<String, Any?>> {
+    val listOfRows = ArrayList<Map<String, Any?>>()
 
     val metadata = this.metaData
     val columns = metadata.columnCount
@@ -49,7 +48,7 @@ fun ResultSet.toJsonStringSyfoService(previusIndex: Int): DatabaseResult<String>
             }
             rowMap[metadata.getColumnName(i)] = data
         }
-        listOfRows.add(objectMapper.writeValueAsString(rowMap))
+        listOfRows.add(rowMap)
     }
     return DatabaseResult(lastIndex, listOfRows)
 }
@@ -66,7 +65,7 @@ fun DatabaseInterfaceOracle.hentAntallSykmeldingerSyfoService(): List<AntallSykm
         }
     }
 
-fun DatabaseInterfaceOracle.hentArbeidsgiverSyfoService(lastIndex: Int, limit: Int): DatabaseResult<String> =
+fun DatabaseInterfaceOracle.hentArbeidsgiverSyfoService(lastIndex: Int, limit: Int): DatabaseResult<Map<String, Any?>> =
     connection.use { connection ->
         connection.prepareStatement(
             """
@@ -80,11 +79,9 @@ fun DatabaseInterfaceOracle.hentArbeidsgiverSyfoService(lastIndex: Int, limit: I
         ).use {
             it.setInt(1, lastIndex)
             it.setInt(2, limit)
-            val currentMillies = System.currentTimeMillis()
+
             val resultSet = it.executeQuery()
-            val databaseEndMillies = System.currentTimeMillis()
             val databaseResult = resultSet.toJsonStringSyfoService(lastIndex)
-            val processingMillies = System.currentTimeMillis()
 
             return databaseResult
         }

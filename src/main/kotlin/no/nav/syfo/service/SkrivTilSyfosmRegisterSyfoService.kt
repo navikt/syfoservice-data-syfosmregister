@@ -1,7 +1,6 @@
 package no.nav.syfo.service
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import java.lang.Exception
 import java.time.Duration
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabaseInterfacePostgres
@@ -69,12 +68,11 @@ class SkrivTilSyfosmRegisterSyfoService(
                     objectMapper.readValue<Map<String, String?>>(it.value())
                 }
                     .map { mapToUpdateEvent(it) }
-
-            updateEvents.forEach { update ->
-                val sykmeldingDb = databasePostgres.connection.hentSykmelding(update.mottakId)
-                counter++
-                if (sykmeldingDb != null) {
-                    try {
+            for (update in updateEvents) {
+                try {
+                    val sykmeldingDb = databasePostgres.connection.hentSykmelding(update.mottakId)
+                    counter++
+                    if (sykmeldingDb != null) {
                         if (sykmeldingDb.sykmeldingsopplysninger.id != update.sykmeldingId) {
                             val oldId = sykmeldingDb.sykmeldingsopplysninger.id
                             sykmeldingDb.sykmeldingsopplysninger.id = update.sykmeldingId
@@ -87,10 +85,13 @@ class SkrivTilSyfosmRegisterSyfoService(
                             )
                             counterIdUpdates++
                         }
-                    } catch (ex: Exception) {
-                        log.error("Noe gikk galt med mottakid {}, exeption type {}", update.mottakId, ex.javaClass)
                     }
+                } catch (ex: Exception) {
+                    log.error("Noe gikk galt med mottakid {}, exeption type {}", update.mottakId, ex.javaClass)
+                    applicationState.ready = false
+                    break
                 }
+
                 if (counter >= lastCounter + 10_000) {
                     log.info(
                         "Updated {} sykmeldinger, mottattTidspunkt oppdatert: {}, Ider og tidspunkt oppdatert: {}",

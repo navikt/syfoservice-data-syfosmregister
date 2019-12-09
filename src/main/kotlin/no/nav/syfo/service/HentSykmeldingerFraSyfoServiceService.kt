@@ -16,7 +16,7 @@ class HentSykmeldingerFraSyfoServiceService(
         val hentantallSykmeldinger = databaseOracle.hentAntallSykmeldingerSyfoService()
         log.info("Antall sykmeldinger som finnes i databasen:  {}", hentantallSykmeldinger.first().antall)
 
-        var lastIndex = 0
+        var lastIndex = 10174323
         var counter = 0
 
         while (true) {
