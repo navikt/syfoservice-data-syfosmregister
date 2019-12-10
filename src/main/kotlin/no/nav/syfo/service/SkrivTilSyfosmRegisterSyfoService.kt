@@ -16,6 +16,7 @@ import no.nav.syfo.objectMapper
 import no.nav.syfo.persistering.db.postgres.deleteAndInsertSykmelding
 import no.nav.syfo.persistering.db.postgres.erSykmeldingsopplysningerLagret
 import no.nav.syfo.persistering.db.postgres.hentSykmelding
+import no.nav.syfo.persistering.db.postgres.lagreReceivedSykmelding
 import no.nav.syfo.persistering.db.postgres.oppdaterSykmeldingStatus
 import org.apache.kafka.clients.consumer.KafkaConsumer
 
@@ -130,9 +131,9 @@ class SkrivTilSyfosmRegisterSyfoService(
 
             for (receivedSykmelding in receivedSykmeldings) {
                 if (!databasePostgres.connection.erSykmeldingsopplysningerLagret(receivedSykmelding.sykmelding.id, receivedSykmelding.navLogId)) {
-                    // databasePostgres.connection.lagreReceivedSykmelding(receivedSykmelding)
+                     databasePostgres.connection.lagreReceivedSykmelding(receivedSykmelding)
                     insertedCounter++
-                    log.info("Inserted {} sykmeldinger", insertedCounter)
+                    log.info("Inserted total {} sykmeldinger, id {}", insertedCounter, receivedSykmelding.sykmelding.id)
                 }
             }
             if (totalCounter > lastCount + 50_000) {
