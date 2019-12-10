@@ -57,6 +57,6 @@ spec:
     - name: MOUNT_PATH_VAULT
       value: /postgresql/prod-fss
     - name: LAST_INDEX_EIA
-      value: "33754442"
+      value: "33745516"
     - name: LAST_INDEX_SYFOSERVICE
       value: "10235044"

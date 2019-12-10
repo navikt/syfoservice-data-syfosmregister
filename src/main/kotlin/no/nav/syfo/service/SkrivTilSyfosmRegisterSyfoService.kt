@@ -130,8 +130,12 @@ class SkrivTilSyfosmRegisterSyfoService(
                     .toList()
 
             for (receivedSykmelding in receivedSykmeldings) {
-                if (!databasePostgres.connection.erSykmeldingsopplysningerLagret(receivedSykmelding.sykmelding.id, receivedSykmelding.navLogId)) {
-                     databasePostgres.connection.lagreReceivedSykmelding(receivedSykmelding)
+                if (!databasePostgres.connection.erSykmeldingsopplysningerLagret(
+                        receivedSykmelding.sykmelding.id,
+                        receivedSykmelding.navLogId
+                    )
+                ) {
+                    databasePostgres.connection.lagreReceivedSykmelding(receivedSykmelding)
                     insertedCounter++
                     log.info("Inserted total {} sykmeldinger, id {}", insertedCounter, receivedSykmelding.sykmelding.id)
                 }

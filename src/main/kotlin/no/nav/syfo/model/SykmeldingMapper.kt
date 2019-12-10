@@ -2,7 +2,6 @@ package no.nav.syfo.model
 
 import java.io.StringReader
 import java.time.LocalDateTime
-import java.util.UUID
 import no.nav.helse.sm2013.Address
 import no.nav.helse.sm2013.ArsakType
 import no.nav.helse.sm2013.CS
