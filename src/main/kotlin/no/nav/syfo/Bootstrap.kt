@@ -184,7 +184,7 @@ fun readFromJsonMapTopicAndInsertMissingSykmeldinger(applicationState: Applicati
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sykmelding-clean-consumer-8",
+        "${environment.applicationName}-sykmelding-clean-consumer-9",
         valueDeserializer = StringDeserializer::class
     )
     consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
