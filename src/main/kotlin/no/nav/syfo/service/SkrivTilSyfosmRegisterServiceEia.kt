@@ -25,18 +25,14 @@ class SkrivTilSyfosmRegisterServiceEia(
             )
         )
         log.info("Started kafkakonsumer")
-        var lastCounter = 0
         while (applicationState.ready) {
             val listEia: List<Eia> = kafkaconsumerEia.poll(Duration.ofMillis(100)).map {
                 objectMapper.readValue<Eia>(it.value())
             }
             if (listEia.isNotEmpty()) {
                 counter += listEia.size
-                if (counter >= lastCounter + 10_000) {
-                    log.info("searched through : {} sykmeldinger", counter)
-                    lastCounter = counter
-                }
                 databasePostgres.connection.oppdaterSykmeldingsopplysninger(listEia)
+                log.info("Updated: {} sykmeldinger", counter)
             }
         }
     }
