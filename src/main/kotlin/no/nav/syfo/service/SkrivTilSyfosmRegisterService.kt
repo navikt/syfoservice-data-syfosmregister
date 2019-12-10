@@ -6,11 +6,7 @@ import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.log
 import no.nav.syfo.model.ReceivedSykmelding
-import no.nav.syfo.model.Sykmeldingsdokument
-import no.nav.syfo.model.Sykmeldingsopplysninger
 import no.nav.syfo.objectMapper
-import no.nav.syfo.persistering.db.postgres.opprettSykmeldingsdokument
-import no.nav.syfo.persistering.db.postgres.opprettSykmeldingsopplysninger
 import org.apache.kafka.clients.consumer.KafkaConsumer
 
 class SkrivTilSyfosmRegisterService(
@@ -60,29 +56,12 @@ class SkrivTilSyfosmRegisterService(
     }
 
     private fun saveSykmeldingInDB(receivedSykmelding: ReceivedSykmelding, personnr: String = receivedSykmelding.personNrPasient) {
-        databasePostgres.connection.opprettSykmeldingsopplysninger(
-            Sykmeldingsopplysninger(
-                id = receivedSykmelding.sykmelding.id,
-                pasientFnr = personnr,
-                pasientAktoerId = receivedSykmelding.sykmelding.pasientAktoerId,
-                legeFnr = receivedSykmelding.personNrLege,
-                legeAktoerId = receivedSykmelding.sykmelding.behandler.aktoerId,
-                mottakId = convertToMottakid(receivedSykmelding.navLogId),
-                legekontorOrgNr = receivedSykmelding.legekontorOrgNr,
-                legekontorHerId = receivedSykmelding.legekontorHerId,
-                legekontorReshId = receivedSykmelding.legekontorReshId,
-                epjSystemNavn = "SYFOSERVICE",
-                epjSystemVersjon = "1",
-                mottattTidspunkt = receivedSykmelding.mottattDato,
-                tssid = receivedSykmelding.tssid
-            )
-        )
-        databasePostgres.connection.opprettSykmeldingsdokument(
-            Sykmeldingsdokument(
-                id = receivedSykmelding.sykmelding.id,
-                sykmelding = receivedSykmelding.sykmelding
-            )
-        )
+//        databasePostgres.connection.opprettSykmeldingsopplysninger(
+//            toSykmeldingsopplysninger(receivedSykmelding, personnr)
+//        )
+//        databasePostgres.connection.opprettSykmeldingsdokument(
+//            toSykmeldingsdokument(receivedSykmelding)
+//        )
     }
 }
 

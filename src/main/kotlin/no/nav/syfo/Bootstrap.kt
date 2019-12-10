@@ -43,43 +43,6 @@ val log: Logger = LoggerFactory.getLogger("no.nav.syfo.syfoservicedatasyfosmregi
 @KtorExperimentalAPI
 fun main() {
     val environment = Environment()
-
-//
-
-//    val vaultSecrets = VaultCredentials(
-//        databasePassword = getFileAsString("/secrets/eia/credentials/password"),
-//        databaseUsername = getFileAsString("/secrets/eia/credentials/username")
-//    )
-//    val vaultServiceuser = VaultServiceUser(
-//        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
-//        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
-//    )
-
-//    val vaultConfig = VaultConfig(
-//        jdbcUrl = getFileAsString("/secrets/eia/config/jdbc_url")
-//    )
-
-//
-//    val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-//        "${environment.applicationName}-sykmelding-string-consumer",
-//        valueDeserializer = StringDeserializer::class
-//    )
-//
-//    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "500")
-//
-//
-
-//    val kafkaconsumerReceivedSykmelding = KafkaConsumer<String, String>(consumerProperties)
-//    val kafkaproducerEiaReceivedSykmelding = KafkaProducer<String, ReceivedSykmelding>(producerProperties)
-//    val kafkaproducerEiaSykmelding = KafkaProducer<String, Eia>(producerProperties)
-//    val kafkaconsumerrEiaSykmelding = KafkaConsumer<String, String>(consumerProperties)
-
-//    val kafkaconsumerStatusSyfoServiceSykmelding = KafkaConsumer<String, String>(consumerProperties)
-
-//
-//    val vaultCredentialService = VaultCredentialService()
-//    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
-
     val applicationState = ApplicationState()
     val applicationEngine = createApplicationEngine(environment, applicationState)
     val applicationServer = ApplicationServer(applicationEngine, applicationState)
@@ -87,58 +50,7 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-//    Hent ut sykmeldigStatus fra syfoservice
-//    HentStatusFraSyfoServiceService(
-//        SyfoServiceSykmeldingStatusKafkaProducer(
-//            environment.sm2013SyfoSericeSykmeldingStatusTopic,
-//            kafkaproducerStatusSyfoServiceSykmelding
-//        ),
-//        databaseOracle, 10_000
-//    ).run()
-
-//    Hent ut sykmeldigner fra eia
-//    HentSykmeldingerFraEiaService(
-//        EiaSykmeldingKafkaProducer(
-//            environment.sm2013EiaSykmedlingTopic,
-//            kafkaproducerEiaSykmelding
-//        ),
-//        databaseOracle, 10_000, environment.lastIndex
-//    ).run()
-
-    // mapper som sykmelding som er av typen string og sender dei til ny topic
-    /*
-    MapSykmeldingerFraTopicService(
-        kafkaconsumerStringSykmelding,
-        kafkaproducerReceivedSykmelding,
-        environment.sm2013SyfoserviceSykmeldingCleanTopic,
-        environment.sm2013SyfoserviceSykmeldingTopic,
-        applicationState
-    ).run()
-     */
-
-//    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
-
-//    val antallSykmeldingerFor = databasePostgres.hentAntallSykmeldinger()
-//    log.info("Antall sykmeldinger i datbasen for oppdatering, {}", antallSykmeldingerFor.first().antall)
-
-//    SkrivTilSyfosmRegisterService(
-//        kafkaconsumerReceivedSykmelding,
-//        databasePostgres,
-//        environment.sm2013SyfoserviceSykmeldingCleanTopic,
-//        applicationState
-//    ).run()
-
-//    SkrivTilSyfosmRegisterSysoServiceStatus(
-//        kafkaconsumerStatusSyfoServiceSykmelding,
-//        databasePostgres,
-//        environment.sm2013SyfoSericeSykmeldingStatusTopic,
-//        applicationState
-//    ).run()
-    // readFromJsonMapTopic(applicationState, environment)
-    //  oppdaterFraEia(applicationState, environment)
-    hentSykemeldingerFraSyfoserviceOgPubliserTilTopic(environment, applicationState)
-    // readFromJsonMapTopic(applicationState, environment)
-    // hentArbeidsgiverInformasjonPaaSykmelding(applicationState, environment)
+    readFromJsonMapTopicAndInsertMissingSykmeldinger(applicationState, environment)
 }
 //
 // fun hentArbeidsgiverInformasjonPaaSykmelding(
@@ -264,7 +176,7 @@ fun oppdaterFraEia(applicationState: ApplicationState, environment: Environment)
     ).run()
 }
 
-fun readFromJsonMapTopicAndUpdateId(applicationState: ApplicationState, environment: Environment) {
+fun readFromJsonMapTopicAndInsertMissingSykmeldinger(applicationState: ApplicationState, environment: Environment) {
     val vaultServiceuser = VaultServiceUser(
         serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
         serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
@@ -272,7 +184,7 @@ fun readFromJsonMapTopicAndUpdateId(applicationState: ApplicationState, environm
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sykmelding-clean-consumer-7",
+        "${environment.applicationName}-sykmelding-clean-consumer-8",
         valueDeserializer = StringDeserializer::class
     )
     consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
@@ -287,9 +199,10 @@ fun readFromJsonMapTopicAndUpdateId(applicationState: ApplicationState, environm
         kafkaConsumerCleanSykmelding,
         databasePostgres,
         environment.sykmeldingCleanTopic,
-        applicationState
+        applicationState,
+        environment.lastIndexSyfoservice
     )
-    skrivTilSyfosmRegisterSysoService.updateId()
+    skrivTilSyfosmRegisterSysoService.insertMissingSykmeldinger()
 }
 
 fun runMapStringToJsonMap(

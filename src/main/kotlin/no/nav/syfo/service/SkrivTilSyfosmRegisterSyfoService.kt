@@ -8,10 +8,13 @@ import no.nav.syfo.log
 import no.nav.syfo.model.Mapper.Companion.mapToSyfoserviceStatus
 import no.nav.syfo.model.Mapper.Companion.mapToUpdateEvent
 import no.nav.syfo.model.Mapper.Companion.toStatusEventList
+import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.SykmeldingStatusEvent
 import no.nav.syfo.model.UpdateEvent
+import no.nav.syfo.model.toReceivedSykmelding
 import no.nav.syfo.objectMapper
 import no.nav.syfo.persistering.db.postgres.deleteAndInsertSykmelding
+import no.nav.syfo.persistering.db.postgres.erSykmeldingsopplysningerLagret
 import no.nav.syfo.persistering.db.postgres.hentSykmelding
 import no.nav.syfo.persistering.db.postgres.oppdaterSykmeldingStatus
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -20,7 +23,8 @@ class SkrivTilSyfosmRegisterSyfoService(
     private val kafkaConsumer: KafkaConsumer<String, String>,
     private val databasePostgres: DatabaseInterfacePostgres,
     private val sykmeldingStatusCleanTopic: String,
-    private val applicationState: ApplicationState
+    private val applicationState: ApplicationState,
+    private val lastIndexSyfoservice: Int
 ) {
 
     fun run() {
@@ -102,5 +106,43 @@ class SkrivTilSyfosmRegisterSyfoService(
                 }
             }
         }
+    }
+
+    fun insertMissingSykmeldinger() {
+        kafkaConsumer.subscribe(
+            listOf(
+                sykmeldingStatusCleanTopic
+            )
+        )
+        var lastCount = 0
+        var totalCounter = 0
+        var insertedCounter = 0
+        while (applicationState.ready) {
+            val receivedSykmeldings: List<ReceivedSykmelding> =
+                kafkaConsumer.poll(Duration.ofMillis(100)).map {
+                    totalCounter++
+                    objectMapper.readValue<Map<String, String?>>(it.value())
+                }
+                    .asSequence()
+                    .filter { checkLastIndex(it) }
+                    .map { toReceivedSykmelding(it) }
+                    .toList()
+
+            for (receivedSykmelding in receivedSykmeldings) {
+                if (!databasePostgres.connection.erSykmeldingsopplysningerLagret(receivedSykmelding.sykmelding.id, receivedSykmelding.navLogId)) {
+                    // databasePostgres.connection.lagreReceivedSykmelding(receivedSykmelding)
+                    insertedCounter++
+                    log.info("Inserted {} sykmeldinger", insertedCounter)
+                }
+            }
+            if (totalCounter > lastCount + 50_000) {
+                log.info("search through {} sykmeldinger", totalCounter)
+                lastCount = totalCounter
+            }
+        }
+    }
+
+    private fun checkLastIndex(jsonMap: Map<String, String?>): Boolean {
+        return (jsonMap["SYKMELDING_DOK_ID"] ?: error("SYKMELDING_DOK_ID is missing")).toInt() > lastIndexSyfoservice
     }
 }

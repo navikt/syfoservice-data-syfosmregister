@@ -9,10 +9,13 @@ import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.db.toList
 import no.nav.syfo.log
 import no.nav.syfo.model.Eia
+import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.SykmeldingStatusEvent
 import no.nav.syfo.model.Sykmeldingsdokument
 import no.nav.syfo.model.Sykmeldingsopplysninger
 import no.nav.syfo.model.toPGObject
+import no.nav.syfo.model.toSykmeldingsdokument
+import no.nav.syfo.model.toSykmeldingsopplysninger
 import no.nav.syfo.objectMapper
 
 data class DatabaseResult(
@@ -21,6 +24,14 @@ data class DatabaseResult(
     var databaseTime: Double = 0.0,
     var processingTime: Double = 0.0
 )
+
+fun Connection.lagreReceivedSykmelding(receivedSykmelding: ReceivedSykmelding) {
+    use { connection ->
+        insertSykmeldingsopplysninger(connection, toSykmeldingsopplysninger(receivedSykmelding))
+        insertSykmeldingsdokument(connection, toSykmeldingsdokument(receivedSykmelding))
+        connection.commit()
+    }
+}
 
 fun Connection.opprettSykmeldingsopplysninger(sykmeldingsopplysninger: Sykmeldingsopplysninger) {
     use { connection ->
@@ -111,7 +122,7 @@ fun Connection.erSykmeldingsopplysningerLagret(id: String, mottakId: String) =
             """
                 SELECT *
                 FROM SYKMELDINGSOPPLYSNINGER
-                WHERE id = ? OR mottak_id = ?;
+                WHERE id = ? AND mottak_id = ?;
                 """
         ).use {
             it.setString(1, id)
