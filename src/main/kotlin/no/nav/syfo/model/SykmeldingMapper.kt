@@ -47,7 +47,7 @@ fun toReceivedSykmelding(jsonMap: Map<String, Any?>): ReceivedSykmelding {
 
     return ReceivedSykmelding(
         sykmelding = unmarshallerToHealthInformation.toSykmelding(
-            sykmeldingId = UUID.randomUUID().toString(),
+            sykmeldingId = jsonMap["MELDING_ID"].toString(),
             pasientAktoerId = jsonMap["AKTOR_ID"].toString(),
             legeAktoerId = "",
             msgId = "",
@@ -62,7 +62,7 @@ fun toReceivedSykmelding(jsonMap: Map<String, Any?>): ReceivedSykmelding {
         legekontorOrgName = "",
         legekontorHerId = "",
         legekontorReshId = "",
-        mottattDato = LocalDateTime.now(),
+        mottattDato = LocalDateTime.parse((jsonMap["CREATED"].toString().substring(0, 19))),
         rulesetVersion = unmarshallerToHealthInformation.regelSettVersjon,
         fellesformat = "",
         tssid = ""
