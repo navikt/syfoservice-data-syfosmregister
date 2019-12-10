@@ -163,7 +163,7 @@ fun oppdaterFraEia(applicationState: ApplicationState, environment: Environment)
     )
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-eia-consumer-10",
+        "${environment.applicationName}-eia-consumer",
         valueDeserializer = StringDeserializer::class
     )
     val vaultCredentialService = VaultCredentialService()

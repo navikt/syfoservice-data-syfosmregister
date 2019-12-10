@@ -37,7 +37,7 @@
       }
     },
     {
-      "topicName": "privat-syfo-sm2013-eia-sykmelding",
+      "topicName": "privat-syfo-sm2013-eia-sykmeldinger",
       "members": [
         {"member":"srvsyfoservice-dat", "role":"CONSUMER"},
         {"member":"srvsyfoservice-dat", "role":"PRODUCER"},
