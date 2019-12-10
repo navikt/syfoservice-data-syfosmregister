@@ -136,7 +136,7 @@ fun main() {
 //    ).run()
     // readFromJsonMapTopic(applicationState, environment)
     //  oppdaterFraEia(applicationState, environment)
-    readFromJsonMapTopicAndUpdateId(applicationState, environment)
+    hentSykemeldingerFraSyfoserviceOgPubliserTilTopic(environment, applicationState)
     // readFromJsonMapTopic(applicationState, environment)
     // hentArbeidsgiverInformasjonPaaSykmelding(applicationState, environment)
 }
@@ -216,7 +216,7 @@ fun main() {
 //    ).run()
 // }
 
-fun hentSykemeldingerFraSyfoserviceOgPubliserTilTopic(environment: Environment) {
+fun hentSykemeldingerFraSyfoserviceOgPubliserTilTopic(environment: Environment, applicationState: ApplicationState) {
     val vaultConfig = VaultConfig(
         jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
     )
@@ -237,7 +237,7 @@ fun hentSykemeldingerFraSyfoserviceOgPubliserTilTopic(environment: Environment) 
     val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
     HentSykmeldingerFraSyfoServiceService(
         SykmeldingKafkaProducer(environment.sykmeldingCleanTopic, kafkaProducerClean),
-        databaseOracle, 10_000
+        databaseOracle, 10_000, environment.lastIndexSyfoservice
     ).run()
 }
 

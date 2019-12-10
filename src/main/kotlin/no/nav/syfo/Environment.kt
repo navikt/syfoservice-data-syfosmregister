@@ -15,6 +15,8 @@ data class Environment(
     val mountPathVault: String = getEnvVar("MOUNT_PATH_VAULT"),
     val cluster: String = getEnvVar("NAIS_CLUSTER_NAME"),
     val databaseName: String = getEnvVar("DATABASE_NAME", "syfosmregister"),
+    val lastIndexSyfoservice: Int = getEnvVar("LAST_INDEX_SYFOSERVICE").toInt(),
+    val lastIndexEia: Int = getEnvVar("LAST_INDEX_SYFOSERVICE").toInt(),
     val sykmeldingCleanTopic: String = getEnvVar("SYKEMLDING_CLEAN_TOPIC", "private-syfoservce-clean-sykmelding"),
     override val kafkaBootstrapServers: String = getEnvVar("KAFKA_BOOTSTRAP_SERVERS_URL")
 ) : KafkaConfig

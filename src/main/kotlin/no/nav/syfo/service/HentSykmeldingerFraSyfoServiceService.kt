@@ -9,16 +9,16 @@ import no.nav.syfo.log
 class HentSykmeldingerFraSyfoServiceService(
     private val sykmeldingKafkaProducer: SykmeldingKafkaProducer,
     private val databaseOracle: DatabaseInterfaceOracle,
-    private val batchSize: Int
+    private val batchSize: Int,
+    private val lastIndexSyfoservice: Int
 ) {
 
     fun run(): Int {
         val hentantallSykmeldinger = databaseOracle.hentAntallSykmeldingerSyfoService()
         log.info("Antall sykmeldinger som finnes i databasen:  {}", hentantallSykmeldinger.first().antall)
 
-        var lastIndex = 10174323
         var counter = 0
-
+        var lastIndex = lastIndexSyfoservice
         while (true) {
             val startTime = System.currentTimeMillis()
             val result = databaseOracle.hentSykmeldingerSyfoService(lastIndex, batchSize)
