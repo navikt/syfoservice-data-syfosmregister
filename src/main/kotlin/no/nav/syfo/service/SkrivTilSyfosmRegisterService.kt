@@ -77,7 +77,6 @@ fun convertToMottakid(mottakid: String): String =
     when (mottakid.length <= 63) {
         true -> mottakid
         else -> {
-            log.info("Størrelsen på mottakid er: {}, mottakid: {}", mottakid.length, mottakid)
             mottakid.substring(0, 63)
         }
     }

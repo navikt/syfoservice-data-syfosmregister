@@ -73,6 +73,9 @@ class SkrivTilSyfosmRegisterSyfoService(
                     objectMapper.readValue<Map<String, String?>>(it.value())
                 }
                     .map { mapToUpdateEvent(it) }
+                    .filter { it ->
+                        it.sykmeldingId.length <= 64
+                    }
             for (update in updateEvents) {
                 try {
                     val sykmeldingDb = databasePostgres.connection.hentSykmelding(convertToMottakid(update.mottakId))
