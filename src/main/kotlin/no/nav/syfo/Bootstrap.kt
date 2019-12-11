@@ -52,8 +52,8 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    hentSykemldingerFraEia(environment)
-    oppdaterFraEia(applicationState, environment)
+
+    readFromJsonMapTopicAndInsertMissingSykmeldinger(applicationState, environment)
 }
 //
 // fun hentArbeidsgiverInformasjonPaaSykmelding(
@@ -187,7 +187,7 @@ fun readFromJsonMapTopicAndInsertMissingSykmeldinger(applicationState: Applicati
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sykmelding-clean-consumer-11",
+        "${environment.applicationName}-sykmelding-clean-consumer-12",
         valueDeserializer = StringDeserializer::class
     )
     consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
@@ -205,7 +205,7 @@ fun readFromJsonMapTopicAndInsertMissingSykmeldinger(applicationState: Applicati
         applicationState,
         environment.lastIndexSyfoservice
     )
-    skrivTilSyfosmRegisterSysoService.insertMissingSykmeldinger()
+    skrivTilSyfosmRegisterSysoService.updateId()
 }
 
 fun runMapStringToJsonMap(

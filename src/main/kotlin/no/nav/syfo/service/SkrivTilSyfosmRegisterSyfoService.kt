@@ -97,7 +97,7 @@ class SkrivTilSyfosmRegisterSyfoService(
                     break
                 }
 
-                if (counter >= lastCounter + 10_000) {
+                if (counter >= lastCounter + 1000) {
                     log.info(
                         "Updated {} sykmeldinger, mottattTidspunkt oppdatert: {}, Ider og tidspunkt oppdatert: {}",
                         counter,
