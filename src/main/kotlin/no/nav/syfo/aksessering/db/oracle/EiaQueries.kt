@@ -1,10 +1,10 @@
 package no.nav.syfo.aksessering.db.oracle
 
-import java.sql.ResultSet
 import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.db.toList
 import no.nav.syfo.log
 import no.nav.syfo.model.Eia
+import java.sql.ResultSet
 
 fun DatabaseInterfaceOracle.hentSykmeldingerEia(lastIndex: Int, limit: Int): DatabaseResult<Eia> =
     connection.use { connection ->
@@ -56,22 +56,20 @@ fun ResultSet.toEia(previusIndex: Int): DatabaseResult<Eia> {
             val personNumberPatient = getString("PASIENT_ID")
             val personNumberDoctor = getString("AVSENDER_FNRSIGNATUR")
 
-            if (validatePersonNumber(personNumberPatient)) {
-                listEia.add(
-                    Eia(
-                        pasientfnr = personNumberPatient,
-                        legefnr = setPersonNumberDoctor(personNumberDoctor),
-                        mottakid = ediLoggId,
-                        legekontorOrgnr = getOrgNumber(this),
-                        legekontorHer = getHEROrg(this),
-                        legekontorResh = getRSHOrg(this),
-                        legekontorOrgnavn = legekontorOrgName
 
-                    )
+            listEia.add(
+                Eia(
+                    pasientfnr = personNumberPatient,
+                    legefnr = setPersonNumberDoctor(personNumberDoctor),
+                    mottakid = ediLoggId,
+                    legekontorOrgnr = getOrgNumber(this),
+                    legekontorHer = getHEROrg(this),
+                    legekontorResh = getRSHOrg(this),
+                    legekontorOrgnavn = legekontorOrgName
+
                 )
-            } else {
-                log.warn("Ugyldig fnr på pasient med Ediloggid: $ediLoggId")
-            }
+            )
+
         } catch (e: Exception) {
             log.warn("Sykmelding feiler på mapping med Ediloggid: $ediLoggId", e)
         }
