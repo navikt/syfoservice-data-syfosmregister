@@ -14,29 +14,19 @@ class HentSykmeldingerFraEiaService(
 
     fun run(): Int {
         var counter = 0
-        while (true) {
-            val currentMillies = System.currentTimeMillis()
-            val result = databaseOracle.hentSykmeldingerEia(lastIndex, batchSize)
 
-            for (eiaSykmelding in result.rows) {
-                eiaKafkaProducer.publishToKafka(eiaSykmelding)
-            }
-            val time = (System.currentTimeMillis() - currentMillies) / 1000.0
-            lastIndex = result.lastIndex
-            counter += result.rows.size
-            log.info(
-                "Antall sykmeldinger som er hentet i dette forsoket:  {} totalt {}, lastIndex {}, time {}",
-                result.rows.size,
-                counter,
-                lastIndex,
-                time
-            )
-            if (result.rows.isEmpty()) {
-                log.info("no more sykmelinger in database")
-                break
-            }
+        val result = databaseOracle.hentSykmeldingerEia()
+
+        for (eiaSykmelding in result.rows) {
+            eiaKafkaProducer.publishToKafka(eiaSykmelding)
         }
 
+        counter += result.rows.size
+        log.info(
+            "Antall sykmeldinger som er hentet i dette forsoket:  {} totalt {}",
+            result.rows.size,
+            counter
+        )
         return counter
     }
 }

@@ -5,7 +5,6 @@ import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.db.toList
 import no.nav.syfo.log
 import no.nav.syfo.model.Eia
-import no.nav.syfo.utils.get
 
 fun DatabaseInterfaceOracle.hentSykmeldingerEia(lastIndex: Int, limit: Int): DatabaseResult<Eia> =
     connection.use { connection ->
@@ -25,6 +24,22 @@ fun DatabaseInterfaceOracle.hentSykmeldingerEia(lastIndex: Int, limit: Int): Dat
             val resultSet = it.executeQuery()
             val databaseResult = resultSet.toEia(lastIndex)
             return databaseResult
+        }
+    }
+
+fun DatabaseInterfaceOracle.hentSykmeldingerEia(): DatabaseResult<Eia> =
+    connection.use { connection ->
+        connection.prepareStatement(
+            """
+                SELECT *
+                FROM EIA2_1_P.melding
+                WHERE melding_type_kode = 'SYKMELD'
+                AND EDILOGGID IN ('1807230903lard09813.1','1808141146kara71100.1','1805310956hovl58800.1','1801251020samn87865.1','1810081533bogo75704.1','1811131112stry46640.1','1811281318bogo95925.1','1811301007stry25425.1')
+                AND MELDING_TYPE_VERSJON = '2013-10-01';
+            """
+        ).use {
+            val resultSet = it.executeQuery()
+            return resultSet.toEia(0)
         }
     }
 

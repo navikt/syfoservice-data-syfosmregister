@@ -53,7 +53,7 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-    oppdaterFraEia(applicationState, environment)
+    hentSykemldingerFraEia(environment)
 }
 //
 // fun hentArbeidsgiverInformasjonPaaSykmelding(
