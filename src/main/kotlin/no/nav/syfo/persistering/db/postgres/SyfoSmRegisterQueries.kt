@@ -126,7 +126,6 @@ fun Connection.erSykmeldingsopplysningerLagret(id: String, mottakId: String) =
                 """
         ).use {
             it.setString(1, id)
-            it.setString(2, mottakId)
             it.executeQuery().next()
         }
     }
