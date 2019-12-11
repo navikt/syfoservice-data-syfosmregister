@@ -75,7 +75,7 @@ class SkrivTilSyfosmRegisterSyfoService(
                     .map { mapToUpdateEvent(it) }
             for (update in updateEvents) {
                 try {
-                    val sykmeldingDb = databasePostgres.connection.hentSykmelding(update.mottakId)
+                    val sykmeldingDb = databasePostgres.connection.hentSykmelding(convertToMottakid(update.mottakId))
                     counter++
                     if (sykmeldingDb != null) {
                         if (sykmeldingDb.sykmeldingsopplysninger.id != update.sykmeldingId) {
