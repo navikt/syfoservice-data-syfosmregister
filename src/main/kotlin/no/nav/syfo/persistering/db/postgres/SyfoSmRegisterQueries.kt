@@ -69,7 +69,7 @@ private fun insertSykmeldingsopplysninger(
         it.setString(3, sykmeldingsopplysninger.pasientAktoerId)
         it.setString(4, sykmeldingsopplysninger.legeFnr)
         it.setString(5, sykmeldingsopplysninger.legeAktoerId)
-        it.setString(6, sykmeldingsopplysninger.mottakId)
+        it.setString(6, convertToMottakid(sykmeldingsopplysninger.mottakId))
         it.setString(7, sykmeldingsopplysninger.legekontorOrgNr)
         it.setString(8, sykmeldingsopplysninger.legekontorHerId)
         it.setString(9, sykmeldingsopplysninger.legekontorReshId)
