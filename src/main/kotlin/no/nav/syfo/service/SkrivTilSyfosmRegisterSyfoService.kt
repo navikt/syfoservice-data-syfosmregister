@@ -128,7 +128,9 @@ class SkrivTilSyfosmRegisterSyfoService(
                     objectMapper.readValue<Map<String, String?>>(it.value())
                 }
                     .asSequence()
-                    .filter { checkLastIndex(it) }
+                    .filter {
+                        (it["MELDING_ID"] ?: error("Missing MELDING_ID")).length <= 64
+                     }
                     .map { toReceivedSykmelding(it) }
                     .toList()
 

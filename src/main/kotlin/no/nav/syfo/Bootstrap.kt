@@ -52,7 +52,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-
+    hentSykemeldingerFraSyfoserviceOgPubliserTilTopic(environment, applicationState)
     readFromJsonMapTopicAndInsertMissingSykmeldinger(applicationState, environment)
 }
 //
@@ -205,7 +205,7 @@ fun readFromJsonMapTopicAndInsertMissingSykmeldinger(applicationState: Applicati
         applicationState,
         environment.lastIndexSyfoservice
     )
-    skrivTilSyfosmRegisterSysoService.updateId()
+    skrivTilSyfosmRegisterSysoService.insertMissingSykmeldinger()
 }
 
 fun runMapStringToJsonMap(
