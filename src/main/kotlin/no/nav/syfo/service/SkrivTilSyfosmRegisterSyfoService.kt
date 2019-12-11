@@ -92,7 +92,7 @@ class SkrivTilSyfosmRegisterSyfoService(
                         }
                     }
                 } catch (ex: Exception) {
-                    log.error("Noe gikk galt med mottakid {}, exeption type {}", update.mottakId, ex.javaClass)
+                    log.error("Noe gikk galt med mottakid {}", update.mottakId, ex)
                     applicationState.ready = false
                     break
                 }

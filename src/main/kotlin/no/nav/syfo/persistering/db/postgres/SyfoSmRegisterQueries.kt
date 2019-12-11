@@ -207,7 +207,7 @@ fun Connection.hentSykmelding(mottakId: String): SykmeldingDbModel? =
             """
                 select * from sykmeldingsopplysninger sm 
                 INNER JOIN sykmeldingsdokument sd on sm.id = sd.id
-                where sm.mottak_id = ? and sm.epj_system_navn != 'SYFOSERVICE'
+                where sm.mottak_id = ?
             """
         ).use {
             it.setString(1, mottakId)
