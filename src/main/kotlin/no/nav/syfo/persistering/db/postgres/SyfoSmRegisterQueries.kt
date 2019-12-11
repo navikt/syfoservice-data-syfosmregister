@@ -122,7 +122,7 @@ fun Connection.erSykmeldingsopplysningerLagret(id: String, mottakId: String) =
             """
                 SELECT *
                 FROM SYKMELDINGSOPPLYSNINGER
-                WHERE id = ? AND mottak_id = ?;
+                WHERE id = ?
                 """
         ).use {
             it.setString(1, id)
