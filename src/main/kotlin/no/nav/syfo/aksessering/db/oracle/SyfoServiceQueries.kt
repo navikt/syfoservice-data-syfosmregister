@@ -32,12 +32,14 @@ fun DatabaseInterfaceOracle.hentSykmeldingerSyfoService(lastIndex: Int, limit: I
                 left outer join sm_arbeidsgiver sa on (sa.arbeidsgiver_id = sd.arbeidsgiver_id)
                 left outer join sm_sporsmal sp on (sd.sykmelding_dok_id = sp.sykmelding_id)
                 WHERE SYKMELDING_DOK_ID > ?
+                AND SYKMELDING_DOK_ID <= ?
                 ORDER BY SYKMELDING_DOK_ID ASC
                 FETCH NEXT ? ROWS ONLY
                 """
         ).use {
             it.setInt(1, lastIndex)
-            it.setInt(2, limit)
+            it.setInt(2, limit + lastIndex)
+            it.setInt(3, limit)
             val resultSet = it.executeQuery()
             val databaseResult = resultSet.toJsonStringSyfoService(lastIndex)
             return databaseResult

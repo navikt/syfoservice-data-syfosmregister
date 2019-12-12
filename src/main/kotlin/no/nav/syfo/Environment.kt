@@ -17,7 +17,7 @@ data class Environment(
     val databaseName: String = getEnvVar("DATABASE_NAME", "syfosmregister"),
     val lastIndexSyfoservice: Int = getEnvVar("LAST_INDEX_SYFOSERVICE").toInt(),
     val lastIndexEia: Int = getEnvVar("LAST_INDEX_EIA").toInt(),
-    val sykmeldingCleanTopic: String = getEnvVar("SYKEMLDING_CLEAN_TOPIC", "privat-syfoservice-clean-sykmeldinger"),
+    val sykmeldingCleanTopic: String = getEnvVar("SYKEMLDING_CLEAN_TOPIC", "privat-syfoservice-clean-sykmelding"),
     override val kafkaBootstrapServers: String = getEnvVar("KAFKA_BOOTSTRAP_SERVERS_URL")
 ) : KafkaConfig
 
