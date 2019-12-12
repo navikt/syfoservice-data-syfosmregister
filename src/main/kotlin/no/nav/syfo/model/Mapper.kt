@@ -15,8 +15,8 @@ class Mapper private constructor() {
             val created = LocalDateTime.parse((jsonMap["CREATED"].toString().substring(0, 19)))
             val status = jsonMap["STATUS"] ?: error("STATUS must not be null")
             val sendtTilArbeidsgiverDato: LocalDateTime? = getLocalDate(jsonMap["SENDT_TIL_ARBEIDSGIVER_DATO"])
-            val mottakId = jsonMap["MOTTAK_ID"] ?: error("MOTTAK_ID, must not be null")
-            return StatusSyfoService(status, mottakId, created, sendtTilArbeidsgiverDato)
+            val sykmeldingId = jsonMap["MELDING_ID"] ?: error("MELDING_ID, must not be null")
+            return StatusSyfoService(status, sykmeldingId, created, sendtTilArbeidsgiverDato)
         }
 
         private fun getLocalDate(localDate: String?): LocalDateTime? {
@@ -36,13 +36,13 @@ class Mapper private constructor() {
         fun toStatusEventList(statusSyfoService: StatusSyfoService): List<SykmeldingStatusEvent> {
             val statusEvents = ArrayList<SykmeldingStatusEvent>()
 
-            statusEvents.add(SykmeldingStatusEvent(statusSyfoService.mottakid, statusSyfoService.createdTimestmap, StatusEvent.APEN))
+            statusEvents.add(SykmeldingStatusEvent(statusSyfoService.sykmeldingId, statusSyfoService.createdTimestmap, StatusEvent.APEN))
 
             val statusEvent = mapEvent(statusSyfoService.status)
             val statusTimestamp: LocalDateTime = getStatusTimeStamp(statusEvent, statusSyfoService)
 
             if (statusEvent != StatusEvent.APEN) {
-                statusEvents.add(SykmeldingStatusEvent(statusSyfoService.mottakid, statusTimestamp, statusEvent))
+                statusEvents.add(SykmeldingStatusEvent(statusSyfoService.sykmeldingId, statusTimestamp, statusEvent))
             }
 
             return statusEvents

@@ -53,7 +53,6 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
     hentSykemeldingerFraSyfoserviceOgPubliserTilTopic(environment, applicationState)
-    readFromJsonMapTopicAndInsertMissingSykmeldinger(applicationState, environment)
 }
 //
 // fun hentArbeidsgiverInformasjonPaaSykmelding(

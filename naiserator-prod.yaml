@@ -59,4 +59,4 @@ spec:
     - name: LAST_INDEX_EIA
       value: "33745516"
     - name: LAST_INDEX_SYFOSERVICE
-      value: "10235044"
+      value: "0"

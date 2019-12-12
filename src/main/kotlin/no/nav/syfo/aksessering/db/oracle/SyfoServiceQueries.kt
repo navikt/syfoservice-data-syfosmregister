@@ -9,11 +9,28 @@ data class DatabaseResult<T>(
     val rows: List<T>
 )
 
-fun DatabaseInterfaceOracle.hentSykmeldingerSyfoService(lastIndex: Int, limit: Int): DatabaseResult<Map<String, Any?>> =
+fun DatabaseInterfaceOracle.hentFravaerForSykmelding(sporsmalId: Int): DatabaseResult<MutableMap<String, Any?>> {
     connection.use { connection ->
         connection.prepareStatement(
             """
-                SELECT * FROM SYKMELDING_DOK 
+                 select * from sm_sporsmal_periode where sm_sporsmal_id = ?
+                """
+        ).use {
+            it.setInt(1, sporsmalId)
+            val resultSet = it.executeQuery()
+            val databaseResult = resultSet.toJsonStringSyfoServiceFravaer()
+            return databaseResult
+        }
+    }
+}
+
+fun DatabaseInterfaceOracle.hentSykmeldingerSyfoService(lastIndex: Int, limit: Int): DatabaseResult<MutableMap<String, Any?>> =
+    connection.use { connection ->
+        connection.prepareStatement(
+            """
+                SELECT * FROM SYKMELDING_DOK sd 
+                left outer join sm_arbeidsgiver sa on (sa.arbeidsgiver_id = sd.arbeidsgiver_id)
+                left outer join sm_sporsmal sp on (sd.sykmelding_dok_id = sp.sykmelding_id)
                 WHERE SYKMELDING_DOK_ID > ?
                 ORDER BY SYKMELDING_DOK_ID ASC
                 FETCH NEXT ? ROWS ONLY
@@ -23,13 +40,33 @@ fun DatabaseInterfaceOracle.hentSykmeldingerSyfoService(lastIndex: Int, limit: I
             it.setInt(2, limit)
             val resultSet = it.executeQuery()
             val databaseResult = resultSet.toJsonStringSyfoService(lastIndex)
-
             return databaseResult
         }
     }
 
-fun ResultSet.toJsonStringSyfoService(previusIndex: Int): DatabaseResult<Map<String, Any?>> {
-    val listOfRows = ArrayList<Map<String, Any?>>()
+fun ResultSet.toJsonStringSyfoServiceFravaer(previusIndex: Int = 0): DatabaseResult<MutableMap<String, Any?>> {
+    val listOfRows = ArrayList<HashMap<String, Any?>>()
+
+    val metadata = this.metaData
+    val columns = metadata.columnCount
+    while (this.next()) {
+        val rowMap = HashMap<String, Any?>()
+        for (i in 1..columns) {
+            var data: Any?
+            if (metadata.getColumnClassName(i).contains("oracle.sql.TIMESTAMP")) {
+                data = getTimestamp(i)
+            } else {
+                data = getObject(i)
+            }
+            rowMap[metadata.getColumnName(i)] = data
+        }
+        listOfRows.add(rowMap)
+    }
+    return DatabaseResult(0, listOfRows)
+}
+
+fun ResultSet.toJsonStringSyfoService(previusIndex: Int): DatabaseResult<MutableMap<String, Any?>> {
+    val listOfRows = ArrayList<MutableMap<String, Any?>>()
 
     val metadata = this.metaData
     val columns = metadata.columnCount
@@ -42,6 +79,8 @@ fun ResultSet.toJsonStringSyfoService(previusIndex: Int): DatabaseResult<Map<Str
             if (metadata.getColumnClassName(i).contains("oracle.sql.TIMESTAMP")) {
                 data = getTimestamp(i)
             } else if (metadata.getColumnClassName(i).contains("oracle.sql.CLOB") || metadata.getColumnName(i) == "DOKUMENT") {
+                data = getString(i)
+            } else if (metadata.getColumnName(i) == "HAR_FRAVAER") {
                 data = getString(i)
             } else {
                 data = getObject(i)
@@ -62,28 +101,6 @@ fun DatabaseInterfaceOracle.hentAntallSykmeldingerSyfoService(): List<AntallSykm
                         """
         ).use {
             it.executeQuery().toList { toAntallSykmeldinger() }
-        }
-    }
-
-fun DatabaseInterfaceOracle.hentArbeidsgiverSyfoService(lastIndex: Int, limit: Int): DatabaseResult<Map<String, Any?>> =
-    connection.use { connection ->
-        connection.prepareStatement(
-            """
-                SELECT * FROM SYKMELDING_DOK
-                INNER JOIN SM_ARBEIDSGIVER
-                ON SYKMELDING_DOK.ARBEIDSGIVER_ID = SM_ARBEIDSGIVER.ARBEIDSGIVER_ID
-                WHERE SYKMELDING_DOK_ID > ?
-                ORDER BY SYKMELDING_DOK_ID ASC
-                FETCH NEXT ? ROWS ONLY
-                """
-        ).use {
-            it.setInt(1, lastIndex)
-            it.setInt(2, limit)
-
-            val resultSet = it.executeQuery()
-            val databaseResult = resultSet.toJsonStringSyfoService(lastIndex)
-
-            return databaseResult
         }
     }
 

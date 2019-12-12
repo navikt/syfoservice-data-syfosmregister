@@ -1,6 +1,7 @@
 package no.nav.syfo.service
 
 import no.nav.syfo.aksessering.db.oracle.hentAntallSykmeldingerSyfoService
+import no.nav.syfo.aksessering.db.oracle.hentFravaerForSykmelding
 import no.nav.syfo.aksessering.db.oracle.hentSykmeldingerSyfoService
 import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.kafka.SykmeldingKafkaProducer
@@ -19,16 +20,22 @@ class HentSykmeldingerFraSyfoServiceService(
 
         var counter = 0
         var lastIndex = lastIndexSyfoservice
+        var periodeCounter = 0
         while (true) {
             val startTime = System.currentTimeMillis()
-            val result = databaseOracle.hentSykmeldingerSyfoService(lastIndex, batchSize)
+            var result = databaseOracle.hentSykmeldingerSyfoService(lastIndex = lastIndex, limit = batchSize)
             for (sykmelding in result.rows) {
+                if (sykmelding.containsKey("HAR_FRAVAER") && sykmelding["HAR_FRAVAER"] == "1") {
+                    periodeCounter++
+                    val fravaerResult = databaseOracle.hentFravaerForSykmelding(sykmelding["sm_sporsmal_id".toUpperCase()] as Int)
+                    sykmelding["FRAVAER"] = fravaerResult
+                }
                 sykmeldingKafkaProducer.publishToKafka(sykmelding)
             }
-            val time = (System.currentTimeMillis() - startTime) / 1000.0
+            val timeUsed = (System.currentTimeMillis() - startTime) / 1000.0
             lastIndex = result.lastIndex
             counter += result.rows.size
-            log.info("Antall sykmeldinger som er hentet i dette forsoket:  {} totalt {}, time used {}, lastIndex {}", result.rows.size, counter, time, lastIndex)
+            log.info("Antall sykmeldinger som er hentet i dette forsoket:  {} totalt {}, time used {}, lastIndex {}, antall perioder hentet {}", result.rows.size, counter, timeUsed, lastIndex, periodeCounter)
             if (result.rows.isEmpty()) {
                 log.info("no more sykmelinger in database")
                 break

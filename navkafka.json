@@ -1,42 +1,6 @@
 {
   "topics": [
     {
-      "topicName": "privat-syfo-sm2013-syfoservice-sykmelding",
-      "members": [
-        {"member":"srvsyfoservice-dat", "role":"CONSUMER"},
-        {"member":"srvsyfoservice-dat", "role":"PRODUCER"},
-        {"member":"s151890", "role":"MANAGER"},
-        {"member":"k143566", "role":"MANAGER"},
-        {"member":"f133008", "role":"MANAGER"},
-        {"member":"n157016", "role":"MANAGER"},
-        {"member":"k157140", "role":"MANAGER"},
-        {"member":"g153850", "role":"MANAGER"}
-      ],
-      "numPartitions": 3,
-      "configEntries": {
-        "retention.ms": "-1"
-      }
-    },
-    {
-      "topicName": "privat-syfo-sm2013-syfoservice-received-sykmelding-clean",
-      "members": [
-        {"member":"srvsyfoservice-dat", "role":"CONSUMER"},
-        {"member":"srvsyfoservice-dat", "role":"PRODUCER"},
-        {"member":"srvsyfoprediksjoner", "role":"CONSUMER"},
-        {"member":"srvargussm", "role":"CONSUMER"},
-        {"member":"s151890", "role":"MANAGER"},
-        {"member":"k143566", "role":"MANAGER"},
-        {"member":"f133008", "role":"MANAGER"},
-        {"member":"n157016", "role":"MANAGER"},
-        {"member":"k157140", "role":"MANAGER"},
-        {"member":"g153850", "role":"MANAGER"}
-      ],
-      "numPartitions": 3,
-      "configEntries": {
-        "retention.ms": "-1"
-      }
-    },
-    {
       "topicName": "privat-syfo-sm2013-eia-sykmeldinger",
       "members": [
         {"member":"srvsyfoservice-dat", "role":"CONSUMER"},
@@ -54,41 +18,7 @@
       }
     },
     {
-      "topicName": "privat-syfo-sm2013-syfoservice-sykmelding-status-2",
-      "members": [
-        {"member":"srvsyfoservice-dat", "role":"CONSUMER"},
-        {"member":"srvsyfoservice-dat", "role":"PRODUCER"},
-        {"member":"s151890", "role":"MANAGER"},
-        {"member":"k143566", "role":"MANAGER"},
-        {"member":"f133008", "role":"MANAGER"},
-        {"member":"n157016", "role":"MANAGER"},
-        {"member":"k157140", "role":"MANAGER"},
-        {"member":"g153850", "role":"MANAGER"}
-      ],
-      "numPartitions": 3,
-      "configEntries": {
-        "retention.ms": "-1"
-      }
-    },
-    {
-      "topicName": "private-syfoservce-clean-sykmelding",
-      "members": [
-        {"member":"srvsyfoservice-dat", "role":"CONSUMER"},
-        {"member":"srvsyfoservice-dat", "role":"PRODUCER"},
-        {"member":"s151890", "role":"MANAGER"},
-        {"member":"k143566", "role":"MANAGER"},
-        {"member":"f133008", "role":"MANAGER"},
-        {"member":"n157016", "role":"MANAGER"},
-        {"member":"k157140", "role":"MANAGER"},
-        {"member":"g153850", "role":"MANAGER"}
-      ],
-      "numPartitions": 3,
-      "configEntries": {
-        "retention.ms": "-1"
-      }
-    },
-    {
-      "topicName": "private-syfoservice-arbeidsgiver",
+      "topicName": "privat-syfoservice-clean-sykmeldinger",
       "members": [
         {"member":"srvsyfoservice-dat", "role":"CONSUMER"},
         {"member":"srvsyfoservice-dat", "role":"PRODUCER"},

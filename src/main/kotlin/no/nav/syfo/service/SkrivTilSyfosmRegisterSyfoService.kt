@@ -130,7 +130,7 @@ class SkrivTilSyfosmRegisterSyfoService(
                     .asSequence()
                     .filter {
                         (it["MELDING_ID"] ?: error("Missing MELDING_ID")).length <= 64
-                     }
+                    }
                     .map { toReceivedSykmelding(it) }
                     .toList()
 
