@@ -33,6 +33,7 @@ class SkrivBehandlingsutfallTilSyfosmRegisterService(
         var counterIdUpdates = 0
         var lastCounter = 0
         while (applicationState.ready) {
+            log.info("Ready, leser fra topic")
             val updateEvents: List<UpdateEvent> =
                 kafkaConsumer.poll(Duration.ofMillis(100)).map {
                     objectMapper.readValue<Map<String, String?>>(it.value())
@@ -42,6 +43,7 @@ class SkrivBehandlingsutfallTilSyfosmRegisterService(
                         it.sykmeldingId.length <= 64
                     }
             for (update in updateEvents) {
+                log.info("Behandler melding")
                 try {
                     // sjekker om sm finnes (det skal den gjøre)
                     val sykmeldingDb = databasePostgres.connection.hentSykmeldingMedId(update.sykmeldingId)
