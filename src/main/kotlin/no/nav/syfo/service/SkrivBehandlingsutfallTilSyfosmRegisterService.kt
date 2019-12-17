@@ -42,13 +42,11 @@ class SkrivBehandlingsutfallTilSyfosmRegisterService(
                         it.sykmeldingId.length <= 64
                     }
             for (update in updateEvents) {
-                log.info("Behandler melding med id {}", update.sykmeldingId)
                 try {
                     // sjekker om sm finnes (det skal den gjøre)
                     val sykmeldingDb = databasePostgres.connection.hentSykmeldingMedId(update.sykmeldingId)
                     counter++
                     if (sykmeldingDb != null) {
-                        log.info("Fant sykmelding")
                         // legg inn behandlingsutfall
                         databasePostgres.connection.opprettBehandlingsutfall(
                             Behandlingsutfall(
