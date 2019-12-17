@@ -107,7 +107,7 @@ fun leggInnBehandlingsstatusForSykmeldinger(applicationState: ApplicationState, 
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sykmelding-clean-consumer-16",
+        "${environment.applicationName}-sykmelding-clean-consumer-17",
         valueDeserializer = StringDeserializer::class
     )
     consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")

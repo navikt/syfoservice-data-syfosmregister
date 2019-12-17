@@ -33,7 +33,6 @@ class SkrivBehandlingsutfallTilSyfosmRegisterService(
         var counterIdUpdates = 0
         var lastCounter = 0
         while (applicationState.ready) {
-            log.info("Ready, leser fra topic")
             val updateEvents: List<UpdateEvent> =
                 kafkaConsumer.poll(Duration.ofMillis(100)).map {
                     objectMapper.readValue<Map<String, String?>>(it.value())
