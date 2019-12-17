@@ -23,6 +23,7 @@ class SkrivBehandlingsutfallTilSyfosmRegisterService(
 ) {
 
     fun leggInnBehandlingsutfall() {
+        log.info("Starter lesing fra topic")
         kafkaConsumer.subscribe(
             listOf(
                 sykmeldingStatusCleanTopic

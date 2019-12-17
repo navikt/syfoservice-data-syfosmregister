@@ -107,14 +107,11 @@ fun leggInnBehandlingsstatusForSykmeldinger(applicationState: ApplicationState, 
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sykmelding-clean-consumer-14",
+        "${environment.applicationName}-sykmelding-clean-consumer-15",
         valueDeserializer = StringDeserializer::class
     )
     consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
     val kafkaConsumerCleanSykmelding = KafkaConsumer<String, String>(consumerProperties)
-    kafkaConsumerCleanSykmelding.subscribe(
-        listOf(environment.sykmeldingCleanTopic)
-    )
     val vaultCredentialService = VaultCredentialService()
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
     val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
