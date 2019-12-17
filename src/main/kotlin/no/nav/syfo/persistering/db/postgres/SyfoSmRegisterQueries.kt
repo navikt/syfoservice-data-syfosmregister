@@ -94,7 +94,7 @@ fun Connection.opprettBehandlingsutfall(behandlingsutfall: Behandlingsutfall) =
     use { connection ->
         connection.prepareStatement(
             """
-                    INSERT INTO BEHANDLINGSUTFALL(id, behandlingsutfall) VALUES (?, ?)
+                    INSERT INTO BEHANDLINGSUTFALL(id, behandlingsutfall) VALUES (?, ?) ON CONFLICT DO NOTHING
                 """
         ).use {
             it.setString(1, behandlingsutfall.id)
