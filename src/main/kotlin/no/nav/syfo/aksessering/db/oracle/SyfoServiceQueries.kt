@@ -86,8 +86,7 @@ fun ResultSet.toJsonStringSyfoService(previusIndex: Int): DatabaseResult<Mutable
                 data = getString(i)
             } else if (metadata.getColumnName(i) == "SM_SPORSMAL_ID") {
                 data = getInt(i)
-            }
-            else {
+            } else {
                 data = getObject(i)
             }
             rowMap[metadata.getColumnName(i)] = data

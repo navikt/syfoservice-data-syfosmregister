@@ -21,6 +21,7 @@ import no.nav.syfo.model.Eia
 import no.nav.syfo.service.HentSykmeldingerFraEiaService
 import no.nav.syfo.service.HentSykmeldingerFraSyfoServiceService
 import no.nav.syfo.service.MapSykmeldingStringToSykemldignJsonMap
+import no.nav.syfo.service.SkrivBehandlingsutfallTilSyfosmRegisterService
 import no.nav.syfo.service.SkrivTilSyfosmRegisterServiceEia
 import no.nav.syfo.service.SkrivTilSyfosmRegisterSyfoService
 import no.nav.syfo.utils.JacksonKafkaSerializer
@@ -52,7 +53,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    hentSykemeldingerFraSyfoserviceOgPubliserTilTopic(environment, applicationState)
+    leggInnBehandlingsstatusForSykmeldinger(applicationState, environment)
 }
 //
 // fun hentArbeidsgiverInformasjonPaaSykmelding(
@@ -97,6 +98,31 @@ fun main() {
 //        1_000
 //    ).run()
 // }
+
+fun leggInnBehandlingsstatusForSykmeldinger(applicationState: ApplicationState, environment: Environment) {
+    val vaultServiceuser = VaultServiceUser(
+        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
+        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
+    )
+    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+
+    val consumerProperties = kafkaBaseConfig.toConsumerConfig(
+        "${environment.applicationName}-sykmelding-clean-consumer-19",
+        valueDeserializer = StringDeserializer::class
+    )
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
+    val kafkaConsumerCleanSykmelding = KafkaConsumer<String, String>(consumerProperties)
+    val vaultCredentialService = VaultCredentialService()
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
+    val skrivBehandlingsutfallTilSyfosmRegisterService = SkrivBehandlingsutfallTilSyfosmRegisterService(
+        kafkaConsumerCleanSykmelding,
+        databasePostgres,
+        environment.sykmeldingCleanTopic,
+        applicationState
+    )
+    skrivBehandlingsutfallTilSyfosmRegisterService.leggInnBehandlingsutfall()
+}
 
 fun hentSykemldingerFraEia(environment: Environment) {
     val vaultSecrets = VaultCredentials(
