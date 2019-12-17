@@ -8,6 +8,7 @@ import java.time.LocalDateTime
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.db.toList
 import no.nav.syfo.log
+import no.nav.syfo.model.Behandlingsutfall
 import no.nav.syfo.model.Eia
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.SykmeldingStatusEvent
@@ -88,6 +89,20 @@ fun Connection.opprettSykmeldingsdokument(sykmeldingsdokument: Sykmeldingsdokume
         connection.commit()
     }
 }
+
+fun Connection.opprettBehandlingsutfall(behandlingsutfall: Behandlingsutfall) =
+    use { connection ->
+        connection.prepareStatement(
+            """
+                    INSERT INTO BEHANDLINGSUTFALL(id, behandlingsutfall) VALUES (?, ?)
+                """
+        ).use {
+            it.setString(1, behandlingsutfall.id)
+            it.setObject(2, behandlingsutfall.behandlingsutfall.toPGObject())
+            it.executeUpdate()
+        }
+        connection.commit()
+    }
 
 private fun insertSykmeldingsdokument(
     connection: Connection,
@@ -211,6 +226,20 @@ fun Connection.hentSykmelding(mottakId: String): SykmeldingDbModel? =
         ).use {
             it.setString(1, mottakId)
             it.executeQuery().toSykmelding(mottakId)
+        }
+    }
+
+fun Connection.hentSykmeldingMedId(sykmeldingId: String): SykmeldingDbModel? =
+    use { connection ->
+        connection.prepareStatement(
+            """
+                select * from sykmeldingsopplysninger sm 
+                INNER JOIN sykmeldingsdokument sd on sm.id = sd.id
+                where sm.epj_system_navn = 'SYFOSERVICE' and sm.id = ?
+            """
+        ).use {
+            it.setString(1, sykmeldingId)
+            it.executeQuery().toSykmelding(sykmeldingId)
         }
     }
 
