@@ -35,7 +35,7 @@ class SkrivBehandlingsutfallTilSyfosmRegisterService(
         while (applicationState.ready) {
             val updateEvents: List<UpdateEvent> =
                 kafkaConsumer.poll(Duration.ofMillis(100)).map {
-                    objectMapper.readValue<Map<String, String?>>(it.value())
+                    objectMapper.readValue<Map<String, Any?>>(it.value())
                 }
                     .map { Mapper.mapToUpdateEvent(it) }
                     .filter { it ->

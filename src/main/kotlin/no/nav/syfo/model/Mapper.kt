@@ -26,10 +26,10 @@ class Mapper private constructor() {
             }
         }
 
-        fun mapToUpdateEvent(jsonMap: Map<String, String?>): UpdateEvent {
+        fun mapToUpdateEvent(jsonMap: Map<String, Any?>): UpdateEvent {
             val created = LocalDateTime.parse((jsonMap["CREATED"].toString().substring(0, 19)))
-            val mottakId = jsonMap["MOTTAK_ID"] ?: error("MOTTAK_ID, must not be null")
-            val meldingId: String = jsonMap["MELDING_ID"] ?: error("MELDING_ID, must not be null")
+            val mottakId = jsonMap["MOTTAK_ID"] as String? ?: error("MOTTAK_ID, must not be null")
+            val meldingId: String = jsonMap["MELDING_ID"] as String? ?: error("MELDING_ID, must not be null")
             return UpdateEvent(sykmeldingId = meldingId, created = created, mottakId = mottakId)
         }
 
