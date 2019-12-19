@@ -54,7 +54,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    oppdaterStatusSyfosmregister(applicationState, environment)
+    hentSykemeldingerFraSyfoserviceOgPubliserTilTopic(environment, applicationState)
 }
 //
 // fun hentArbeidsgiverInformasjonPaaSykmelding(
@@ -204,7 +204,7 @@ fun hentSykemeldingerFraSyfoserviceOgPubliserTilTopic(environment: Environment, 
 
     val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
     HentSykmeldingerFraSyfoServiceService(
-        SykmeldingKafkaProducer(environment.sykmeldingCleanTopic, kafkaProducerClean),
+        SykmeldingKafkaProducer(environment.sykmeldingCleanTopicFull, kafkaProducerClean),
         databaseOracle, 10_000, environment.lastIndexSyfoservice
     ).run()
 }
