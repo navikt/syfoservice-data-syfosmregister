@@ -32,7 +32,7 @@ class DatabasePostgres(
             jdbcUrl = env.syfosmregisterDBURL
             username = initialCredentials.username
             password = initialCredentials.password
-            maximumPoolSize = 3
+            maximumPoolSize = 1
             isAutoCommit = false
             transactionIsolation = "TRANSACTION_REPEATABLE_READ"
             driverClassName = "org.postgresql.Driver"

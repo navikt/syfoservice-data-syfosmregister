@@ -24,6 +24,7 @@ import no.nav.syfo.service.MapSykmeldingStringToSykemldignJsonMap
 import no.nav.syfo.service.SkrivBehandlingsutfallTilSyfosmRegisterService
 import no.nav.syfo.service.SkrivTilSyfosmRegisterServiceEia
 import no.nav.syfo.service.SkrivTilSyfosmRegisterSyfoService
+import no.nav.syfo.service.UpdateStatusService
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
 import no.nav.syfo.vault.RenewVaultService
@@ -107,7 +108,7 @@ fun oppdaterStatusSyfosmregister(applicationState: ApplicationState, environment
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sykmelding-clean-consumer-20",
+        "${environment.applicationName}-sykmelding-clean-consumer-21",
         valueDeserializer = StringDeserializer::class
     )
     consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
@@ -115,11 +116,13 @@ fun oppdaterStatusSyfosmregister(applicationState: ApplicationState, environment
     val vaultCredentialService = VaultCredentialService()
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
     val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
+    val updateService = UpdateStatusService(databasePostgres)
     val skrivTilSyfosmRegisterSyfoService = SkrivTilSyfosmRegisterSyfoService(
         kafkaConsumerCleanSykmelding,
         databasePostgres,
         environment.sykmeldingCleanTopic,
-        applicationState
+        applicationState,
+        updateService
     )
     skrivTilSyfosmRegisterSyfoService.run()
 }

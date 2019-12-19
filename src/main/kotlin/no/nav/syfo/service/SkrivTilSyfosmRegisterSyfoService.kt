@@ -22,7 +22,8 @@ class SkrivTilSyfosmRegisterSyfoService(
     private val kafkaConsumer: KafkaConsumer<String, String>,
     private val databasePostgres: DatabaseInterfacePostgres,
     private val sykmeldingStatusCleanTopic: String,
-    private val applicationState: ApplicationState
+    private val applicationState: ApplicationState,
+    private val updateStatusService: UpdateStatusService
 ) {
 
     fun run() {
@@ -35,28 +36,20 @@ class SkrivTilSyfosmRegisterSyfoService(
         )
         log.info("Started kafkakonsumer")
         while (applicationState.ready) {
-
-            // read from kafkatopic
-            // for each sykmelding
-                // get statuses from smregister
-                    // if has statuses
-                        // delete all statuses where status.eventTimestamp < kafkaTimestamp.toLocalDateTime() - 5 min
-                        // if latest = statusFromSyfoService || latest.eventTimestamp > statusFromSyfoService.eventTimestamp
-                            // insert status from syfoservice
-                            // continue
-                        // else if (lates < statusFromSyfoService)
-                            // insert latest from syfoservice
-                    // else
-                        // insert all statuses from syfoservice
-
             val listStatusSyfoService: List<SykmeldingStatusTopicEvent> =
                 kafkaConsumer.poll(Duration.ofMillis(100)).map {
                     mapToSykmeldingStatusTopicEvent(objectMapper.readValue<Map<String, Any?>>(it.value()), it.timestamp())
+                }.filter { it ->
+                    it.sykmeldingId.length <= 64
                 }
+
+            for (sykmeldingStatusTopicEvent in listStatusSyfoService) {
+                updateStatusService.updateSykemdlingStatus(sykmeldingStatusTopicEvent)
+            }
 
             if (listStatusSyfoService.isNotEmpty()) {
                 counter += listStatusSyfoService.size
-                if (counter >= lastCounter + 50_000) {
+                if (counter >= lastCounter + 10_000) {
                     log.info("Mapped {} statuses", counter)
                     lastCounter = counter
                 }

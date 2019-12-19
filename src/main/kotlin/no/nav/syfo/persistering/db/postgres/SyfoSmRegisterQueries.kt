@@ -293,7 +293,7 @@ fun DatabaseInterfacePostgres.getStatusesForSykmelding(id: String): List<Sykmeld
     this.connection.use { connection ->
         connection.prepareStatement(
             """
-           select * from sykmeldingstatus where sykmelding_id = ? order by event_timestamp
+           select * from sykmeldingstatus where sykmelding_id = ? order by event_timestamp 
         """
         ).use {
             it.setString(1, id)
