@@ -1,11 +1,11 @@
 package no.nav.syfo.model
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class Mapper private constructor() {
     companion object {
@@ -28,10 +28,10 @@ class Mapper private constructor() {
             }
         }
 
-        fun mapToUpdateEvent(jsonMap: Map<String, String?>): UpdateEvent {
+        fun mapToUpdateEvent(jsonMap: Map<String, Any?>): UpdateEvent {
             val created = LocalDateTime.parse((jsonMap["CREATED"].toString().substring(0, 19)))
-            val mottakId = jsonMap["MOTTAK_ID"] ?: error("MOTTAK_ID, must not be null")
-            val meldingId: String = jsonMap["MELDING_ID"] ?: error("MELDIGN_ID, must not be null")
+            val mottakId = jsonMap["MOTTAK_ID"] as String? ?: error("MOTTAK_ID, must not be null")
+            val meldingId: String = jsonMap["MELDING_ID"] as String? ?: error("MELDING_ID, must not be null")
             return UpdateEvent(sykmeldingId = meldingId, created = created, mottakId = mottakId)
         }
 
@@ -76,7 +76,6 @@ class Mapper private constructor() {
             }
         }
 
-
         fun mapToSykmeldingStatusTopicEvent(
             sykmeldingStatusMap: Map<String, Any?>,
             kafkaTimestamp: Long
@@ -103,7 +102,7 @@ class Mapper private constructor() {
             sykmeldingStatusMap: Map<String, Any?>,
             harFravaer: Boolean?
         ): List<FravarsPeriode>? {
-            if(harFravaer == null || !harFravaer) {
+            if (harFravaer == null || !harFravaer) {
                 return null
             }
             val fravaer: HashMap<String, Any> = sykmeldingStatusMap["FRAVAER"] as HashMap<String, Any>

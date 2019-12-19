@@ -22,8 +22,7 @@ class SkrivTilSyfosmRegisterSyfoService(
     private val kafkaConsumer: KafkaConsumer<String, String>,
     private val databasePostgres: DatabaseInterfacePostgres,
     private val sykmeldingStatusCleanTopic: String,
-    private val applicationState: ApplicationState,
-    private val lastIndexSyfoservice: Int
+    private val applicationState: ApplicationState
 ) {
 
     fun run() {
@@ -64,8 +63,6 @@ class SkrivTilSyfosmRegisterSyfoService(
             }
         }
     }
-
-
 
     fun updateId() {
         kafkaConsumer.subscribe(
@@ -159,9 +156,5 @@ class SkrivTilSyfosmRegisterSyfoService(
                 lastCount = totalCounter
             }
         }
-    }
-
-    private fun checkLastIndex(jsonMap: Map<String, String?>): Boolean {
-        return (jsonMap["SYKMELDING_DOK_ID"] ?: error("SYKMELDING_DOK_ID is missing")).toInt() > lastIndexSyfoservice
     }
 }
