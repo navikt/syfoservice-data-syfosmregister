@@ -1,6 +1,7 @@
 package no.nav.syfo.service
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import java.time.Instant
 import java.time.LocalDate
 import no.nav.syfo.model.FravarsPeriode
 import no.nav.syfo.model.Mapper
@@ -18,6 +19,7 @@ class mapperTest : Spek({
 
             val newMap = objectMapper.readValue<Map<String, Any?>>(mapString)
             val fravarsPerioder = Mapper.getFravaersPeriode(newMap, true)
+            val topicEvent = Mapper.mapToSykmeldingStatusTopicEvent(newMap, Instant.now().toEpochMilli())
 
             fravarsPerioder shouldEqual listOf(FravarsPeriode(fom = LocalDate.of(2019, 10, 1), tom = LocalDate.of(2019, 10, 2)))
         }

@@ -147,7 +147,9 @@ class Mapper private constructor() {
         private fun getNullSafeBoolen(any: Any?): Boolean? {
             return when (any) {
                 null -> null
-                else -> any as Boolean
+                "1" -> true
+                "0" -> false
+                else -> throw IllegalArgumentException("Incorrect format of input $any")
             }
         }
     }
