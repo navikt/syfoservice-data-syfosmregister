@@ -3,13 +3,18 @@ package no.nav.syfo.persistering.db.postgres
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.sql.Connection
 import java.sql.ResultSet
+import java.sql.Statement
 import java.sql.Timestamp
 import java.time.LocalDateTime
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.db.toList
 import no.nav.syfo.log
+import no.nav.syfo.model.ArbeidsgiverStatus
 import no.nav.syfo.model.Eia
 import no.nav.syfo.model.ReceivedSykmelding
+import no.nav.syfo.model.Sporsmal
+import no.nav.syfo.model.StatusEvent
+import no.nav.syfo.model.Svar
 import no.nav.syfo.model.SykmeldingStatusEvent
 import no.nav.syfo.model.Sykmeldingsdokument
 import no.nav.syfo.model.Sykmeldingsopplysninger
@@ -157,25 +162,38 @@ fun Connection.oppdaterSykmeldingsopplysninger(listEia: List<Eia>) {
     }
 }
 
-fun Connection.oppdaterSykmeldingStatus(sykmeldingStatusEvents: List<SykmeldingStatusEvent>) {
-    use { connection ->
+fun Connection.insertArbeidsgiver(arbeidsgiverStatus: ArbeidsgiverStatus) {
+    this.prepareStatement(
+        """
+                INSERT INTO arbeidsgiver(sykmelding_id, orgnummer, juridisk_orgnummer, navn) VALUES (?, ?, ?, ?)
+                """
+    ).use {
+        it.setString(1, arbeidsgiverStatus.sykmeldingId)
+        it.setString(2, arbeidsgiverStatus.orgnummer)
+        it.setString(3, arbeidsgiverStatus.juridiskOrgnummer)
+        it.setString(4, arbeidsgiverStatus.orgnavn)
+        it.execute()
+    }
+}
+
+fun DatabaseInterfacePostgres.oppdaterSykmeldingStatus(sykmeldingStatusEvents: List<SykmeldingStatusEvent>) {
+    this.connection.use { connection ->
         connection.prepareStatement(
             """                
                 INSERT INTO sykmeldingstatus
                 (sykmelding_id, event_timestamp, event)
-                SELECT id, ?, ?
-                FROM sykmeldingsopplysninger where mottak_id = ? 
+                VALUES (?, ?, ?)
                 on conflict do nothing
             """
         ).use {
             for (status in sykmeldingStatusEvents) {
-                it.setTimestamp(1, Timestamp.valueOf(status.timestamp))
-                it.setString(2, status.event.name)
-                it.setString(3, convertToMottakid(status.mottakId))
+
+                it.setString(1, status.sykmeldingId)
+                it.setTimestamp(2, Timestamp.valueOf(status.timestamp))
+                it.setString(3, status.event.name)
                 it.addBatch()
             }
             it.executeBatch()
-//            log.info("Antall oppdateringer {}", numberOfUpdates.size)
         }
 
         connection.commit()
@@ -242,16 +260,36 @@ fun Connection.deleteAndInsertSykmelding(
     }
 }
 
-fun Connection.updateMottattTidspunkt(id: String, mottattTidspunkt: LocalDateTime) {
-    use { connection ->
-        connection.prepareStatement("""
-            update sykmeldingsopplysninger set mottatt_tidspunkt = ?
-            where id = ?
+fun DatabaseInterfacePostgres.getStatusesForSykmelding(id: String): List<SykmeldingStatusEvent> =
+    this.connection.use { connection ->
+        connection.prepareStatement(
+            """
+           select * from sykmeldingstatus where sykmelding_id = ? order by event_timestamp
         """
         ).use {
-            it.setTimestamp(1, Timestamp.valueOf(mottattTidspunkt))
-            it.setString(2, id)
-            it.executeUpdate()
+            it.setString(1, id)
+            it.executeQuery().toList { toStatusEvent() }
+        }
+    }
+
+fun ResultSet.toStatusEvent(): SykmeldingStatusEvent {
+    return SykmeldingStatusEvent(
+        getString("sykmelding_id"),
+        getTimestamp("event_timestamp").toLocalDateTime(),
+        StatusEvent.valueOf(getString("event"))
+    )
+}
+
+fun DatabaseInterfacePostgres.deleteSykmeldingStatus(sykmeldingId: String, kafkaTimestamp: LocalDateTime) {
+    connection.use { connection ->
+        connection.prepareStatement(
+            """
+            DELETE FROM sykmeldingstatus WHERE sykmelding_id = ? AND event_timestamp < ?
+        """
+        ).use {
+            it.setString(1, sykmeldingId)
+            it.setTimestamp(2, Timestamp.valueOf(kafkaTimestamp))
+            it.execute()
         }
         connection.commit()
     }
@@ -280,4 +318,89 @@ fun ResultSet.toSykmelding(mottakId: String): SykmeldingDbModel? {
         return SykmeldingDbModel(sykmeldingsopplysninger, sykmeldingsdokument)
     }
     return null
+}
+
+fun Connection.lagreSporsmalOgSvar(sporsmal: Sporsmal) {
+    var spmId: Int?
+    spmId = this.finnSporsmal(sporsmal)
+    if (spmId == null) {
+        spmId = this.lagreSporsmal(sporsmal)
+    }
+    this.lagreSvar(spmId, sporsmal.svar)
+}
+
+private fun Connection.finnSporsmal(sporsmal: Sporsmal): Int? {
+
+    this.prepareStatement(
+        """
+                SELECT sporsmal.id
+                FROM sporsmal
+                WHERE shortName=? AND tekst=?;
+                """
+    ).use {
+        it.setString(1, sporsmal.shortName.name)
+        it.setString(2, sporsmal.tekst)
+        val rs = it.executeQuery()
+        return if (rs.next()) rs.getInt(1) else null
+    }
+}
+
+private fun Connection.lagreSporsmal(sporsmal: Sporsmal): Int {
+    var spmId: Int? = null
+    this.prepareStatement(
+        """
+                INSERT INTO sporsmal(shortName, tekst) VALUES (?, ?)
+                """,
+        Statement.RETURN_GENERATED_KEYS
+    ).use {
+        it.setString(1, sporsmal.shortName.name)
+        it.setString(2, sporsmal.tekst)
+        it.execute()
+        if (it.generatedKeys.next()) {
+            spmId = it.generatedKeys.getInt(1)
+        }
+    }
+
+    return spmId ?: throw RuntimeException("Fant ikke id for spørsmål som nettopp ble lagret")
+}
+
+private fun Connection.lagreSvar(sporsmalId: Int, svar: Svar) {
+    this.prepareStatement(
+        """
+                INSERT INTO svar(sykmelding_id, sporsmal_id, svartype, svar) VALUES (?, ?, ?, ?)
+                """
+    ).use {
+        it.setString(1, svar.sykmeldingId)
+        it.setInt(2, sporsmalId)
+        it.setString(3, svar.svartype.name)
+        it.setString(4, svar.svar)
+        it.execute()
+    }
+}
+
+fun DatabaseInterfacePostgres.svarFinnesFraFor(sykmeldingId: String): Boolean =
+    connection.use { connection ->
+        connection.prepareStatement(
+            """
+                SELECT 1 FROM svar WHERE sykmelding_id=?;
+                """
+        ).use {
+            it.setString(1, sykmeldingId)
+            it.executeQuery().next()
+        }
+    }
+
+fun DatabaseInterfacePostgres.lagreSporsmalOgSvarOgArbeidsgiver(
+    sporsmals: List<Sporsmal>,
+    arbeidsgiverStatus: ArbeidsgiverStatus?
+) {
+    connection.use { connection ->
+        sporsmals.forEach { sporsmal ->
+            connection.lagreSporsmalOgSvar(sporsmal)
+        }
+        if (arbeidsgiverStatus != null) {
+            connection.insertArbeidsgiver(arbeidsgiverStatus)
+        }
+        connection.commit()
+    }
 }

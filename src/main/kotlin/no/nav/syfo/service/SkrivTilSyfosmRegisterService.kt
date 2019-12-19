@@ -1,12 +1,9 @@
 package no.nav.syfo.service
 
-import com.fasterxml.jackson.module.kotlin.readValue
-import java.time.Duration
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.log
 import no.nav.syfo.model.ReceivedSykmelding
-import no.nav.syfo.objectMapper
 import org.apache.kafka.clients.consumer.KafkaConsumer
 
 class SkrivTilSyfosmRegisterService(
@@ -17,26 +14,26 @@ class SkrivTilSyfosmRegisterService(
 ) {
 
     fun run() {
-        var counter = 0
-        var invalidCounter = 0
-        kafkaconsumerReceivedSykmelding.subscribe(
-            listOf(
-                sm2013SyfoserviceSykmeldingCleanTopic
-            )
-        )
-        while (applicationState.ready) {
-            kafkaconsumerReceivedSykmelding.poll(Duration.ofMillis(0)).forEach { consumerRecord ->
-                val receivedSykmelding: ReceivedSykmelding = objectMapper.readValue(consumerRecord.value())
-                if (!validPasientFnr(receivedSykmelding.personNrPasient)) {
-                    logNonValidSykmelding(receivedSykmelding)
-                    saveSykmeldingInDB(receivedSykmelding, "00000000000")
-                    invalidCounter++
-                }
-
-                counter++
-                if (counter % 10000 == 0) {
-                    log.info("searched through : {} sykmeldinger, found {} invalid", counter, invalidCounter)
-                }
+//        var counter = 0
+//        var invalidCounter = 0
+//        kafkaconsumerReceivedSykmelding.subscribe(
+//            listOf(
+//                sm2013SyfoserviceSykmeldingCleanTopic
+//            )
+//        )
+//        while (applicationState.ready) {
+//            kafkaconsumerReceivedSykmelding.poll(Duration.ofMillis(0)).forEach { consumerRecord ->
+//                val receivedSykmelding: ReceivedSykmelding = objectMapper.readValue(consumerRecord.value())
+//                if (!validPasientFnr(receivedSykmelding.personNrPasient)) {
+//                    logNonValidSykmelding(receivedSykmelding)
+//                    saveSykmeldingInDB(receivedSykmelding, "00000000000")
+//                    invalidCounter++
+//                }
+//
+//                counter++
+//                if (counter % 10000 == 0) {
+//                    log.info("searched through : {} sykmeldinger, found {} invalid", counter, invalidCounter)
+//                }
 //                else if (databasePostgres.connection.erSykmeldingsopplysningerLagret(
 //                        receivedSykmelding.sykmelding.id,
 //                        convertToMottakid(receivedSykmelding.navLogId)
@@ -51,11 +48,14 @@ class SkrivTilSyfosmRegisterService(
 //                } else {
 //                    saveSykmeldingInDB(receivedSykmelding)
 //                }
-            }
-        }
+//            }
+//        }
     }
 
-    private fun saveSykmeldingInDB(receivedSykmelding: ReceivedSykmelding, personnr: String = receivedSykmelding.personNrPasient) {
+    private fun saveSykmeldingInDB(
+        receivedSykmelding: ReceivedSykmelding,
+        personnr: String = receivedSykmelding.personNrPasient
+    ) {
 //        databasePostgres.connection.opprettSykmeldingsopplysninger(
 //            toSykmeldingsopplysninger(receivedSykmelding, personnr)
 //        )

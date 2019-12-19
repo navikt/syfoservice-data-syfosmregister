@@ -5,7 +5,6 @@ enum class ShortName {
 }
 enum class Svartype {
     ARBEIDSSITUASJON,
-    PERIODE,
     PERIODER,
     JA_NEI
 }

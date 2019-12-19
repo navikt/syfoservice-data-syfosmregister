@@ -5,11 +5,10 @@ import java.time.Duration
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.log
-import no.nav.syfo.model.Mapper.Companion.mapToSyfoserviceStatus
+import no.nav.syfo.model.Mapper.Companion.mapToSykmeldingStatusTopicEvent
 import no.nav.syfo.model.Mapper.Companion.mapToUpdateEvent
-import no.nav.syfo.model.Mapper.Companion.toStatusEventList
 import no.nav.syfo.model.ReceivedSykmelding
-import no.nav.syfo.model.SykmeldingStatusEvent
+import no.nav.syfo.model.SykmeldingStatusTopicEvent
 import no.nav.syfo.model.UpdateEvent
 import no.nav.syfo.model.toReceivedSykmelding
 import no.nav.syfo.objectMapper
@@ -17,7 +16,6 @@ import no.nav.syfo.persistering.db.postgres.deleteAndInsertSykmelding
 import no.nav.syfo.persistering.db.postgres.erSykmeldingsopplysningerLagret
 import no.nav.syfo.persistering.db.postgres.hentSykmelding
 import no.nav.syfo.persistering.db.postgres.lagreReceivedSykmelding
-import no.nav.syfo.persistering.db.postgres.oppdaterSykmeldingStatus
 import org.apache.kafka.clients.consumer.KafkaConsumer
 
 class SkrivTilSyfosmRegisterSyfoService(
@@ -38,25 +36,36 @@ class SkrivTilSyfosmRegisterSyfoService(
         )
         log.info("Started kafkakonsumer")
         while (applicationState.ready) {
-            val listStatusSyfoService: List<SykmeldingStatusEvent> =
+
+            // read from kafkatopic
+            // for each sykmelding
+                // get statuses from smregister
+                    // if has statuses
+                        // delete all statuses where status.eventTimestamp < kafkaTimestamp.toLocalDateTime() - 5 min
+                        // if latest = statusFromSyfoService || latest.eventTimestamp > statusFromSyfoService.eventTimestamp
+                            // insert status from syfoservice
+                            // continue
+                        // else if (lates < statusFromSyfoService)
+                            // insert latest from syfoservice
+                    // else
+                        // insert all statuses from syfoservice
+
+            val listStatusSyfoService: List<SykmeldingStatusTopicEvent> =
                 kafkaConsumer.poll(Duration.ofMillis(100)).map {
-                    objectMapper.readValue<Map<String, String?>>(it.value())
+                    mapToSykmeldingStatusTopicEvent(objectMapper.readValue<Map<String, Any?>>(it.value()), it.timestamp())
                 }
-                    .map { mapToSyfoserviceStatus(it) }
-                    .map { toStatusEventList(it) }
-                    .flatten()
 
             if (listStatusSyfoService.isNotEmpty()) {
-                databasePostgres.connection.oppdaterSykmeldingStatus(listStatusSyfoService)
-
                 counter += listStatusSyfoService.size
                 if (counter >= lastCounter + 50_000) {
-                    log.info("Inserted {} statuses", counter)
+                    log.info("Mapped {} statuses", counter)
                     lastCounter = counter
                 }
             }
         }
     }
+
+
 
     fun updateId() {
         kafkaConsumer.subscribe(

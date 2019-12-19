@@ -204,7 +204,6 @@ fun readFromJsonMapTopicAndInsertMissingSykmeldinger(applicationState: Applicati
         applicationState,
         environment.lastIndexSyfoservice
     )
-    skrivTilSyfosmRegisterSysoService.insertMissingSykmeldinger()
 }
 
 fun runMapStringToJsonMap(
