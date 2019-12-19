@@ -91,12 +91,15 @@ class Mapper private constructor() {
                 kafkaTimestamp = kafakTime,
                 harForsikring = getNullSafeBoolen(sykmeldingStatusMap["HAR_FORSIKRING"]),
                 harFravaer = harFravaer,
-                arbeidssituasjon = sykmeldingStatusMap["ARBEIDSSITUASJON"]?.toString(),
+                arbeidssituasjon = getArbeidssituasjon(sykmeldingStatusMap),
                 sendtTilArbeidsgiverDato = getNullSafeTimestamp(sykmeldingStatusMap["SENDT_TIL_ARBEIDSGIVER_DATO"]?.toString()),
                 arbeidsgiver = getArbeidsgiverStatus(sykmeldingStatusMap, status, sykmeldingId),
                 fravarsPeriode = getFravaersPeriode(sykmeldingStatusMap, harFravaer)
             )
         }
+
+        private fun getArbeidssituasjon(sykmeldingStatusMap: Map<String, Any?>) =
+            sykmeldingStatusMap["ARBEIDSSITUASJON_1"]?.toString()
 
         fun getFravaersPeriode(
             sykmeldingStatusMap: Map<String, Any?>,

@@ -5,10 +5,8 @@ import java.time.Duration
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.log
-import no.nav.syfo.model.Mapper.Companion.mapToSykmeldingStatusTopicEvent
 import no.nav.syfo.model.Mapper.Companion.mapToUpdateEvent
 import no.nav.syfo.model.ReceivedSykmelding
-import no.nav.syfo.model.SykmeldingStatusTopicEvent
 import no.nav.syfo.model.UpdateEvent
 import no.nav.syfo.model.toReceivedSykmelding
 import no.nav.syfo.objectMapper
@@ -35,23 +33,30 @@ class SkrivTilSyfosmRegisterSyfoService(
             )
         )
         log.info("Started kafkakonsumer")
+        val map = HashMap<String, Int>()
         while (applicationState.ready) {
-            val listStatusSyfoService: List<SykmeldingStatusTopicEvent> =
+            val listStatusSyfoService: List<Map<String, Any?>> =
                 kafkaConsumer.poll(Duration.ofMillis(100)).map {
-                    mapToSykmeldingStatusTopicEvent(objectMapper.readValue<Map<String, Any?>>(it.value()), it.timestamp())
-                }.filter { it ->
-                    it.sykmeldingId.length <= 64
+                    objectMapper.readValue<Map<String, Any?>>(it.value())
                 }
 
             for (sykmeldingStatusTopicEvent in listStatusSyfoService) {
-                updateStatusService.updateSykemdlingStatus(sykmeldingStatusTopicEvent)
+                sykmeldingStatusTopicEvent.entries.forEach {
+                    if (it.value != null) {
+                        if (!map.containsKey(it.key)) {
+                            map[it.key] = 0
+                        }
+                        map[it.key] = map[it.key]!!.plus(1)
+                    }
+                }
             }
 
             if (listStatusSyfoService.isNotEmpty()) {
                 counter += listStatusSyfoService.size
-                if (counter >= lastCounter + 10_000) {
+                if (counter >= lastCounter + 100_000) {
                     log.info("Mapped {} statuses", counter)
                     lastCounter = counter
+                    log.info("Data types {}", objectMapper.writeValueAsString(map))
                 }
             }
         }

@@ -108,10 +108,10 @@ fun oppdaterStatusSyfosmregister(applicationState: ApplicationState, environment
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sykmelding-clean-consumer-21",
+        "${environment.applicationName}-sykmelding-clean-consumer-22",
         valueDeserializer = StringDeserializer::class
     )
-    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "10")
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "500")
     val kafkaConsumerCleanSykmelding = KafkaConsumer<String, String>(consumerProperties)
     val vaultCredentialService = VaultCredentialService()
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
