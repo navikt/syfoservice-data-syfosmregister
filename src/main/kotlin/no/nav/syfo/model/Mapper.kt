@@ -107,7 +107,7 @@ class Mapper private constructor() {
             }
             val fravaer: HashMap<String, Any> = sykmeldingStatusMap["FRAVAER"] as HashMap<String, Any>
             if (fravaer != null) {
-                return (fravaer["rows"] as List<Map<String, String>>).map { FravarsPeriode(fom = LocalDate.parse(it["FOM"]), tom = LocalDate.parse(it["TOM"])) }
+                return (fravaer["rows"] as List<Map<String, String>>).map { FravarsPeriode(fom = LocalDate.parse(it["FOM"]?.substring(0, 10)), tom = LocalDate.parse(it["TOM"]?.substring(0, 10))) }
             }
             return null
         }
