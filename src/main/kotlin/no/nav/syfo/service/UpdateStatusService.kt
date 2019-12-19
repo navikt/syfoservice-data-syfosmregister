@@ -135,17 +135,19 @@ class UpdateStatusService(val database: DatabaseInterfacePostgres) {
     private fun getSporsmalOgSvarForBekreft(sykmeldingStatusTopicEvent: SykmeldingStatusTopicEvent): List<Sporsmal> {
         val sporsmals = ArrayList<Sporsmal>()
 
-        val arbeidssituasjon = Sporsmal(
-            "Jeg er sykmeldt fra",
-            ShortName.ARBEIDSSITUASJON,
-            Svar(
-                sykmeldingId = sykmeldingStatusTopicEvent.sykmeldingId,
-                svartype = Svartype.ARBEIDSSITUASJON,
-                svar = sykmeldingStatusTopicEvent.arbeidssituasjon!!,
-                sporsmalId = null
+        if (sykmeldingStatusTopicEvent.arbeidssituasjon != null) {
+            val arbeidssituasjon = Sporsmal(
+                "Jeg er sykmeldt fra",
+                ShortName.ARBEIDSSITUASJON,
+                Svar(
+                    sykmeldingId = sykmeldingStatusTopicEvent.sykmeldingId,
+                    svartype = Svartype.ARBEIDSSITUASJON,
+                    svar = sykmeldingStatusTopicEvent.arbeidssituasjon,
+                    sporsmalId = null
+                )
             )
-        )
-        sporsmals.add(arbeidssituasjon)
+            sporsmals.add(arbeidssituasjon)
+        }
 
         if (sykmeldingStatusTopicEvent.harForsikring != null) {
             sporsmals.add(
