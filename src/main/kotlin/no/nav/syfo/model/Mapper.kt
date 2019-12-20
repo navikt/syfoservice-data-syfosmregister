@@ -1,9 +1,7 @@
 package no.nav.syfo.model
 
-import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZoneId
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -78,28 +76,33 @@ class Mapper private constructor() {
 
         fun mapToSykmeldingStatusTopicEvent(
             sykmeldingStatusMap: Map<String, Any?>,
-            kafkaTimestamp: Long
+            fravarsPeriode: List<FravarsPeriode>?
         ): SykmeldingStatusTopicEvent {
-            val kafakTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(kafkaTimestamp), ZoneId.systemDefault()).minusMinutes(2)
+            val kafakTime = LocalDateTime.of(2019, 12, 13, 0, 0)
             val status = mapEvent(sykmeldingStatusMap["STATUS"].toString())
             val sykmeldingId = sykmeldingStatusMap["MELDING_ID"].toString()
-            val harFravaer = getNullSafeBoolen(sykmeldingStatusMap["HAR_FRAVAER"])
+            val harFravaer = getNullSafeBoolen(sykmeldingStatusMap["SPM_HAR_FRAVAER"])
             return SykmeldingStatusTopicEvent(
                 sykmeldingId = sykmeldingId,
                 created = LocalDateTime.parse(sykmeldingStatusMap["CREATED"].toString().substring(0, 19)),
                 status = status,
                 kafkaTimestamp = kafakTime,
-                harForsikring = getNullSafeBoolen(sykmeldingStatusMap["HAR_FORSIKRING"]),
+                harForsikring = getNullSafeBoolen(sykmeldingStatusMap["SPM_HAR_FORSIKRING"]),
                 harFravaer = harFravaer,
                 arbeidssituasjon = getArbeidssituasjon(sykmeldingStatusMap),
                 sendtTilArbeidsgiverDato = getNullSafeTimestamp(sykmeldingStatusMap["SENDT_TIL_ARBEIDSGIVER_DATO"]?.toString()),
                 arbeidsgiver = getArbeidsgiverStatus(sykmeldingStatusMap, status, sykmeldingId),
-                fravarsPeriode = getFravaersPeriode(sykmeldingStatusMap, harFravaer)
+                fravarsPeriode = fravarsPeriode
             )
         }
 
-        private fun getArbeidssituasjon(sykmeldingStatusMap: Map<String, Any?>) =
-            sykmeldingStatusMap["ARBEIDSSITUASJON_1"]?.toString()
+        private fun getArbeidssituasjon(sykmeldingStatusMap: Map<String, Any?>): String? {
+            val arbArbeidssituasjon = sykmeldingStatusMap["SPM_ARBEIDSSITUASJON"]?.toString()
+            if (!arbArbeidssituasjon.isNullOrEmpty()) {
+                return arbArbeidssituasjon
+            }
+            return sykmeldingStatusMap["ARBEIDSSITUASJON"]?.toString()
+        }
 
         fun getFravaersPeriode(
             sykmeldingStatusMap: Map<String, Any?>,
@@ -123,16 +126,16 @@ class Mapper private constructor() {
             return when (statusEvent) {
                 StatusEvent.SENDT -> ArbeidsgiverStatus(
                     sykmeldingId = sykmeldingId,
-                    juridiskOrgnummer = sykmeldingStatusMap["JURIDISK_ORGNUMMER"]?.toString(),
+                    juridiskOrgnummer = sykmeldingStatusMap["ARB_JURIDISK_ORGNUMMER"]?.toString(),
                     orgnummer = getOrgnummer(sykmeldingStatusMap, sykmeldingId),
-                    orgnavn = sykmeldingStatusMap["NAVN"].toString()
+                    orgnavn = sykmeldingStatusMap["ARB_NAVN"].toString()
                 )
                 else -> null
             }
         }
 
         private fun getOrgnummer(sykmeldingStatusMap: Map<String, Any?>, sykmeldingId: String): String {
-            val orgnummer_1 = sykmeldingStatusMap["ORGNUMMER_1"]?.toString()
+            val orgnummer_1 = sykmeldingStatusMap["ARB_ORGNUMMER"]?.toString()
             val orgnummer = sykmeldingStatusMap["ORGNUMMER"].toString()
             if (orgnummer_1 != null && orgnummer != orgnummer_1) {
                 log.warn("orgnummer er ikke lik: {}, {}, sykmeldingId {}", orgnummer, orgnummer_1)

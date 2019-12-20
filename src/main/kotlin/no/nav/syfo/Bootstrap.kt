@@ -101,6 +101,9 @@ fun main() {
 // }
 
 fun oppdaterStatusSyfosmregister(applicationState: ApplicationState, environment: Environment) {
+    val vaultConfig = VaultConfig(
+        jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
+    )
     val vaultServiceuser = VaultServiceUser(
         serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
         serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
@@ -108,21 +111,27 @@ fun oppdaterStatusSyfosmregister(applicationState: ApplicationState, environment
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sykmelding-clean-consumer",
+        "${environment.applicationName}-sykmelding-clean-consumer-1",
         valueDeserializer = StringDeserializer::class
     )
-    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "500")
+    val syfoserviceVaultSecrets = VaultCredentials(
+        databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
+        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
+    )
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "10")
     val kafkaConsumerCleanSykmelding = KafkaConsumer<String, String>(consumerProperties)
     val vaultCredentialService = VaultCredentialService()
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
     val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
     val updateService = UpdateStatusService(databasePostgres)
+    val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
     val skrivTilSyfosmRegisterSyfoService = SkrivTilSyfosmRegisterSyfoService(
         kafkaConsumerCleanSykmelding,
         databasePostgres,
         environment.sykmeldingCleanTopicFull,
         applicationState,
-        updateService
+        updateService,
+        databaseOracle
     )
     skrivTilSyfosmRegisterSyfoService.run()
 }

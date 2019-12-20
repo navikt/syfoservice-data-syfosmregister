@@ -2,11 +2,17 @@ package no.nav.syfo.service
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.time.Duration
+import java.time.LocalDate
+import no.nav.syfo.aksessering.db.oracle.hentFravaerForSykmelding
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabaseInterfacePostgres
+import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.log
+import no.nav.syfo.model.FravarsPeriode
+import no.nav.syfo.model.Mapper.Companion.mapToSykmeldingStatusTopicEvent
 import no.nav.syfo.model.Mapper.Companion.mapToUpdateEvent
 import no.nav.syfo.model.ReceivedSykmelding
+import no.nav.syfo.model.SykmeldingStatusTopicEvent
 import no.nav.syfo.model.UpdateEvent
 import no.nav.syfo.model.toReceivedSykmelding
 import no.nav.syfo.objectMapper
@@ -21,7 +27,8 @@ class SkrivTilSyfosmRegisterSyfoService(
     private val databasePostgres: DatabaseInterfacePostgres,
     private val sykmeldingStatusCleanTopic: String,
     private val applicationState: ApplicationState,
-    private val updateStatusService: UpdateStatusService
+    private val updateStatusService: UpdateStatusService,
+    private val databaseOracle: DatabaseOracle
 ) {
 
     fun run() {
@@ -36,31 +43,34 @@ class SkrivTilSyfosmRegisterSyfoService(
         log.info("Started kafkakonsumer")
         val map = HashMap<String, Int>()
         while (applicationState.ready) {
-            val listStatusSyfoService: List<Map<String, Any?>> =
+            val listStatusSyfoService: List<SykmeldingStatusTopicEvent> =
                 kafkaConsumer.poll(Duration.ofMillis(100)).map {
-                    objectMapper.readValue<Map<String, Any?>>(it.value())
+                    val map = objectMapper.readValue<Map<String, Any?>>(it.value())
+                    mapToSykmeldingStatusTopicEvent(map, getFravaer(map))
+                }.filter { it ->
+                    it.sykmeldingId.length <= 64
                 }
 
             for (sykmeldingStatusTopicEvent in listStatusSyfoService) {
-                sykmeldingStatusTopicEvent.entries.forEach {
-                    if (it.value != null) {
-                        if (!map.containsKey(it.key)) {
-                            map[it.key] = 0
-                        }
-                        map[it.key] = map[it.key]!!.plus(1)
-                    }
-                }
+                updateStatusService.updateSykemdlingStatus(sykmeldingStatusTopicEvent)
             }
 
             if (listStatusSyfoService.isNotEmpty()) {
                 counter += listStatusSyfoService.size
-                if (counter >= lastCounter + 100_000) {
+                if (counter >= lastCounter + 10_000) {
                     log.info("Mapped {} statuses", counter)
                     lastCounter = counter
-                    log.info("Data types {}", objectMapper.writeValueAsString(map))
                 }
             }
         }
+    }
+
+    private fun getFravaer(map: Map<String, Any?>): List<FravarsPeriode>? {
+        if (map.containsKey("SPM_HAR_FRAVAER") && map["SPM_HAR_FRAVAER"] == "1") {
+            val fravaerResult = databaseOracle.hentFravaerForSykmelding(map["SPM_SM_SPORSMAL_ID"] as Int)
+            return fravaerResult.rows.map { FravarsPeriode(fom = LocalDate.parse(it["FOM"]?.toString()?.substring(0, 10)), tom = LocalDate.parse(it["TOM"]?.toString()?.substring(0, 10))) }
+        }
+        return null
     }
 
     fun updateId() {
