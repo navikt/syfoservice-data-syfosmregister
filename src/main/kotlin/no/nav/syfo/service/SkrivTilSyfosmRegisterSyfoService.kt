@@ -27,6 +27,7 @@ class SkrivTilSyfosmRegisterSyfoService(
     fun run() {
         var counter = 0
         var lastCounter = 0
+        var emptyCounter = 0
         kafkaConsumer.subscribe(
             listOf(
                 sykmeldingStatusCleanTopic
@@ -56,7 +57,12 @@ class SkrivTilSyfosmRegisterSyfoService(
                 if (counter >= lastCounter + 100_000) {
                     log.info("Mapped {} statuses", counter)
                     lastCounter = counter
+                }
+            } else {
+                emptyCounter++
+                if(emptyCounter > 10) {
                     log.info("Data types {}", objectMapper.writeValueAsString(map))
+                    break
                 }
             }
         }

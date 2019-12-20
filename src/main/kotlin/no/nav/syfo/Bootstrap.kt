@@ -54,7 +54,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    hentSykemeldingerFraSyfoserviceOgPubliserTilTopic(environment, applicationState)
+    oppdaterStatusSyfosmregister(applicationState, environment)
 }
 //
 // fun hentArbeidsgiverInformasjonPaaSykmelding(
@@ -108,7 +108,7 @@ fun oppdaterStatusSyfosmregister(applicationState: ApplicationState, environment
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sykmelding-clean-consumer-22",
+        "${environment.applicationName}-sykmelding-clean-consumer",
         valueDeserializer = StringDeserializer::class
     )
     consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "500")
@@ -120,7 +120,7 @@ fun oppdaterStatusSyfosmregister(applicationState: ApplicationState, environment
     val skrivTilSyfosmRegisterSyfoService = SkrivTilSyfosmRegisterSyfoService(
         kafkaConsumerCleanSykmelding,
         databasePostgres,
-        environment.sykmeldingCleanTopic,
+        environment.sykmeldingCleanTopicFull,
         applicationState,
         updateService
     )
@@ -138,7 +138,7 @@ fun leggInnBehandlingsstatusForSykmeldinger(applicationState: ApplicationState, 
         "${environment.applicationName}-sykmelding-clean-consumer-19",
         valueDeserializer = StringDeserializer::class
     )
-    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "500")
     val kafkaConsumerCleanSykmelding = KafkaConsumer<String, String>(consumerProperties)
     val vaultCredentialService = VaultCredentialService()
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
@@ -204,7 +204,7 @@ fun hentSykemeldingerFraSyfoserviceOgPubliserTilTopic(environment: Environment, 
 
     val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
     HentSykmeldingerFraSyfoServiceService(
-        SykmeldingKafkaProducer(environment.sykmeldingCleanTopicFull, kafkaProducerClean),
+        SykmeldingKafkaProducer(environment.sykmeldingCleanTopic, kafkaProducerClean),
         databaseOracle, 10_000, environment.lastIndexSyfoservice
     ).run()
 }
