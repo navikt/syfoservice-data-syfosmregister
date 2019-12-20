@@ -57,12 +57,7 @@ class SkrivTilSyfosmRegisterSyfoService(
                 if (counter >= lastCounter + 100_000) {
                     log.info("Mapped {} statuses", counter)
                     lastCounter = counter
-                }
-            } else {
-                emptyCounter++
-                if(emptyCounter > 10) {
                     log.info("Data types {}", objectMapper.writeValueAsString(map))
-                    break
                 }
             }
         }
