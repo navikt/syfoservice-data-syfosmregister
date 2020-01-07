@@ -24,7 +24,7 @@ class OppgaveTilReglerTest : Spek({
             )
 
             regelliste.size shouldEqual 2
-            //regelliste[0] shouldEqual RuleInfo("regelnavn", "melding til legen", "melding til bruker", Status.MANUAL_PROCESSING)
+            // regelliste[0] shouldEqual RuleInfo("regelnavn", "melding til legen", "melding til bruker", Status.MANUAL_PROCESSING)
         }
     }
 })
