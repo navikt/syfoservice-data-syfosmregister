@@ -19,6 +19,7 @@ data class Environment(
     val lastIndexEia: Int = getEnvVar("LAST_INDEX_EIA").toInt(),
     val sykmeldingCleanTopic: String = getEnvVar("SYKEMLDING_CLEAN_TOPIC", "privat-syfoservice-clean-sykmelding"),
     val sykmeldingCleanTopicFull: String = getEnvVar("SYKEMLDING_CLEAN_TOPIC_FULL", "privat-syfoservice-clean-sykmelding-full"),
+    val oppgaveTopic: String = getEnvVar("OPPGAVE_TOPIC", "privat-syfo-oppgave-registrerOppgave"),
     override val kafkaBootstrapServers: String = getEnvVar("KAFKA_BOOTSTRAP_SERVERS_URL")
 ) : KafkaConfig
 

@@ -261,6 +261,19 @@ fun Connection.hentSykmeldingListeMedBehandlingsutfall(mottakId: String): List<S
         }
     }
 
+fun Connection.hentSykmeldingIdManglerBehandlingsutfall(msgId: String): String? =
+    use { connection ->
+        connection.prepareStatement(
+            """
+                select sd.id from sykmeldingsdokument sd
+                where NOT exists(select 1 from behandlingsutfall where id = sd.id) AND sd.sykmelding->>'msgId' = ?;
+            """
+        ).use {
+            it.setString(1, msgId)
+            it.executeQuery().getString("id")
+        }
+    }
+
 fun Connection.hentSykmeldingMedId(sykmeldingId: String): SykmeldingDbModel? =
     use { connection ->
         connection.prepareStatement(
