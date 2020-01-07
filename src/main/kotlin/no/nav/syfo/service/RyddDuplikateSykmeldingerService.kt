@@ -1,7 +1,6 @@
 package no.nav.syfo.service
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -41,16 +40,18 @@ class RyddDuplikateSykmeldingerService(
         var lastCounter = 0
 
         GlobalScope.launch {
-            delay(30000)
-            if(lastCounter != counterAll) {
-                log.info(
-                    "Lest {} sykmeldinger totalt, antall som har passert filter: {}, antall duplikater: {}, antall oppdaterte behandlingsutfall: {}",
-                    counterAll,
-                    counter,
-                    counterDuplikat,
-                    counterOppdatertBehandlingsutfall
-                )
-                lastCounter = counterAll
+            while (applicationState.ready) {
+                delay(30000)
+                if (lastCounter != counterAll) {
+                    log.info(
+                        "Lest {} sykmeldinger totalt, antall som har passert filter: {}, antall duplikater: {}, antall oppdaterte behandlingsutfall: {}",
+                        counterAll,
+                        counter,
+                        counterDuplikat,
+                        counterOppdatertBehandlingsutfall
+                    )
+                    lastCounter = counterAll
+                }
             }
         }
 

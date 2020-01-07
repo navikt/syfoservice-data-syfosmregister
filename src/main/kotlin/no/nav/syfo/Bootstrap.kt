@@ -109,7 +109,7 @@ fun ryddDuplikateSykmeldinger(applicationState: ApplicationState, environment: E
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sykmelding-clean-consumer-2",
+        "${environment.applicationName}-sykmelding-clean-consumer-3",
         valueDeserializer = StringDeserializer::class
     )
 
