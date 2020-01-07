@@ -1,11 +1,6 @@
 package no.nav.syfo.persistering.db.postgres
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import java.sql.Connection
-import java.sql.ResultSet
-import java.sql.Statement
-import java.sql.Timestamp
-import java.time.LocalDateTime
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.db.toList
 import no.nav.syfo.log
@@ -23,6 +18,11 @@ import no.nav.syfo.model.toPGObject
 import no.nav.syfo.model.toSykmeldingsdokument
 import no.nav.syfo.model.toSykmeldingsopplysninger
 import no.nav.syfo.objectMapper
+import java.sql.Connection
+import java.sql.ResultSet
+import java.sql.Statement
+import java.sql.Timestamp
+import java.time.LocalDateTime
 
 data class DatabaseResult(
     val lastIndex: Int,
@@ -403,24 +403,27 @@ fun ResultSet.toSykmelding(mottakId: String): SykmeldingDbModel? {
 }
 
 fun ResultSet.toSykmeldingMedBehandlingsutfall(): SykmeldingBehandlingsutfallDbModel {
-        val sykmeldingId = getString("id")
-        val behandlingsutfall = if (getString("behandlingsutfall") != null) Behandlingsutfall(sykmeldingId, objectMapper.readValue(getString("behandlingsutfall"))) else null
-        val sykmeldingsopplysninger = Sykmeldingsopplysninger(
-            id = sykmeldingId,
-            mottakId = getString("mottak_id"),
-            pasientFnr = getString("pasient_fnr"),
-            pasientAktoerId = getString("pasient_aktoer_id"),
-            legeFnr = getString("lege_fnr"),
-            legeAktoerId = getString("lege_aktoer_id"),
-            legekontorOrgNr = getString("legekontor_org_nr"),
-            legekontorHerId = getString("legekontor_her_id"),
-            legekontorReshId = getString("legekontor_resh_id"),
-            epjSystemNavn = getString("epj_system_navn"),
-            epjSystemVersjon = getString("epj_system_versjon"),
-            mottattTidspunkt = getTimestamp("mottatt_tidspunkt").toLocalDateTime(),
-            tssid = getString("tss_id")
-        )
-        return SykmeldingBehandlingsutfallDbModel(sykmeldingsopplysninger, behandlingsutfall)
+    val sykmeldingId = getString("id")
+    val behandlingsutfall = if (getString("behandlingsutfall") != null) Behandlingsutfall(
+        sykmeldingId,
+        objectMapper.readValue(getString("behandlingsutfall"))
+    ) else null
+    val sykmeldingsopplysninger = Sykmeldingsopplysninger(
+        id = sykmeldingId,
+        mottakId = getString("mottak_id"),
+        pasientFnr = getString("pasient_fnr"),
+        pasientAktoerId = getString("pasient_aktoer_id"),
+        legeFnr = getString("lege_fnr"),
+        legeAktoerId = getString("lege_aktoer_id"),
+        legekontorOrgNr = getString("legekontor_org_nr"),
+        legekontorHerId = getString("legekontor_her_id"),
+        legekontorReshId = getString("legekontor_resh_id"),
+        epjSystemNavn = getString("epj_system_navn"),
+        epjSystemVersjon = getString("epj_system_versjon"),
+        mottattTidspunkt = getTimestamp("mottatt_tidspunkt").toLocalDateTime(),
+        tssid = getString("tss_id")
+    )
+    return SykmeldingBehandlingsutfallDbModel(sykmeldingsopplysninger, behandlingsutfall)
 }
 
 fun Connection.lagreSporsmalOgSvar(sporsmal: Sporsmal) {
@@ -482,8 +485,9 @@ private fun Connection.lagreSvar(sporsmalId: Int, svar: Svar) {
 }
 
 fun Connection.hentArbeidsgiverStatus(sykmeldingId: String): List<ArbeidsgiverStatus> =
-    this.prepareStatement(
-        """
+    use { connection ->
+        connection.prepareStatement(
+            """
                  SELECT orgnummer,
                         juridisk_orgnummer,
                         navn,
@@ -491,9 +495,10 @@ fun Connection.hentArbeidsgiverStatus(sykmeldingId: String): List<ArbeidsgiverSt
                    FROM arbeidsgiver
                   WHERE sykmelding_id = ?
             """
-    ).use {
-        it.setString(1, sykmeldingId)
-        it.executeQuery().toList { tilArbeidsgiverStatus() }
+        ).use {
+            it.setString(1, sykmeldingId)
+            it.executeQuery().toList { tilArbeidsgiverStatus() }
+        }
     }
 
 fun ResultSet.tilArbeidsgiverStatus(): ArbeidsgiverStatus =
@@ -559,4 +564,5 @@ fun DatabaseInterfacePostgres.lagreSporsmalOgSvarOgArbeidsgiver(
         }
         connection.commit()
     }
+}
 }
