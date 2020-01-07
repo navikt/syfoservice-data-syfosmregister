@@ -25,6 +25,7 @@ import no.nav.syfo.service.RyddDuplikateSykmeldingerService
 import no.nav.syfo.service.SkrivBehandlingsutfallTilSyfosmRegisterService
 import no.nav.syfo.service.SkrivTilSyfosmRegisterServiceEia
 import no.nav.syfo.service.SkrivTilSyfosmRegisterSyfoService
+import no.nav.syfo.service.UpdateArbeidsgiverWhenSendtService
 import no.nav.syfo.service.UpdateStatusService
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
@@ -55,7 +56,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    ryddDuplikateSykmeldinger(applicationState, environment)
+    insertMissingArbeidsgivere(applicationState, environment)
 }
 //
 // fun hentArbeidsgiverInformasjonPaaSykmelding(
@@ -100,6 +101,33 @@ fun main() {
 //        1_000
 //    ).run()
 // }
+
+fun insertMissingArbeidsgivere(applicationState: ApplicationState, environment: Environment) {
+    val vaultServiceuser = VaultServiceUser(
+        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
+        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
+    )
+    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+
+    val consumerProperties = kafkaBaseConfig.toConsumerConfig(
+        "${environment.applicationName}-sykmelding-clean-consumer-5",
+        valueDeserializer = StringDeserializer::class
+    )
+
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "10")
+    val kafkaConsumerCleanSykmelding = KafkaConsumer<String, String>(consumerProperties)
+    val vaultCredentialService = VaultCredentialService()
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
+    val updateArbeidsgiverWhenSendtService = UpdateArbeidsgiverWhenSendtService(
+        kafkaConsumerCleanSykmelding,
+        databasePostgres,
+        environment.sykmeldingCleanTopicFull,
+        applicationState
+    )
+    updateArbeidsgiverWhenSendtService.run()
+}
+
 
 fun ryddDuplikateSykmeldinger(applicationState: ApplicationState, environment: Environment) {
     val vaultServiceuser = VaultServiceUser(

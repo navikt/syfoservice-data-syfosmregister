@@ -9,12 +9,14 @@ import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.log
 import no.nav.syfo.model.ArbeidsgiverStatus
 import no.nav.syfo.model.Mapper.Companion.mapToSykmeldingStatusTopicEvent
+import no.nav.syfo.model.ShortName
 import no.nav.syfo.model.Sporsmal
 import no.nav.syfo.model.StatusEvent
+import no.nav.syfo.model.Svar
+import no.nav.syfo.model.Svartype
 import no.nav.syfo.model.SykmeldingStatusTopicEvent
 import no.nav.syfo.objectMapper
 import no.nav.syfo.persistering.db.postgres.hentArbeidsgiverStatus
-import no.nav.syfo.persistering.db.postgres.slettOgInsertArbeidsgiver
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import java.time.Duration
 import java.time.LocalDateTime
@@ -24,8 +26,7 @@ class UpdateArbeidsgiverWhenSendtService(
     val kafkaConsumer: KafkaConsumer<String, String>,
     val databasePostgres: DatabasePostgres,
     val sykmeldingStatusCleanTopic: String,
-    val applicationState: ApplicationState,
-    val updateStatusService: UpdateStatusService
+    val applicationState: ApplicationState
 ) {
 
     private var searchCounter: Int = 0
@@ -64,7 +65,7 @@ class UpdateArbeidsgiverWhenSendtService(
     }
 
     fun insertSendtStatusWithArbeidsgiver(sykmeldingStatusTopicEvent: SykmeldingStatusTopicEvent) {
-        val sporsmalOgSvar: List<Sporsmal> = updateStatusService.getSporsmalOgSvarForSend(sykmeldingStatusTopicEvent)
+        val sporsmalOgSvar: List<Sporsmal> = getSporsmalOgSvarForSend(sykmeldingStatusTopicEvent)
         val lagretArbeidsgiver = getArbeidsgiver(sykmeldingStatusTopicEvent.sykmeldingId)
         if (lagretArbeidsgiver == null) {
 //            databasePostgres.slettOgInsertArbeidsgiver(sykmeldingStatusTopicEvent.sykmeldingId, sporsmalOgSvar, sykmeldingStatusTopicEvent.arbeidsgiver!!)
@@ -74,5 +75,21 @@ class UpdateArbeidsgiverWhenSendtService(
 
     private fun getArbeidsgiver(sykmeldingId: String): ArbeidsgiverStatus? {
         return databasePostgres.connection.hentArbeidsgiverStatus(sykmeldingId).firstOrNull()
+    }
+    private fun getSporsmalOgSvarForSend(sykmeldingStatusTopicEvent: SykmeldingStatusTopicEvent): List<Sporsmal> {
+        val sporsmals = ArrayList<Sporsmal>()
+
+        val arbeidssituasjon = Sporsmal(
+            "Jeg er sykmeldt fra",
+            ShortName.ARBEIDSSITUASJON,
+            Svar(
+                sykmeldingId = sykmeldingStatusTopicEvent.sykmeldingId,
+                svartype = Svartype.ARBEIDSSITUASJON,
+                svar = "ARBEIDSTAKER",
+                sporsmalId = null
+            )
+        )
+        sporsmals.add(arbeidssituasjon)
+        return sporsmals
     }
 }
