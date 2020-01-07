@@ -21,6 +21,7 @@ import no.nav.syfo.model.Eia
 import no.nav.syfo.service.HentSykmeldingerFraEiaService
 import no.nav.syfo.service.HentSykmeldingerFraSyfoServiceService
 import no.nav.syfo.service.MapSykmeldingStringToSykemldignJsonMap
+import no.nav.syfo.service.RyddDuplikateSykmeldingerService
 import no.nav.syfo.service.SkrivBehandlingsutfallTilSyfosmRegisterService
 import no.nav.syfo.service.SkrivTilSyfosmRegisterServiceEia
 import no.nav.syfo.service.SkrivTilSyfosmRegisterSyfoService
@@ -54,7 +55,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    oppdaterStatusSyfosmregister(applicationState, environment)
+    ryddDuplikateSykmeldinger(applicationState, environment)
 }
 //
 // fun hentArbeidsgiverInformasjonPaaSykmelding(
@@ -99,6 +100,32 @@ fun main() {
 //        1_000
 //    ).run()
 // }
+
+fun ryddDuplikateSykmeldinger(applicationState: ApplicationState, environment: Environment) {
+    val vaultServiceuser = VaultServiceUser(
+        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
+        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
+    )
+    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+
+    val consumerProperties = kafkaBaseConfig.toConsumerConfig(
+        "${environment.applicationName}-sykmelding-clean-consumer-2",
+        valueDeserializer = StringDeserializer::class
+    )
+
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "10")
+    val kafkaConsumerCleanSykmelding = KafkaConsumer<String, String>(consumerProperties)
+    val vaultCredentialService = VaultCredentialService()
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
+    val ryddDuplikateSykmeldingerService = RyddDuplikateSykmeldingerService(
+        kafkaConsumerCleanSykmelding,
+        databasePostgres,
+        environment.sykmeldingCleanTopicFull,
+        applicationState
+    )
+    ryddDuplikateSykmeldingerService.ryddDuplikateSykmeldinger()
+}
 
 fun oppdaterStatusSyfosmregister(applicationState: ApplicationState, environment: Environment) {
     val vaultConfig = VaultConfig(

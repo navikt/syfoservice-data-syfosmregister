@@ -95,7 +95,7 @@ fun Connection.opprettSykmeldingsdokument(sykmeldingsdokument: Sykmeldingsdokume
     }
 }
 
-fun Connection.opprettBehandlingsutfall(behandlingsutfall: Behandlingsutfall) =
+fun Connection.lagreBehandlingsutfall(behandlingsutfall: Behandlingsutfall) =
     use { connection ->
         connection.prepareStatement(
             """
@@ -247,6 +247,20 @@ fun Connection.hentSykmelding(mottakId: String): SykmeldingDbModel? =
         }
     }
 
+fun Connection.hentSykmeldingListeMedBehandlingsutfall(mottakId: String): List<SykmeldingBehandlingsutfallDbModel> =
+    use { connection ->
+        connection.prepareStatement(
+            """
+                select * from sykmeldingsopplysninger sm 
+                LEFT OUTER JOIN behandlingsutfall bu on sm.id = bu.id
+                where sm.mottak_id = ?
+            """
+        ).use {
+            it.setString(1, mottakId)
+            it.executeQuery().toList { toSykmeldingMedBehandlingsutfall() }
+        }
+    }
+
 fun Connection.hentSykmeldingMedId(sykmeldingId: String): SykmeldingDbModel? =
     use { connection ->
         connection.prepareStatement(
@@ -288,6 +302,45 @@ fun Connection.deleteAndInsertSykmelding(
         connection.commit()
     }
 }
+
+fun Connection.slettSykmeldingOgStatus(
+    id: String
+) {
+    use { connection ->
+        connection.prepareStatement(
+            """
+            delete from sykmeldingstatus where sykmelding_id = ?
+        """
+        ).use {
+            it.setString(1, id)
+            it.execute()
+        }
+        connection.prepareStatement(
+            """
+            delete from sykmeldingsopplysninger where id = ?
+        """
+        ).use {
+            it.setString(1, id)
+            it.execute()
+        }
+        connection.commit()
+    }
+}
+
+fun Connection.opprettBehandlingsutfall(behandlingsutfall: Behandlingsutfall) =
+    use { connection ->
+        connection.prepareStatement(
+            """
+                    INSERT INTO BEHANDLINGSUTFALL(id, behandlingsutfall) VALUES (?, ?)
+                """
+        ).use {
+            it.setString(1, behandlingsutfall.id)
+            it.setObject(2, behandlingsutfall.behandlingsutfall.toPGObject())
+            it.executeUpdate()
+        }
+
+        connection.commit()
+    }
 
 fun DatabaseInterfacePostgres.getStatusesForSykmelding(id: String): List<SykmeldingStatusEvent> =
     this.connection.use { connection ->
@@ -347,6 +400,27 @@ fun ResultSet.toSykmelding(mottakId: String): SykmeldingDbModel? {
         return SykmeldingDbModel(sykmeldingsopplysninger, sykmeldingsdokument)
     }
     return null
+}
+
+fun ResultSet.toSykmeldingMedBehandlingsutfall(): SykmeldingBehandlingsutfallDbModel {
+        val sykmeldingId = getString("id")
+        val behandlingsutfall = if (getString("behandlingsutfall") != null) Behandlingsutfall(sykmeldingId, objectMapper.readValue(getString("behandlingsutfall"))) else null
+        val sykmeldingsopplysninger = Sykmeldingsopplysninger(
+            id = sykmeldingId,
+            mottakId = getString("mottak_id"),
+            pasientFnr = getString("pasient_fnr"),
+            pasientAktoerId = getString("pasient_aktoer_id"),
+            legeFnr = getString("lege_fnr"),
+            legeAktoerId = getString("lege_aktoer_id"),
+            legekontorOrgNr = getString("legekontor_org_nr"),
+            legekontorHerId = getString("legekontor_her_id"),
+            legekontorReshId = getString("legekontor_resh_id"),
+            epjSystemNavn = getString("epj_system_navn"),
+            epjSystemVersjon = getString("epj_system_versjon"),
+            mottattTidspunkt = getTimestamp("mottatt_tidspunkt").toLocalDateTime(),
+            tssid = getString("tss_id")
+        )
+        return SykmeldingBehandlingsutfallDbModel(sykmeldingsopplysninger, behandlingsutfall)
 }
 
 fun Connection.lagreSporsmalOgSvar(sporsmal: Sporsmal) {
