@@ -83,10 +83,10 @@ class RyddDuplikateSykmeldingerService(
                         }
 
                         if (sykmeldingFraSS.behandlingsutfall == null && (sykmeldingFraRegister.behandlingsutfall != null && sykmeldingFraRegister.behandlingsutfall.behandlingsutfall.status != Status.INVALID)) {
-                            // databasePostgres.connection.lagreBehandlingsutfall(sykmeldingFraRegister.behandlingsutfall.copy(id = sykmeldingFraSS.sykmeldingsopplysninger.id))
+                            databasePostgres.connection.lagreBehandlingsutfall(sykmeldingFraRegister.behandlingsutfall.copy(id = sykmeldingFraSS.sykmeldingsopplysninger.id))
                             counterOppdatertBehandlingsutfall++
                         }
-                        // databasePostgres.connection.slettSykmeldingOgStatus(sykmeldingFraRegister.sykmeldingsopplysninger.id)
+                        databasePostgres.connection.slettSykmeldingOgStatus(sykmeldingFraRegister.sykmeldingsopplysninger.id)
                         counterDuplikat++
                     }
                 } catch (ex: Exception) {
