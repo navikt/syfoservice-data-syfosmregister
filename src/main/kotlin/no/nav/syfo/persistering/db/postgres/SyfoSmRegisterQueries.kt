@@ -481,6 +481,29 @@ private fun Connection.lagreSvar(sporsmalId: Int, svar: Svar) {
     }
 }
 
+fun Connection.hentArbeidsgiverStatus(sykmeldingId: String): List<ArbeidsgiverStatus> =
+    this.prepareStatement(
+        """
+                 SELECT orgnummer,
+                        juridisk_orgnummer,
+                        navn,
+                        sykmelding_id
+                   FROM arbeidsgiver
+                  WHERE sykmelding_id = ?
+            """
+    ).use {
+        it.setString(1, sykmeldingId)
+        it.executeQuery().toList { tilArbeidsgiverStatus() }
+    }
+
+fun ResultSet.tilArbeidsgiverStatus(): ArbeidsgiverStatus =
+    ArbeidsgiverStatus(
+        sykmeldingId = getString("sykmelding_id"),
+        orgnummer = getString("orgnummer"),
+        juridiskOrgnummer = getString("juridisk_orgnummer"),
+        orgnavn = getString("navn")
+    )
+
 fun DatabaseInterfacePostgres.svarFinnesFraFor(sykmeldingId: String): Boolean =
     connection.use { connection ->
         connection.prepareStatement(
@@ -492,6 +515,36 @@ fun DatabaseInterfacePostgres.svarFinnesFraFor(sykmeldingId: String): Boolean =
             it.executeQuery().next()
         }
     }
+
+private fun Connection.slettAlleSvar(sykmeldingId: String) {
+    this.slettSvar(sykmeldingId)
+}
+
+private fun Connection.slettSvar(sykmeldingId: String) {
+    this.prepareStatement(
+        """
+                DELETE FROM svar WHERE sykmelding_id=?;
+                """
+    ).use {
+        it.setString(1, sykmeldingId)
+        it.execute()
+    }
+}
+
+fun DatabaseInterfacePostgres.slettOgInsertArbeidsgiver(
+    sykmeldingId: String,
+    sporsmals: List<Sporsmal>,
+    arbeidsgiverStatus: ArbeidsgiverStatus
+) {
+    connection.use { connection ->
+        connection.slettAlleSvar(sykmeldingId)
+        sporsmals.forEach { sporsmal ->
+            connection.lagreSporsmalOgSvar(sporsmal)
+        }
+        connection.insertArbeidsgiver(arbeidsgiverStatus)
+        connection.commit()
+    }
+}
 
 fun DatabaseInterfacePostgres.lagreSporsmalOgSvarOgArbeidsgiver(
     sporsmals: List<Sporsmal>,
