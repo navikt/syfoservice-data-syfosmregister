@@ -20,6 +20,7 @@ import no.nav.syfo.model.Svartype
 import no.nav.syfo.model.SykmeldingStatusTopicEvent
 import no.nav.syfo.objectMapper
 import no.nav.syfo.persistering.db.postgres.hentArbeidsgiverStatus
+import no.nav.syfo.persistering.db.postgres.slettOgInsertArbeidsgiver
 import org.apache.kafka.clients.consumer.KafkaConsumer
 
 class UpdateArbeidsgiverWhenSendtService(
@@ -41,7 +42,7 @@ class UpdateArbeidsgiverWhenSendtService(
                     log.info("Lest: {} events, oppdaterte arbeidsgivere: {}", searchCounter, updateCounter)
                     lastCounter = searchCounter
                 }
-                delay(30_000)
+                delay(20_000)
             }
         }
 
@@ -49,12 +50,12 @@ class UpdateArbeidsgiverWhenSendtService(
             listOf(sykmeldingStatusCleanTopic)
         )
         while (applicationState.ready) {
-            val sykmeldingStatusTopicEvents = kafkaConsumer.poll(Duration.ofMillis(100)).asSequence().map {
+            val sykmeldingStatusTopicEvents = kafkaConsumer.poll(Duration.ofMillis(100))
+                .asSequence().map {
                 val map = objectMapper.readValue<Map<String, Any?>>(it.value())
                 searchCounter++
                 mapToSykmeldingStatusTopicEvent(map, null)
-            }
-                .filter { it.sykmeldingId.length <= 64 }
+            }.filter { it.sykmeldingId == "f480577d-0585-4cf8-bbaf-3d5ed40cfcdd" }
                 .filter { it.status == StatusEvent.SENDT }
                 .filter { it.created.isAfter(LocalDateTime.of(2019, Month.AUGUST, 1, 0, 0)) }
 
@@ -68,7 +69,7 @@ class UpdateArbeidsgiverWhenSendtService(
         val sporsmalOgSvar: List<Sporsmal> = getSporsmalOgSvarForSend(sykmeldingStatusTopicEvent)
         val lagretArbeidsgiver = getArbeidsgiver(sykmeldingStatusTopicEvent.sykmeldingId)
         if (lagretArbeidsgiver == null) {
-//            databasePostgres.slettOgInsertArbeidsgiver(sykmeldingStatusTopicEvent.sykmeldingId, sporsmalOgSvar, sykmeldingStatusTopicEvent.arbeidsgiver!!)
+            databasePostgres.slettOgInsertArbeidsgiver(sykmeldingStatusTopicEvent.sykmeldingId, sporsmalOgSvar, sykmeldingStatusTopicEvent.arbeidsgiver!!)
             updateCounter++
         }
     }

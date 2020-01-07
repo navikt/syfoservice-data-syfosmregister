@@ -110,11 +110,11 @@ fun insertMissingArbeidsgivere(applicationState: ApplicationState, environment: 
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sykmelding-clean-consumer-5",
+        "${environment.applicationName}-sykmelding-clean-consumer-6",
         valueDeserializer = StringDeserializer::class
     )
 
-    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "10")
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
     val kafkaConsumerCleanSykmelding = KafkaConsumer<String, String>(consumerProperties)
     val vaultCredentialService = VaultCredentialService()
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
