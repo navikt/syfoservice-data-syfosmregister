@@ -113,7 +113,7 @@ class UpdateStatusService(val database: DatabaseInterfacePostgres) {
         database.oppdaterSykmeldingStatus(statusListe)
     }
 
-    private fun getSporsmalOgSvarForSend(sykmeldingStatusTopicEvent: SykmeldingStatusTopicEvent): List<Sporsmal> {
+    public fun getSporsmalOgSvarForSend(sykmeldingStatusTopicEvent: SykmeldingStatusTopicEvent): List<Sporsmal> {
         val sporsmals = ArrayList<Sporsmal>()
 
         val arbeidssituasjon = Sporsmal(
