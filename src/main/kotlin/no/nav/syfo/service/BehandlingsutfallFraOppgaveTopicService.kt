@@ -52,10 +52,14 @@ class BehandlingsutfallFraOppgaveTopicService(
                     it.value().produceTask
                 }
             for (oppgave in opprettedeOppgaver) {
-                if (!map.containsKey(oppgave.beskrivelse)) {
-                    map[oppgave.beskrivelse] = 0
+                val regelListe = mapOppgaveTilRegler(oppgave.beskrivelse)
+                regelListe.forEach {
+                    if (!map.containsKey(it.messageForSender)) {
+                        map[it.messageForSender] = 0
+                    }
+                    map[it.messageForSender] = map[it.messageForSender]!!.plus(1)
                 }
-                map[oppgave.beskrivelse] = map[oppgave.beskrivelse]!!.plus(1)
+
             }
 //            for (oppgave in opprettedeOppgaver) {
 //                try {
