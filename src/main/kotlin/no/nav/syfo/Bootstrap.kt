@@ -128,7 +128,6 @@ fun insertMissingArbeidsgivere(applicationState: ApplicationState, environment: 
     updateArbeidsgiverWhenSendtService.run()
 }
 
-
 fun ryddDuplikateSykmeldinger(applicationState: ApplicationState, environment: Environment) {
     val vaultServiceuser = VaultServiceUser(
         serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
