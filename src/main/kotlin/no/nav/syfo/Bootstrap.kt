@@ -233,7 +233,7 @@ fun oppdaterStatusSyfosmregister(applicationState: ApplicationState, environment
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sykmelding-clean-consumer-9",
+        "${environment.applicationName}-sykmelding-clean-consumer-10",
         valueDeserializer = StringDeserializer::class
     )
     val syfoserviceVaultSecrets = VaultCredentials(

@@ -51,7 +51,7 @@ class SkrivTilSyfosmRegisterSyfoService(
                     )
                     lastCounter = counter
                 }
-                delay(30000)
+                delay(60000)
             }
         }
         while (applicationState.ready) {
@@ -66,6 +66,7 @@ class SkrivTilSyfosmRegisterSyfoService(
 
             for (sykmeldingStatusTopicEvent in listStatusSyfoService) {
                 if (!databasePostgres.connection.erSykmeldingsopplysningerLagret(sykmeldingStatusTopicEvent.sykmeldingId)) {
+                    log.info("Fant ikke sykmelding med id {} og mottakId {}", sykmeldingStatusTopicEvent.sykmeldingId, sykmeldingStatusTopicEvent.mottakId)
                     updateCounter++
                 }
             }
