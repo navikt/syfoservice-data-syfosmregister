@@ -96,13 +96,13 @@ fun Connection.opprettSykmeldingsdokument(sykmeldingsdokument: Sykmeldingsdokume
         connection.commit()
     }
 }
-fun Connection.lagreBehandlingsutfall(behandlingsutfall: Behandlingsutfall) =
+fun Connection.lagreBehandlingsutfallAndCommit(behandlingsutfall: Behandlingsutfall) =
     use { connection ->
         lagreBehandlingsutfall(connection, behandlingsutfall)
         connection.commit()
     }
 
-fun Connection.lagreBehandlingsutfall(
+fun lagreBehandlingsutfall(
     connection: Connection,
     behandlingsutfall: Behandlingsutfall
 ) {
@@ -144,7 +144,7 @@ fun DatabaseInterfacePostgres.hentAntallSykmeldinger(): List<AntallSykmeldinger>
         }
     }
 
-fun Connection.erSykmeldingsopplysningerLagret(id: String, mottakId: String) =
+fun Connection.erSykmeldingsopplysningerLagret(id: String) =
     use { connection ->
         connection.prepareStatement(
             """

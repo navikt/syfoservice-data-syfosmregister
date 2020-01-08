@@ -66,7 +66,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    updateIds(applicationState, environment)
+    oppdaterStatusSyfosmregister(applicationState, environment)
 }
 //
 // fun hentArbeidsgiverInformasjonPaaSykmelding(
@@ -233,7 +233,7 @@ fun oppdaterStatusSyfosmregister(applicationState: ApplicationState, environment
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sykmelding-clean-consumer-1",
+        "${environment.applicationName}-sykmelding-clean-consumer-9",
         valueDeserializer = StringDeserializer::class
     )
     val syfoserviceVaultSecrets = VaultCredentials(
@@ -251,7 +251,9 @@ fun oppdaterStatusSyfosmregister(applicationState: ApplicationState, environment
         kafkaConsumerCleanSykmelding,
         databasePostgres,
         environment.sykmeldingCleanTopicFull,
-        applicationState
+        applicationState,
+        updateService,
+        databaseOracle
     )
     skrivTilSyfosmRegisterSyfoService.run()
 }
@@ -359,33 +361,6 @@ fun oppdaterFraEia(applicationState: ApplicationState, environment: Environment)
         environment.sm2013EiaSykmedlingTopic,
         applicationState
     ).run()
-}
-
-fun updateIds(applicationState: ApplicationState, environment: Environment) {
-    val vaultServiceuser = VaultServiceUser(
-        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
-        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
-    )
-    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
-
-    val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sykmelding-clean-consumer-8",
-        valueDeserializer = StringDeserializer::class
-    )
-    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
-    val kafkaConsumerCleanSykmelding = KafkaConsumer<String, String>(consumerProperties)
-    kafkaConsumerCleanSykmelding.subscribe(
-        listOf(environment.sykmeldingCleanTopic)
-    )
-    val vaultCredentialService = VaultCredentialService()
-    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
-    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
-    val skrivTilSyfosmRegisterSysoService = SkrivTilSyfosmRegisterSyfoService(
-        kafkaConsumerCleanSykmelding,
-        databasePostgres,
-        environment.sykmeldingCleanTopicFull,
-        applicationState
-    ).updateId()
 }
 
 fun runMapStringToJsonMap(

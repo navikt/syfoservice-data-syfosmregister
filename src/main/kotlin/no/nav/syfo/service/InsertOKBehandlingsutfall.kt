@@ -14,7 +14,7 @@ import no.nav.syfo.model.Status
 import no.nav.syfo.model.UpdateEvent
 import no.nav.syfo.model.ValidationResult
 import no.nav.syfo.objectMapper
-import no.nav.syfo.persistering.db.postgres.lagreBehandlingsutfall
+import no.nav.syfo.persistering.db.postgres.lagreBehandlingsutfallAndCommit
 import no.nav.syfo.persistering.db.postgres.sykmeldingHarBehandlingsutfall
 import org.apache.kafka.clients.consumer.KafkaConsumer
 
@@ -59,7 +59,7 @@ class InsertOKBehandlingsutfall(
             for (update in updateEvents) {
                 try {
                     if (!databasePostgres.connection.sykmeldingHarBehandlingsutfall(update.sykmeldingId)) {
-                        databasePostgres.connection.lagreBehandlingsutfall(
+                        databasePostgres.connection.lagreBehandlingsutfallAndCommit(
                             Behandlingsutfall(
                                 update.sykmeldingId,
                                 ValidationResult(

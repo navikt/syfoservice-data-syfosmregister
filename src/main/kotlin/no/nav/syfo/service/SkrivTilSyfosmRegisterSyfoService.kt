@@ -2,18 +2,19 @@ package no.nav.syfo.service
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.time.Duration
+import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import no.nav.syfo.aksessering.db.oracle.hentFravaerForSykmelding
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabaseInterfacePostgres
+import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.log
 import no.nav.syfo.model.FravarsPeriode
-import no.nav.syfo.model.Mapper.Companion.mapToSykmeldingStatusTopicEvent
 import no.nav.syfo.model.Mapper.Companion.mapToUpdateEvent
 import no.nav.syfo.model.ReceivedSykmelding
-import no.nav.syfo.model.SykmeldingStatusTopicEvent
 import no.nav.syfo.model.UpdateEvent
 import no.nav.syfo.model.toReceivedSykmelding
 import no.nav.syfo.objectMapper
@@ -27,47 +28,55 @@ class SkrivTilSyfosmRegisterSyfoService(
     private val kafkaConsumer: KafkaConsumer<String, String>,
     private val databasePostgres: DatabaseInterfacePostgres,
     private val sykmeldingStatusCleanTopic: String,
-    private val applicationState: ApplicationState
-   // private val updateStatusService: UpdateStatusService
+    private val applicationState: ApplicationState,
+    private val updateStatusService: UpdateStatusService,
+    private val databaseOracle: DatabaseOracle
 ) {
-
+    var lastTimestamp = LocalDateTime.of(2010, 1, 1, 0, 0)
     fun run() {
         var counter = 0
         var lastCounter = 0
-        var emptyCounter = 0
+        var updateCounter = 0
         kafkaConsumer.subscribe(
             listOf(
                 sykmeldingStatusCleanTopic
             )
         )
+        GlobalScope.launch {
+            while (applicationState.ready) {
+                if (lastCounter != counter) {
+                    log.info(
+                        "Lest {} sykmeldinger totalt, antall som ikke er i syfosmregister {}, lastTimestamp {}",
+                        counter, updateCounter, lastTimestamp
+                    )
+                    lastCounter = counter
+                }
+                delay(30000)
+            }
+        }
         while (applicationState.ready) {
-            val listStatusSyfoService: List<SykmeldingStatusTopicEvent> =
+            val listStatusSyfoService: List<UpdateEvent> =
                 kafkaConsumer.poll(Duration.ofMillis(100)).map {
+                    counter++
                     val map = objectMapper.readValue<Map<String, Any?>>(it.value())
-                    mapToSykmeldingStatusTopicEvent(map, getFravaer(map))
-                }.filter { it ->
-                    it.sykmeldingId.length <= 64
+                    val sykmeldingStatusTopicEvent = mapToUpdateEvent(map)
+                    lastTimestamp = sykmeldingStatusTopicEvent.created
+                    sykmeldingStatusTopicEvent
                 }
 
             for (sykmeldingStatusTopicEvent in listStatusSyfoService) {
-                // updateStatusService.updateSykemdlingStatus(sykmeldingStatusTopicEvent)
-            }
-
-            if (listStatusSyfoService.isNotEmpty()) {
-                counter += listStatusSyfoService.size
-                if (counter >= lastCounter + 10_000) {
-                    log.info("Mapped {} statuses", counter)
-                    lastCounter = counter
+                if (!databasePostgres.connection.erSykmeldingsopplysningerLagret(sykmeldingStatusTopicEvent.sykmeldingId)) {
+                    updateCounter++
                 }
             }
         }
     }
 
     private fun getFravaer(map: Map<String, Any?>): List<FravarsPeriode>? {
-//        if (map.containsKey("SPM_HAR_FRAVAER") && map["SPM_HAR_FRAVAER"] == "1") {
-//            val fravaerResult = databaseOracle.hentFravaerForSykmelding(map["SPM_SM_SPORSMAL_ID"] as Int)
-//            return fravaerResult.rows.map { FravarsPeriode(fom = LocalDate.parse(it["FOM"]?.toString()?.substring(0, 10)), tom = LocalDate.parse(it["TOM"]?.toString()?.substring(0, 10))) }
-//        }
+        if (map.containsKey("SPM_HAR_FRAVAER") && map["SPM_HAR_FRAVAER"] == "1") {
+            val fravaerResult = databaseOracle.hentFravaerForSykmelding(map["SPM_SM_SPORSMAL_ID"] as Int)
+            return fravaerResult.rows.map { FravarsPeriode(fom = LocalDate.parse(it["FOM"]?.toString()?.substring(0, 10)), tom = LocalDate.parse(it["TOM"]?.toString()?.substring(0, 10))) }
+        }
         return null
     }
 
@@ -80,7 +89,7 @@ class SkrivTilSyfosmRegisterSyfoService(
         var counter = 0
         var counterIdUpdates = 0
         var lastCounter = 0
-        var lastTimestamp = LocalDateTime.of(2010, 1, 1, 0, 0)
+
         GlobalScope.launch {
             while (applicationState.ready) {
                 if (lastCounter != counter) {
@@ -157,8 +166,7 @@ class SkrivTilSyfosmRegisterSyfoService(
 
             for (receivedSykmelding in receivedSykmeldings) {
                 if (!databasePostgres.connection.erSykmeldingsopplysningerLagret(
-                        receivedSykmelding.sykmelding.id,
-                        receivedSykmelding.navLogId
+                        receivedSykmelding.sykmelding.id
                     )
                 ) {
                     databasePostgres.connection.lagreReceivedSykmelding(receivedSykmelding)
