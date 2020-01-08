@@ -274,6 +274,18 @@ fun Connection.hentSykmeldingIdManglerBehandlingsutfall(msgId: String): String? 
         }
     }
 
+fun Connection.sykmeldingHarBehandlingsutfall(sykmeldingId: String): Boolean =
+    use { connection ->
+        connection.prepareStatement(
+            """
+                SELECT 1 FROM behandlingsutfall WHERE id=?
+            """
+        ).use {
+            it.setString(1, sykmeldingId)
+            it.executeQuery().next()
+        }
+    }
+
 fun ResultSet.getId(): String? {
     return if (next()) {
         getString("id")

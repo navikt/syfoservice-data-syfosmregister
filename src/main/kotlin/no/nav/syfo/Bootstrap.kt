@@ -26,6 +26,7 @@ import no.nav.syfo.sak.avro.RegisterTask
 import no.nav.syfo.service.BehandlingsutfallFraOppgaveTopicService
 import no.nav.syfo.service.HentSykmeldingerFraEiaService
 import no.nav.syfo.service.HentSykmeldingerFraSyfoServiceService
+import no.nav.syfo.service.InsertOKBehandlingsutfall
 import no.nav.syfo.service.MapSykmeldingStringToSykemldignJsonMap
 import no.nav.syfo.service.RyddDuplikateSykmeldingerService
 import no.nav.syfo.service.SkrivBehandlingsutfallTilSyfosmRegisterService
@@ -55,11 +56,11 @@ val log: Logger = LoggerFactory.getLogger("no.nav.syfo.syfoservicedatasyfosmregi
 
 @KtorExperimentalAPI
 fun main() {
-    var r = object {}::class.java.getResource("/ruleMap.json")
+    /*var r = object {}::class.java.getResource("/ruleMap.json")
     val ruleMap = objectMapper.readValue<Map<String, RuleInfo>>(r)
     if (ruleMap == null || ruleMap.isEmpty()) {
         throw RuntimeException("Fant ikke ruleMap")
-    }
+    }*/
     val environment = Environment()
     val applicationState = ApplicationState()
     val applicationEngine = createApplicationEngine(environment, applicationState)
@@ -67,7 +68,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    readFromRegistrerOppgaveTopic(applicationState, environment, ruleMap)
+    lagreOkBehandlingsutfall(applicationState, environment)
 }
 //
 // fun hentArbeidsgiverInformasjonPaaSykmelding(
@@ -112,6 +113,32 @@ fun main() {
 //        1_000
 //    ).run()
 // }
+
+fun lagreOkBehandlingsutfall(applicationState: ApplicationState, environment: Environment) {
+    val vaultServiceuser = VaultServiceUser(
+        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
+        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
+    )
+    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+
+    val consumerProperties = kafkaBaseConfig.toConsumerConfig(
+        "${environment.applicationName}-sykmelding-clean-consumer-7",
+        valueDeserializer = StringDeserializer::class
+    )
+
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "10")
+    val kafkaConsumerCleanSykmelding = KafkaConsumer<String, String>(consumerProperties)
+    val vaultCredentialService = VaultCredentialService()
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
+    val insertOKBehandlingsutfall = InsertOKBehandlingsutfall(
+        kafkaConsumerCleanSykmelding,
+        databasePostgres,
+        environment.sykmeldingCleanTopicFull,
+        applicationState
+    )
+    insertOKBehandlingsutfall.run()
+}
 
 fun readFromRegistrerOppgaveTopic(applicationState: ApplicationState, environment: Environment, ruleMap: Map<String, RuleInfo>) {
 
