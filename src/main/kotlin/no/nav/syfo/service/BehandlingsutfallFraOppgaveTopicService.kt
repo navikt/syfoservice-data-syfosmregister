@@ -38,12 +38,13 @@ class BehandlingsutfallFraOppgaveTopicService(
         var counterAll = 0
         var counterOppdatertBehandlingsutfall = 0
         var lastCounter = 0
+        var lastTimestamp = LocalDateTime.of(2019, 5, 1, 0, 0)
         GlobalScope.launch {
             while (applicationState.ready) {
                 if (lastCounter != counterAll) {
                     log.info(
-                        "Lest {} oppgaver totalt, antall oppdaterte behandlingsutfall {}",
-                        counterAll, counterOppdatertBehandlingsutfall
+                        "Lest {} oppgaver totalt, antall oppdaterte behandlingsutfall {}, lastTimestamp {}",
+                        counterAll, counterOppdatertBehandlingsutfall, lastTimestamp
                     )
                     lastCounter = counterAll
                 }
@@ -54,8 +55,8 @@ class BehandlingsutfallFraOppgaveTopicService(
             val opprettedeOppgaver: List<ProduceTask> =
                 kafkaConsumer.poll(Duration.ofMillis(100)).filter {
                     counterAll++
-                    LocalDateTime.ofInstant(Instant.ofEpochMilli(it.timestamp()), ZoneId.systemDefault())
-                        .isBefore(LocalDateTime.of(2019, Month.NOVEMBER, 1, 0, 0))
+                    lastTimestamp = LocalDateTime.ofInstant(Instant.ofEpochMilli(it.timestamp()), ZoneId.systemDefault())
+                    lastTimestamp.isBefore(LocalDateTime.of(2019, Month.NOVEMBER, 1, 0, 0))
                 }.map {
                     it.value().produceTask
                 }
