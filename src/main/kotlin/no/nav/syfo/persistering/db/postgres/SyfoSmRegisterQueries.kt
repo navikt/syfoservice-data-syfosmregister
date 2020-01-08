@@ -96,13 +96,13 @@ fun Connection.opprettSykmeldingsdokument(sykmeldingsdokument: Sykmeldingsdokume
         connection.commit()
     }
 }
-fun Connection.lagreBehandlingsutfall(behandlingsutfall: Behandlingsutfall) =
+fun Connection.lagreBehandlingsutfallAndCommit(behandlingsutfall: Behandlingsutfall) =
     use { connection ->
         lagreBehandlingsutfall(connection, behandlingsutfall)
         connection.commit()
     }
 
-fun Connection.lagreBehandlingsutfall(
+fun lagreBehandlingsutfall(
     connection: Connection,
     behandlingsutfall: Behandlingsutfall
 ) {

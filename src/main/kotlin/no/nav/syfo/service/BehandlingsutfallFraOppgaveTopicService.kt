@@ -16,7 +16,7 @@ import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.model.Status
 import no.nav.syfo.model.ValidationResult
 import no.nav.syfo.persistering.db.postgres.hentSykmeldingIdManglerBehandlingsutfall
-import no.nav.syfo.persistering.db.postgres.lagreBehandlingsutfall
+import no.nav.syfo.persistering.db.postgres.lagreBehandlingsutfallAndCommit
 import no.nav.syfo.sak.avro.ProduceTask
 import no.nav.syfo.sak.avro.RegisterTask
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -65,7 +65,7 @@ class BehandlingsutfallFraOppgaveTopicService(
                     val sykmeldingId =
                         databasePostgres.connection.hentSykmeldingIdManglerBehandlingsutfall(oppgave.messageId)
                     if (sykmeldingId != null) {
-                        databasePostgres.connection.lagreBehandlingsutfall(
+                        databasePostgres.connection.lagreBehandlingsutfallAndCommit(
                             Behandlingsutfall(
                                 sykmeldingId,
                                 ValidationResult(

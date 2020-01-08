@@ -16,7 +16,7 @@ import no.nav.syfo.model.UpdateEvent
 import no.nav.syfo.objectMapper
 import no.nav.syfo.persistering.db.postgres.SykmeldingBehandlingsutfallDbModel
 import no.nav.syfo.persistering.db.postgres.hentSykmeldingListeMedBehandlingsutfall
-import no.nav.syfo.persistering.db.postgres.lagreBehandlingsutfall
+import no.nav.syfo.persistering.db.postgres.lagreBehandlingsutfallAndCommit
 import no.nav.syfo.persistering.db.postgres.slettSykmeldingOgStatus
 import org.apache.kafka.clients.consumer.KafkaConsumer
 
@@ -83,7 +83,7 @@ class RyddDuplikateSykmeldingerService(
                         }
 
                         if (sykmeldingFraSS.behandlingsutfall == null && (sykmeldingFraRegister.behandlingsutfall != null && sykmeldingFraRegister.behandlingsutfall.behandlingsutfall.status != Status.INVALID)) {
-                            databasePostgres.connection.lagreBehandlingsutfall(sykmeldingFraRegister.behandlingsutfall.copy(id = sykmeldingFraSS.sykmeldingsopplysninger.id))
+                            databasePostgres.connection.lagreBehandlingsutfallAndCommit(sykmeldingFraRegister.behandlingsutfall.copy(id = sykmeldingFraSS.sykmeldingsopplysninger.id))
                             counterOppdatertBehandlingsutfall++
                         }
                         databasePostgres.connection.slettSykmeldingOgStatus(sykmeldingFraRegister.sykmeldingsopplysninger.id)
