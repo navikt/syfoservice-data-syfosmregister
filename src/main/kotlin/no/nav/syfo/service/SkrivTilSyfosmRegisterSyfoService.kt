@@ -2,11 +2,12 @@ package no.nav.syfo.service
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.time.Duration
-import java.time.LocalDate
-import no.nav.syfo.aksessering.db.oracle.hentFravaerForSykmelding
+import java.time.LocalDateTime
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabaseInterfacePostgres
-import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.log
 import no.nav.syfo.model.FravarsPeriode
 import no.nav.syfo.model.Mapper.Companion.mapToSykmeldingStatusTopicEvent
@@ -26,9 +27,8 @@ class SkrivTilSyfosmRegisterSyfoService(
     private val kafkaConsumer: KafkaConsumer<String, String>,
     private val databasePostgres: DatabaseInterfacePostgres,
     private val sykmeldingStatusCleanTopic: String,
-    private val applicationState: ApplicationState,
-    private val updateStatusService: UpdateStatusService,
-    private val databaseOracle: DatabaseOracle
+    private val applicationState: ApplicationState
+   // private val updateStatusService: UpdateStatusService
 ) {
 
     fun run() {
@@ -40,8 +40,6 @@ class SkrivTilSyfosmRegisterSyfoService(
                 sykmeldingStatusCleanTopic
             )
         )
-        log.info("Started kafkakonsumer")
-        val map = HashMap<String, Int>()
         while (applicationState.ready) {
             val listStatusSyfoService: List<SykmeldingStatusTopicEvent> =
                 kafkaConsumer.poll(Duration.ofMillis(100)).map {
@@ -52,7 +50,7 @@ class SkrivTilSyfosmRegisterSyfoService(
                 }
 
             for (sykmeldingStatusTopicEvent in listStatusSyfoService) {
-                updateStatusService.updateSykemdlingStatus(sykmeldingStatusTopicEvent)
+                // updateStatusService.updateSykemdlingStatus(sykmeldingStatusTopicEvent)
             }
 
             if (listStatusSyfoService.isNotEmpty()) {
@@ -66,10 +64,10 @@ class SkrivTilSyfosmRegisterSyfoService(
     }
 
     private fun getFravaer(map: Map<String, Any?>): List<FravarsPeriode>? {
-        if (map.containsKey("SPM_HAR_FRAVAER") && map["SPM_HAR_FRAVAER"] == "1") {
-            val fravaerResult = databaseOracle.hentFravaerForSykmelding(map["SPM_SM_SPORSMAL_ID"] as Int)
-            return fravaerResult.rows.map { FravarsPeriode(fom = LocalDate.parse(it["FOM"]?.toString()?.substring(0, 10)), tom = LocalDate.parse(it["TOM"]?.toString()?.substring(0, 10))) }
-        }
+//        if (map.containsKey("SPM_HAR_FRAVAER") && map["SPM_HAR_FRAVAER"] == "1") {
+//            val fravaerResult = databaseOracle.hentFravaerForSykmelding(map["SPM_SM_SPORSMAL_ID"] as Int)
+//            return fravaerResult.rows.map { FravarsPeriode(fom = LocalDate.parse(it["FOM"]?.toString()?.substring(0, 10)), tom = LocalDate.parse(it["TOM"]?.toString()?.substring(0, 10))) }
+//        }
         return null
     }
 
@@ -82,19 +80,36 @@ class SkrivTilSyfosmRegisterSyfoService(
         var counter = 0
         var counterIdUpdates = 0
         var lastCounter = 0
+        var lastTimestamp = LocalDateTime.of(2010, 1, 1, 0, 0)
+        GlobalScope.launch {
+            while (applicationState.ready) {
+                if (lastCounter != counter) {
+                    log.info(
+                        "Lest {} sykmeldinger totalt, antall oppdaterte ider {}, lastTimestamp {}",
+                        counter, counterIdUpdates, lastTimestamp
+                    )
+                    lastCounter = counter
+                }
+                delay(30000)
+            }
+        }
         while (applicationState.ready) {
             val updateEvents: List<UpdateEvent> =
                 kafkaConsumer.poll(Duration.ofMillis(100)).map {
                     objectMapper.readValue<Map<String, String?>>(it.value())
                 }
-                    .map { mapToUpdateEvent(it) }
+                    .map {
+                        counter++
+                        val updateEvent = mapToUpdateEvent(it)
+                        lastTimestamp = updateEvent.created
+                        updateEvent
+                    }
                     .filter { it ->
-                        it.sykmeldingId.length <= 64
+                        it.sykmeldingId.length > 64
                     }
             for (update in updateEvents) {
                 try {
                     val sykmeldingDb = databasePostgres.connection.hentSykmelding(convertToMottakid(update.mottakId))
-                    counter++
                     if (sykmeldingDb != null) {
                         if (sykmeldingDb.sykmeldingsopplysninger.id != update.sykmeldingId) {
                             val oldId = sykmeldingDb.sykmeldingsopplysninger.id
@@ -113,15 +128,6 @@ class SkrivTilSyfosmRegisterSyfoService(
                     log.error("Noe gikk galt med mottakid {}", update.mottakId, ex)
                     applicationState.ready = false
                     break
-                }
-
-                if (counter >= lastCounter + 1000) {
-                    log.info(
-                        "Updated {} sykmeldinger, mottattTidspunkt oppdatert: {}, Ider og tidspunkt oppdatert: {}",
-                        counter,
-                        counterIdUpdates
-                    )
-                    lastCounter = counter
                 }
             }
         }
