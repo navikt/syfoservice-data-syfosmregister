@@ -4,11 +4,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.ktor.util.KtorExperimentalAPI
-import java.lang.RuntimeException
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
@@ -68,7 +66,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    updateIds(applicationState, environment)
+    oppdaterStatusSyfosmregister(applicationState, environment)
 }
 //
 // fun hentArbeidsgiverInformasjonPaaSykmelding(
@@ -231,7 +229,7 @@ fun oppdaterStatusSyfosmregister(applicationState: ApplicationState, environment
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sykmelding-clean-consumer-1",
+        "${environment.applicationName}-sykmelding-clean-consumer-9",
         valueDeserializer = StringDeserializer::class
     )
     val syfoserviceVaultSecrets = VaultCredentials(
