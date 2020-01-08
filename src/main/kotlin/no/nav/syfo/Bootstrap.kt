@@ -122,7 +122,7 @@ fun readFromRegistrerOppgaveTopic(applicationState: ApplicationState, environmen
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sykmelding-clean-consumer-4",
+        "${environment.applicationName}-sykmelding-clean-consumer-5",
         valueDeserializer = KafkaAvroDeserializer::class
     )
 
