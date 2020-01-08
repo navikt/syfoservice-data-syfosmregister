@@ -13,10 +13,8 @@ import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.log
 import no.nav.syfo.model.FravarsPeriode
-import no.nav.syfo.model.Mapper.Companion.mapToSykmeldingStatusTopicEvent
 import no.nav.syfo.model.Mapper.Companion.mapToUpdateEvent
 import no.nav.syfo.model.ReceivedSykmelding
-import no.nav.syfo.model.SykmeldingStatusTopicEvent
 import no.nav.syfo.model.UpdateEvent
 import no.nav.syfo.model.toReceivedSykmelding
 import no.nav.syfo.objectMapper
@@ -48,7 +46,7 @@ class SkrivTilSyfosmRegisterSyfoService(
             while (applicationState.ready) {
                 if (lastCounter != counter) {
                     log.info(
-                        "Lest {} sykmeldinger totalt, antall oppdaterte ider {}, lastTimestamp {}",
+                        "Lest {} sykmeldinger totalt, antall som ikke er i syfosmregister {}, lastTimestamp {}",
                         counter, updateCounter, lastTimestamp
                     )
                     lastCounter = counter
@@ -57,20 +55,19 @@ class SkrivTilSyfosmRegisterSyfoService(
             }
         }
         while (applicationState.ready) {
-            val listStatusSyfoService: List<SykmeldingStatusTopicEvent> =
+            val listStatusSyfoService: List<UpdateEvent> =
                 kafkaConsumer.poll(Duration.ofMillis(100)).map {
                     counter++
                     val map = objectMapper.readValue<Map<String, Any?>>(it.value())
-                    val sykmeldingStatusTopicEvent = mapToSykmeldingStatusTopicEvent(map, getFravaer(map))
+                    val sykmeldingStatusTopicEvent = mapToUpdateEvent(map)
                     lastTimestamp = sykmeldingStatusTopicEvent.created
                     sykmeldingStatusTopicEvent
-                }.filter { it ->
-                    it.sykmeldingId.length > 64
                 }
 
             for (sykmeldingStatusTopicEvent in listStatusSyfoService) {
-                updateCounter++
-                updateStatusService.updateSykemdlingStatus(sykmeldingStatusTopicEvent)
+                if (!databasePostgres.connection.erSykmeldingsopplysningerLagret(sykmeldingStatusTopicEvent.sykmeldingId)) {
+                    updateCounter++
+                }
             }
         }
     }
@@ -169,8 +166,7 @@ class SkrivTilSyfosmRegisterSyfoService(
 
             for (receivedSykmelding in receivedSykmeldings) {
                 if (!databasePostgres.connection.erSykmeldingsopplysningerLagret(
-                        receivedSykmelding.sykmelding.id,
-                        receivedSykmelding.navLogId
+                        receivedSykmelding.sykmelding.id
                     )
                 ) {
                     databasePostgres.connection.lagreReceivedSykmelding(receivedSykmelding)

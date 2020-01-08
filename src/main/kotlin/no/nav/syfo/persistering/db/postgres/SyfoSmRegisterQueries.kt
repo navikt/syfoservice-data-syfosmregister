@@ -144,7 +144,7 @@ fun DatabaseInterfacePostgres.hentAntallSykmeldinger(): List<AntallSykmeldinger>
         }
     }
 
-fun Connection.erSykmeldingsopplysningerLagret(id: String, mottakId: String) =
+fun Connection.erSykmeldingsopplysningerLagret(id: String) =
     use { connection ->
         connection.prepareStatement(
             """
