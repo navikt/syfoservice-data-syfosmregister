@@ -1,6 +1,9 @@
 package no.nav.syfo.service
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalDateTime
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -22,9 +25,6 @@ import no.nav.syfo.persistering.db.postgres.erSykmeldingsopplysningerLagret
 import no.nav.syfo.persistering.db.postgres.hentSykmelding
 import no.nav.syfo.persistering.db.postgres.lagreReceivedSykmelding
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import java.time.Duration
-import java.time.LocalDate
-import java.time.LocalDateTime
 
 class SkrivTilSyfosmRegisterSyfoService(
     private val kafkaConsumer: KafkaConsumer<String, String>,
