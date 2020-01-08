@@ -4,11 +4,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.ktor.util.KtorExperimentalAPI
-import java.lang.RuntimeException
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
@@ -140,7 +138,11 @@ fun lagreOkBehandlingsutfall(applicationState: ApplicationState, environment: En
     insertOKBehandlingsutfall.run()
 }
 
-fun readFromRegistrerOppgaveTopic(applicationState: ApplicationState, environment: Environment, ruleMap: Map<String, RuleInfo>) {
+fun readFromRegistrerOppgaveTopic(
+    applicationState: ApplicationState,
+    environment: Environment,
+    ruleMap: Map<String, RuleInfo>
+) {
 
     val vaultServiceuser = VaultServiceUser(
         serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
@@ -249,9 +251,7 @@ fun oppdaterStatusSyfosmregister(applicationState: ApplicationState, environment
         kafkaConsumerCleanSykmelding,
         databasePostgres,
         environment.sykmeldingCleanTopicFull,
-        applicationState,
-        updateService,
-        databaseOracle
+        applicationState
     )
     skrivTilSyfosmRegisterSyfoService.run()
 }
@@ -361,7 +361,7 @@ fun oppdaterFraEia(applicationState: ApplicationState, environment: Environment)
     ).run()
 }
 
- fun updateIds(applicationState: ApplicationState, environment: Environment) {
+fun updateIds(applicationState: ApplicationState, environment: Environment) {
     val vaultServiceuser = VaultServiceUser(
         serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
         serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
@@ -386,7 +386,7 @@ fun oppdaterFraEia(applicationState: ApplicationState, environment: Environment)
         environment.sykmeldingCleanTopicFull,
         applicationState
     ).updateId()
- }
+}
 
 fun runMapStringToJsonMap(
     applicationState: ApplicationState,

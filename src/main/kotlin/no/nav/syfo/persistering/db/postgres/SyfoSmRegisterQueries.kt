@@ -1,6 +1,11 @@
 package no.nav.syfo.persistering.db.postgres
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import java.sql.Connection
+import java.sql.ResultSet
+import java.sql.Statement
+import java.sql.Timestamp
+import java.time.LocalDateTime
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.db.toList
 import no.nav.syfo.log
@@ -20,11 +25,6 @@ import no.nav.syfo.model.toPGObject
 import no.nav.syfo.model.toSykmeldingsdokument
 import no.nav.syfo.model.toSykmeldingsopplysninger
 import no.nav.syfo.objectMapper
-import java.sql.Connection
-import java.sql.ResultSet
-import java.sql.Statement
-import java.sql.Timestamp
-import java.time.LocalDateTime
 
 data class DatabaseResult(
     val lastIndex: Int,
@@ -96,8 +96,13 @@ fun Connection.opprettSykmeldingsdokument(sykmeldingsdokument: Sykmeldingsdokume
         connection.commit()
     }
 }
+fun Connection.lagreBehandlingsutfall(behandlingsutfall: Behandlingsutfall) =
+    use { connection ->
+        lagreBehandlingsutfall(connection, behandlingsutfall)
+        connection.commit()
+    }
 
-private fun lagreBehandlingsutfall(
+fun Connection.lagreBehandlingsutfall(
     connection: Connection,
     behandlingsutfall: Behandlingsutfall
 ) {
