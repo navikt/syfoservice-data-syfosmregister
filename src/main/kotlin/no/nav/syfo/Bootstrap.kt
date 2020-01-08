@@ -122,7 +122,7 @@ fun lagreOkBehandlingsutfall(applicationState: ApplicationState, environment: En
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sykmelding-clean-consumer-6",
+        "${environment.applicationName}-sykmelding-clean-consumer-7",
         valueDeserializer = StringDeserializer::class
     )
 
