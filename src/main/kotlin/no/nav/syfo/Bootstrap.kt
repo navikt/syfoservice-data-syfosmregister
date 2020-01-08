@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.ktor.util.KtorExperimentalAPI
+import java.lang.RuntimeException
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
@@ -19,6 +21,7 @@ import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
 import no.nav.syfo.model.Eia
+import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.sak.avro.RegisterTask
 import no.nav.syfo.service.BehandlingsutfallFraOppgaveTopicService
 import no.nav.syfo.service.HentSykmeldingerFraEiaService
@@ -52,6 +55,11 @@ val log: Logger = LoggerFactory.getLogger("no.nav.syfo.syfoservicedatasyfosmregi
 
 @KtorExperimentalAPI
 fun main() {
+    var r = object {}::class.java.getResource("/ruleMap.json")
+    val ruleMap = objectMapper.readValue<Map<String, RuleInfo>>(r)
+    if (ruleMap == null || ruleMap.isEmpty()) {
+        throw RuntimeException("Fant ikke ruleMap")
+    }
     val environment = Environment()
     val applicationState = ApplicationState()
     val applicationEngine = createApplicationEngine(environment, applicationState)
@@ -59,7 +67,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    readFromRegistrerOppgaveTopic(applicationState, environment)
+    readFromRegistrerOppgaveTopic(applicationState, environment, ruleMap)
 }
 //
 // fun hentArbeidsgiverInformasjonPaaSykmelding(
@@ -105,7 +113,8 @@ fun main() {
 //    ).run()
 // }
 
-fun readFromRegistrerOppgaveTopic(applicationState: ApplicationState, environment: Environment) {
+fun readFromRegistrerOppgaveTopic(applicationState: ApplicationState, environment: Environment, ruleMap: Map<String, RuleInfo>) {
+
     val vaultServiceuser = VaultServiceUser(
         serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
         serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
@@ -113,7 +122,7 @@ fun readFromRegistrerOppgaveTopic(applicationState: ApplicationState, environmen
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sykmelding-clean-consumer-1",
+        "${environment.applicationName}-sykmelding-clean-consumer-2",
         valueDeserializer = KafkaAvroDeserializer::class
     )
 
@@ -126,7 +135,8 @@ fun readFromRegistrerOppgaveTopic(applicationState: ApplicationState, environmen
         kafkaconsumerOppgave,
         databasePostgres,
         environment.oppgaveTopic,
-        applicationState
+        applicationState,
+        ruleMap
     )
     behandlingsutfallFraOppgaveTopicService.lagreManuellbehandlingFraOppgaveTopic()
 }

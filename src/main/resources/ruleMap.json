@@ -1,0 +1,248 @@
+{
+  "Hvis perioden er avsluttet (AA": {
+    "ruleName": "PERIOD_FOR_AA_ENDED",
+    "messageForSender": "Hvis perioden er avsluttet (AA)",
+    "messageForUser": "Hvis perioden er avsluttet (AA)",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Personen har flyttet ( stanskode FL i Infotrygd": {
+    "ruleName": "PERSON_MOVING_KODE_FL",
+    "messageForSender": "Personen har flyttet ( stanskode FL i Infotrygd)",
+    "messageForUser": "Personen har flyttet ( stanskode FL i Infotrygd)",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Behandlers TSS-ident er ikke funnet automatisk av systemet": {
+    "ruleName": "TSS_IDENT_MANGLER",
+    "messageForSender": "Behandlers TSS-ident er ikke funnet automatisk av systemet",
+    "messageForUser": "Behandlers TSS-ident er ikke funnet automatisk av systemet",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Behandlers TSS-ident ikkje funnet": {
+    "ruleName": "TSS_IDENT_MANGLER",
+    "messageForSender": "Behandlers TSS-ident er ikke funnet automatisk av systemet",
+    "messageForUser": "Behandlers TSS-ident er ikke funnet automatisk av systemet",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Pasient er registrert med sperrekode 6": {
+    "ruleName": "PASIENTEN_HAR_KODE_6",
+    "messageForSender": "Pasient er registrert med sperrekode 6, sperret adresse, strengt fortrolig",
+    "messageForUser": "Pasient er registrert med sperrekode 6, sperret adresse, strengt fortrolig",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "vi kan ikke automatisk oppdatere Infotrygd": {
+    "ruleName": "IGNORE",
+    "messageForSender": "",
+    "messageForUser": "",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Hvis perioden er avsluttet-frisk (AF)": {
+    "ruleName": "PERIOD_IS_AF",
+    "messageForSender": "Hvis perioden er avsluttet-frisk (AF)",
+    "messageForUser": "Hvis perioden er avsluttet-frisk (AF)",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Infotrygd returnerte ikke arbufoerTOM dato på sykmeldings historikken": {
+    "ruleName": "ARBEIDUFORETOM_MANGLER",
+    "messageForSender": "Infotrygd returnerte ikke arbufoerTOM dato på sykmeldings historikken, vi kan ikke automatisk oppdatere Infotrygd",
+    "messageForUser": "Infotrygd returnerte ikke arbufoerTOM dato på sykmeldings historikken, vi kan ikke automatisk oppdatere Infotrygd",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Hvis sykmeldingen angir reisetilskudd går meldingen til manuell behandling.": {
+    "ruleName": "GRADERT_REISETILSKUDD_ER_OPPGITT",
+    "messageForSender": "Hvis sykmeldingen angir reisetilskudd går meldingen til manuell behandling.",
+    "messageForUser": "Hvis sykmeldingen angir reisetilskudd går meldingen til manuell behandling.",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "sperret adresse": {
+    "ruleName": "IGNORE",
+    "messageForSender": "",
+    "messageForUser": "",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Sykmeldingen er tilbakedatert og årsak for tilbakedatering er angitt": {
+    "ruleName": "TILBAKEDATERT_MED_BEGRUNNELSE_FORLENGELSE",
+    "messageForSender": "Sykmeldingen er tilbakedatert og felt 11.2 (begrunnelseIkkeKontakt) er utfylt",
+    "messageForUser": "Sykmeldingen er tilbakedatert og årsak for tilbakedatering er angitt",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Sykmeldingen er tilbakedatert og felt 11.2 (begrunnelseIkkeKontakt) er utfylt": {
+    "ruleName": "TILBAKEDATERT_MED_BEGRUNNELSE_FORLENGELSE",
+    "messageForSender": "Sykmeldingen er tilbakedatert og felt 11.2 (begrunnelseIkkeKontakt) er utfylt",
+    "messageForUser": "Sykmeldingen er tilbakedatert og årsak for tilbakedatering er angitt",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Uføregrad er endret": {
+    "ruleName": "DEGREE_OF_DISABILITY_IS_CHANGED",
+    "messageForSender": "Uføregrad er endret, må registreres manuelt i Infotrygd",
+    "messageForUser": "Uføregrad er endret, må registreres manuelt i Infotrygd",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Hvis avventende sykmelding er funnet og det finnes en eller flere perioder. ": {
+    "ruleName": "AVVENTENDE_SYKMELDING_KOMBINERT",
+    "messageForSender": "Hvis avventende sykmelding er funnet og det finnes en eller flere perioder. ",
+    "messageForUser": "En avventende sykmelding kan bare inneholde én periode.",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Hvis gradert sykmelding og reisetilskudd er oppgitt for samme periode": {
+    "ruleName": "GRADUAL_SYKMELDING_COMBINED_WITH_TRAVEL    ",
+    "messageForSender": "Hvis gradert sykmelding og reisetilskudd er oppgitt for samme periode",
+    "messageForUser": "Hvis gradert sykmelding og reisetilskudd er oppgitt for samme periode",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Behandler er manuellterapeut/kiropraktor med autorisasjon har angitt annen diagnose enn kapitel L (muskel og skjelettsykdommer": {
+    "ruleName": "BEHANDLER_KI_FT_MT_BENYTTER_ANNEN_DIAGNOSEKODE_ENN_L",
+    "messageForSender": "Behandler er manuellterapeut/kiropraktor eller fysioterapeut med autorisasjon har angitt annen diagnose enn kapitel L (muskel og skjelettsykdommer)",
+    "messageForUser": "Behandler er manuellterapeut/kiropraktor eller fysioterapeut med autorisasjon har angitt annen diagnose enn kapitel L (muskel og skjelettsykdommer)",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Uføregrad er økt": {
+    "ruleName": "UFOREGRADEN_ER_100_OG_HOYERE_ENN_I_INFOTRYGD",
+    "messageForSender": "Uføregrad er økt, må registreres manuelt i Infotrygd",
+    "messageForUser": "Uføregrad er økt, må registreres manuelt i Infotrygd",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Personen har flyttet ( stanskode FL i Infotrygd)": {
+    "ruleName": "PERSON_MOVING_KODE_FL",
+    "messageForSender": "Personen har flyttet ( stanskode FL i Infotrygd)",
+    "messageForUser": "Personen har flyttet ( stanskode FL i Infotrygd)",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Hvis delvis sammenfallende sykmeldingsperiode er registrert i Infotrygd": {
+    "ruleName": "PARTIALLY_COINCIDENT_SICK_LEAVE_PERIOD_WITH_PREVIOUSLY_REGISTERED_SICK_LEAVE",
+    "messageForSender": "Hvis delvis sammenfallende sykmeldingsperiode er registrert i Infotrygd",
+    "messageForUser": "Hvis delvis sammenfallende sykmeldingsperiode er registrert i Infotrygd",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Hvis ny friskmeldingsdato er tidligere enn registrert friskmeldingsdato i Infotrygd": {
+    "ruleName": "NEW_CLEAN_BILL_DATE_BEFORE_REGISTERD_CLEAN_BILL_DATE",
+    "messageForSender": "Hvis ny friskmeldingsdato er tidligere enn registrert friskmeldingsdato i Infotrygd",
+    "messageForUser": "Hvis ny friskmeldingsdato er tidligere enn registrert friskmeldingsdato i Infotrygd",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Hvis sykmeldingen er forlengelse av registrert sykepengehistorikk fra annet kontor så medlingen gå til manuell behandling slik at saksbehandler kan registrere sykepengetilfellet på ny identdato og  send oppgave til Nav forvaltning for registrering av inntektsopplysninger": {
+    "ruleName": "SICKLEAVE_EXTENTION_FROM_DIFFRENT_NAV_OFFICE_1",
+    "messageForSender": "Hvis sykmeldingen er forlengelse av registrert sykepengehistorikk fra annet kontor så medlingen gå til manuell behandling slik at saksbehandler kan registrere sykepengetilfellet på ny identdato og  send oppgave til Nav forvaltning for registrering av inntektsopplysninger",
+    "messageForUser": "Hvis sykmeldingen er forlengelse av registrert sykepengehistorikk fra annet kontor så medlingen gå til manuell behandling slik at saksbehandler kan registrere sykepengetilfellet på ny identdato og  send oppgave til Nav forvaltning for registrering av inntektsopplysninger",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Behandler er manuellterapeut/kiropraktor eller fysioterapeut med autorisasjon har angitt annen diagnose enn kapitel L (muskel og skjelettsykdommer": {
+    "ruleName": "BEHANDLER_KI_FT_MT_BENYTTER_ANNEN_DIAGNOSEKODE_ENN_L",
+    "messageForSender": "Behandler er manuellterapeut/kiropraktor eller fysioterapeut med autorisasjon har angitt annen diagnose enn kapitel L (muskel og skjelettsykdommer)",
+    "messageForUser": "Behandler er manuellterapeut/kiropraktor eller fysioterapeut med autorisasjon har angitt annen diagnose enn kapitel L (muskel og skjelettsykdommer)",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Hvis ny friskmeldingsdato er mindre enn arbuforTOM registrert i Infotrygd": {
+    "ruleName": "NEW_CLEAN_BILL_DATE_BEFORE_ARBUFORTOM",
+    "messageForSender": "Hvis ny friskmeldingsdato er mindre enn arbuforTOM registrert i Infotrygd",
+    "messageForUser": "Hvis ny friskmeldingsdato er mindre enn arbuforTOM registrert i Infotrygd",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Sykmeldingen er tilbakedatert og felt 11.2 (begrunnelseIkkeKontakt) er ikke utfylt": {
+    "ruleName": "TILBAKEDATERT_MED_BEGRUNNELSE_FORLENGELSE",
+    "messageForSender": "Sykmeldingen er tilbakedatert og felt 11.2 (begrunnelseIkkeKontakt) er utfylt",
+    "messageForUser": "Sykmeldingen er tilbakedatert og årsak for tilbakedatering er angitt",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "strengt fortrolig": {
+    "ruleName": "IGNORE",
+    "messageForSender": "",
+    "messageForUser": "",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Teknisk feil": {
+    "ruleName": "TEKNISK_FEIL",
+    "messageForSender": "Teknisk feil, må oppdateres i infotrygd",
+    "messageForUser": "",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Hvis ny friskmeldingsdato er mindre enn utbetalingTOM registrert i Infotrygd": {
+    "ruleName": "NEW_CLEAN_BILL_DATE_BEFORE_PAYOUT",
+    "messageForSender": "Hvis ny friskmeldingsdato er mindre enn utbetalingTOM registrert i Infotrygd",
+    "messageForUser": "Hvis ny friskmeldingsdato er mindre enn utbetalingTOM registrert i Infotrygd",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Hvis sykmeldingen er forlengelse av registrert sykepengehistorikk fra annet kontor så medlingen gå til manuell behandling slik at  saksbehandler kan registrere sykepengetilfellet på ny identdato og  send oppgave til Nav forvaltning for registrering av inntektsopplysninger": {
+    "ruleName": "SICKLEAVE_EXTENTION_FROM_DIFFRENT_NAV_OFFICE_2",
+    "messageForSender": "Hvis sykmeldingen er forlengelse av registrert sykepengehistorikk fra annet kontor så medlingen gå til manuell behandling slik at  saksbehandler kan registrere sykepengetilfellet på ny identdato og  send oppgave til Nav forvaltning for registrering av inntektsopplysninger",
+    "messageForUser": "Hvis sykmeldingen er forlengelse av registrert sykepengehistorikk fra annet kontor så medlingen gå til manuell behandling slik at  saksbehandler kan registrere sykepengetilfellet på ny identdato og  send oppgave til Nav forvaltning for registrering av inntektsopplysninger",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Hvis behandlingsdager er angitt sendes meldingen til manuell behandling.": {
+    "ruleName": "NUMBER_OF_TREATMENT_DAYS_SET",
+    "messageForSender": "Hvis behandlingsdager er angitt sendes meldingen til manuell behandling.",
+    "messageForUser": "Hvis behandlingsdager er angitt sendes meldingen til manuell behandling.",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Hvis pasienten ikke finnes i infotrygd": {
+    "ruleName": "PATIENT_NOT_IN_IP",
+    "messageForSender": "Hvis pasienten ikke finnes i infotrygd",
+    "messageForUser": "Hvis pasienten ikke finnes i infotrygd",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Hvis perioden er avsluttet-frisk (AF": {
+    "ruleName": "PERIOD_IS_AF",
+    "messageForSender": "Hvis perioden er avsluttet-frisk (AF)",
+    "messageForUser": "Hvis perioden er avsluttet-frisk (AF)",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Hvis sykmeldingen er forlengelse av registrert sykepengehistorikk fra annet kontor så medlingen gå til manuell behandling slik at  saksbehandler kan registrere sykepengetilfellet på ny identdato og send oppgave til Nav forvaltning for registrering av inntektsopplysninger": {
+    "ruleName": "SICKLEAVE_EXTENTION_FROM_DIFFRENT_NAV_OFFICE_3",
+    "messageForSender": "Hvis sykmeldingen er forlengelse av registrert sykepengehistorikk fra annet kontor så medlingen gå til manuell behandling slik at  saksbehandler kan registrere sykepengetilfellet på ny identdato og send oppgave til Nav forvaltning for registrering av inntektsopplysninger",
+    "messageForUser": "Hvis sykmeldingen er forlengelse av registrert sykepengehistorikk fra annet kontor så medlingen gå til manuell behandling slik at  saksbehandler kan registrere sykepengetilfellet på ny identdato og send oppgave til Nav forvaltning for registrering av inntektsopplysninger",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Hvis kodeverk ikke er angitt eller korrekt for bidiagnose": {
+    "ruleName": "UGYLDIG_KODEVERK_FOR_BIDIAGNOSE",
+    "messageForSender": "Kodeverk ikke er angitt eller korrekt for bidiagnose, avvises meldingen.",
+    "messageForUser": "Det er feil i koden for bidiagnosen.",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "må oppdateres i infotrygd": {
+    "ruleName": "IGNORE",
+    "messageForSender": "",
+    "messageForUser": "",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Sykmeldingens fom-dato er inntil 3 år tilbake i tid og årsak for tilbakedatering er angitt.": {
+    "ruleName": "TILBAKEDATERT_MED_BEGRUNNELSE_FORLENGELSE",
+    "messageForSender": "Sykmeldingen er tilbakedatert og felt 11.2 (begrunnelseIkkeKontakt) er utfylt",
+    "messageForUser": "Sykmeldingen er tilbakedatert og årsak for tilbakedatering er angitt",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Infotrygd returnerte en feil": {
+    "ruleName": "ERROR_FROM_IT_HOUVED_STATUS_KODEMELDING",
+    "messageForSender": "Infotrygd returnerte en feil, vi kan ikke automatisk oppdatere Infotrygd",
+    "messageForUser": "Infotrygd returnerte en feil, vi kan ikke automatisk oppdatere Infotrygd",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "avvises meldingen.": {
+    "ruleName": "IGNORE",
+    "messageForSender": "",
+    "messageForUser": "",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Hvis forlengelse utover registrert tiltak FA tiltak": {
+    "ruleName": "EXTANION_OVER_FA",
+    "messageForSender": "Hvis forlengelse utover registrert tiltak FA tiltak",
+    "messageForUser": "Hvis forlengelse utover registrert tiltak FA tiltak",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Hvis maks sykepenger er utbetalt": {
+    "ruleName": "MAX_SICK_LEAVE_PAYOUT",
+    "messageForSender": "Hvis maks sykepenger er utbetalt",
+    "messageForUser": "Hvis maks sykepenger er utbetalt",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "må registreres manuelt i Infotrygd": {
+    "ruleName": "IGNORE",
+    "messageForSender": "",
+    "messageForUser": "",
+    "ruleStatus": "MANUAL_PROCESSING"
+  },
+  "Behandler er manuellterapeut/kiropraktor eller fysioterapeut med autorisasjon har angitt annen diagnose enn kapitel L (muskel og skjelettsykdommer)": {
+    "ruleName": "BEHANDLER_KI_FT_MT_BENYTTER_ANNEN_DIAGNOSEKODE_ENN_L",
+    "messageForSender": "Behandler er manuellterapeut/kiropraktor eller fysioterapeut med autorisasjon har angitt annen diagnose enn kapitel L (muskel og skjelettsykdommer)",
+    "messageForUser": "Behandler er manuellterapeut/kiropraktor eller fysioterapeut med autorisasjon har angitt annen diagnose enn kapitel L (muskel og skjelettsykdommer)",
+    "ruleStatus": "MANUAL_PROCESSING"
+  }
+}
