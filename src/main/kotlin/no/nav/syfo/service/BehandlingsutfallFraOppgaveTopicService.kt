@@ -65,15 +65,15 @@ class BehandlingsutfallFraOppgaveTopicService(
                     val sykmeldingId =
                         databasePostgres.connection.hentSykmeldingIdManglerBehandlingsutfall(oppgave.messageId)
                     if (sykmeldingId != null) {
-                        databasePostgres.connection.lagreBehandlingsutfall(
-                            Behandlingsutfall(
-                                sykmeldingId,
-                                ValidationResult(
-                                    Status.MANUAL_PROCESSING,
-                                    mapOppgaveTilRegler(oppgave.beskrivelse, ruleMap)
-                                )
-                            )
-                        )
+//                        databasePostgres.connection.lagreBehandlingsutfall(
+//                            Behandlingsutfall(
+//                                sykmeldingId,
+//                                ValidationResult(
+//                                    Status.MANUAL_PROCESSING,
+//                                    mapOppgaveTilRegler(oppgave.beskrivelse, ruleMap)
+//                                )
+//                            )
+//                        )
                         counterOppdatertBehandlingsutfall++
                     }
                 } catch (ex: Exception) {

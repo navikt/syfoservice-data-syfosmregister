@@ -1,11 +1,6 @@
 package no.nav.syfo.persistering.db.postgres
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import java.sql.Connection
-import java.sql.ResultSet
-import java.sql.Statement
-import java.sql.Timestamp
-import java.time.LocalDateTime
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.db.toList
 import no.nav.syfo.log
@@ -14,15 +9,22 @@ import no.nav.syfo.model.Behandlingsutfall
 import no.nav.syfo.model.Eia
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.Sporsmal
+import no.nav.syfo.model.Status
 import no.nav.syfo.model.StatusEvent
 import no.nav.syfo.model.Svar
 import no.nav.syfo.model.SykmeldingStatusEvent
 import no.nav.syfo.model.Sykmeldingsdokument
 import no.nav.syfo.model.Sykmeldingsopplysninger
+import no.nav.syfo.model.ValidationResult
 import no.nav.syfo.model.toPGObject
 import no.nav.syfo.model.toSykmeldingsdokument
 import no.nav.syfo.model.toSykmeldingsopplysninger
 import no.nav.syfo.objectMapper
+import java.sql.Connection
+import java.sql.ResultSet
+import java.sql.Statement
+import java.sql.Timestamp
+import java.time.LocalDateTime
 
 data class DatabaseResult(
     val lastIndex: Int,
@@ -95,19 +97,20 @@ fun Connection.opprettSykmeldingsdokument(sykmeldingsdokument: Sykmeldingsdokume
     }
 }
 
-fun Connection.lagreBehandlingsutfall(behandlingsutfall: Behandlingsutfall) =
-    use { connection ->
-        connection.prepareStatement(
-            """
+private fun lagreBehandlingsutfall(
+    connection: Connection,
+    behandlingsutfall: Behandlingsutfall
+) {
+    connection.prepareStatement(
+        """
                     INSERT INTO BEHANDLINGSUTFALL(id, behandlingsutfall) VALUES (?, ?) ON CONFLICT DO NOTHING
                 """
-        ).use {
-            it.setString(1, behandlingsutfall.id)
-            it.setObject(2, behandlingsutfall.behandlingsutfall.toPGObject())
-            it.executeUpdate()
-        }
-        connection.commit()
+    ).use {
+        it.setString(1, behandlingsutfall.id)
+        it.setObject(2, behandlingsutfall.behandlingsutfall.toPGObject())
+        it.executeUpdate()
     }
+}
 
 private fun insertSykmeldingsdokument(
     connection: Connection,
@@ -330,6 +333,13 @@ fun Connection.deleteAndInsertSykmelding(
 
         insertSykmeldingsopplysninger(connection, sykmeldingDb.sykmeldingsopplysninger)
         insertSykmeldingsdokument(connection, sykmeldingDb.sykmeldingsdokument)
+        lagreBehandlingsutfall(
+            connection, Behandlingsutfall(
+                sykmeldingDb.sykmeldingsopplysninger.id, ValidationResult(
+                    Status.OK, emptyList()
+                )
+            )
+        )
         connection.commit()
     }
 }
