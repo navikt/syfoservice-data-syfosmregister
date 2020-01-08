@@ -7,12 +7,20 @@ import kotlinx.coroutines.launch
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.log
-import no.nav.syfo.model.ProduceTask
-import no.nav.syfo.model.RegisterTask
+import no.nav.syfo.model.Behandlingsutfall
 import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.model.Status
+import no.nav.syfo.model.ValidationResult
 import no.nav.syfo.objectMapper
+import no.nav.syfo.persistering.db.postgres.hentSykmeldingIdManglerBehandlingsutfall
+import no.nav.syfo.persistering.db.postgres.lagreBehandlingsutfall
+import no.nav.syfo.sak.avro.ProduceTask
+import no.nav.syfo.sak.avro.RegisterTask
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.Month
+import java.time.ZoneId
 
 class BehandlingsutfallFraOppgaveTopicService(
     private val kafkaConsumer: KafkaConsumer<String, RegisterTask>,
@@ -37,8 +45,8 @@ class BehandlingsutfallFraOppgaveTopicService(
             while (applicationState.ready) {
                 if (lastCounter != counterAll) {
                     log.info(
-                        "Lest {} oppgaver totalt, Data types {}",
-                        counterAll, objectMapper.writeValueAsString(map)
+                        "Lest {} oppgaver totalt, antall som mangler behandlingsutfall {}, Data types {}",
+                        counterAll, counterOppdatertBehandlingsutfall, objectMapper.writeValueAsString(map)
                     )
                     lastCounter = counterAll
                 }
@@ -47,19 +55,25 @@ class BehandlingsutfallFraOppgaveTopicService(
         }
         while (applicationState.ready) {
             val opprettedeOppgaver: List<ProduceTask> =
-                kafkaConsumer.poll(Duration.ofMillis(100)).map {
+                kafkaConsumer.poll(Duration.ofMillis(100)).filter {
+                    LocalDateTime.ofInstant(Instant.ofEpochMilli(it.timestamp()), ZoneId.systemDefault()).isBefore(LocalDateTime.of(2019, Month.NOVEMBER, 1, 0, 0))
+                }.map {
                     counterAll++
                     it.value().produceTask
                 }
             for (oppgave in opprettedeOppgaver) {
-                val regelListe = mapOppgaveTilRegler(oppgave.beskrivelse)
-                regelListe.forEach {
-                    if (!map.containsKey(it.messageForSender)) {
-                        map[it.messageForSender] = 0
+                val sykmeldingId = databasePostgres.connection.hentSykmeldingIdManglerBehandlingsutfall(oppgave.messageId)
+                    if (sykmeldingId != null) {
+                        //databasePostgres.connection.lagreBehandlingsutfall(Behandlingsutfall(sykmeldingId, ValidationResult(Status.MANUAL_PROCESSING, mapOppgaveTilRegler(oppgave.beskrivelse))))
+                        counterOppdatertBehandlingsutfall++
+                        val regelListe = mapOppgaveTilRegler(oppgave.beskrivelse)
+                        regelListe.forEach {
+                            if (!map.containsKey(it.messageForSender)) {
+                                map[it.messageForSender] = 0
+                            }
+                            map[it.messageForSender] = map[it.messageForSender]!!.plus(1)
+                        }
                     }
-                    map[it.messageForSender] = map[it.messageForSender]!!.plus(1)
-                }
-
             }
 //            for (oppgave in opprettedeOppgaver) {
 //                try {
@@ -81,10 +95,8 @@ class BehandlingsutfallFraOppgaveTopicService(
 }
 
 fun mapOppgaveTilRegler(oppgavebeskrivelse: String): List<RuleInfo> {
-    System.out.println(oppgavebeskrivelse)
     val regelListe = ArrayList<RuleInfo>()
     val regler: String = oppgavebeskrivelse.substringAfter(": ").trimStart('(').trimEnd(')')
-    System.out.println(regler)
 
     val liste = regler.split(", ")
     liste.forEach {

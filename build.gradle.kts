@@ -33,6 +33,9 @@ val postgresVersion = "42.2.5"
 val vaultJavaDriveVersion = "3.1.0"
 val kontrollsystemblokk = "2019.07.29-02-53-86b22e73f7843e422ee500b486dac387a582f2d1"
 val infotrygdForespVersion = "2019.07.29-02-53-86b22e73f7843e422ee500b486dac387a582f2d1"
+val avroVersion = "1.8.2"
+val confluentVersion = "5.0.0"
+val syfoAvroSchemasVersion = "c8be932543e7356a34690ce7979d494c5d8516d8"
 
 plugins {
     kotlin("jvm") version "1.3.60"
@@ -50,6 +53,7 @@ repositories {
     maven(url = "https://dl.bintray.com/kotlin/ktor")
     maven(url = "https://dl.bintray.com/spekframework/spek-dev")
     maven(url = "https://kotlin.bintray.com/kotlinx")
+    maven(url = "http://packages.confluent.io/maven/")
     maven(url = "https://repo1.maven.org/maven2/")
     maven {
         url = uri("https://maven.pkg.github.com/navikt/syfosm-common")
@@ -102,6 +106,10 @@ dependencies {
     implementation ("com.oracle.ojdbc:ojdbc8:$ojdbc8Version")
     implementation("org.postgresql:postgresql:$postgresVersion")
     implementation("com.bettercloud:vault-java-driver:$vaultJavaDriveVersion")
+    implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
+    implementation("io.confluent:kafka-streams-avro-serde:$confluentVersion")
+    implementation("org.apache.avro:avro:$avroVersion")
+    implementation("no.nav.syfo.schemas:syfosmoppgave-avro:$syfoAvroSchemasVersion")
 
     testImplementation ("io.mockk:mockk:$mockkVersion")
     testImplementation ("org.amshove.kluent:kluent:$kluentVersion")

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
@@ -18,6 +19,8 @@ import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
 import no.nav.syfo.model.Eia
+import no.nav.syfo.sak.avro.RegisterTask
+import no.nav.syfo.service.BehandlingsutfallFraOppgaveTopicService
 import no.nav.syfo.service.HentSykmeldingerFraEiaService
 import no.nav.syfo.service.HentSykmeldingerFraSyfoServiceService
 import no.nav.syfo.service.MapSykmeldingStringToSykemldignJsonMap
@@ -56,7 +59,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    insertMissingArbeidsgivere(applicationState, environment)
+    readFromRegistrerOppgaveTopic(applicationState, environment)
 }
 //
 // fun hentArbeidsgiverInformasjonPaaSykmelding(
@@ -101,6 +104,32 @@ fun main() {
 //        1_000
 //    ).run()
 // }
+
+fun readFromRegistrerOppgaveTopic(applicationState: ApplicationState, environment: Environment) {
+    val vaultServiceuser = VaultServiceUser(
+        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
+        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
+    )
+    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+
+    val consumerProperties = kafkaBaseConfig.toConsumerConfig(
+        "${environment.applicationName}-sykmelding-clean-consumer-1",
+        valueDeserializer = KafkaAvroDeserializer::class
+    )
+
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "10")
+    val kafkaconsumerOppgave = KafkaConsumer<String, RegisterTask>(consumerProperties)
+    val vaultCredentialService = VaultCredentialService()
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
+    val behandlingsutfallFraOppgaveTopicService = BehandlingsutfallFraOppgaveTopicService(
+        kafkaconsumerOppgave,
+        databasePostgres,
+        environment.oppgaveTopic,
+        applicationState
+    )
+    behandlingsutfallFraOppgaveTopicService.lagreManuellbehandlingFraOppgaveTopic()
+}
 
 fun insertMissingArbeidsgivere(applicationState: ApplicationState, environment: Environment) {
     val vaultServiceuser = VaultServiceUser(
