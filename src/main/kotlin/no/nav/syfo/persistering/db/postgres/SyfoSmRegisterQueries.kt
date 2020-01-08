@@ -270,9 +270,15 @@ fun Connection.hentSykmeldingIdManglerBehandlingsutfall(msgId: String): String? 
             """
         ).use {
             it.setString(1, msgId)
-            it.executeQuery().getString("id")
+            it.executeQuery().getId()
         }
     }
+
+fun ResultSet.getId(): String? {
+    return if (next()) {
+        getString("id")
+    } else null
+}
 
 fun Connection.hentSykmeldingMedId(sykmeldingId: String): SykmeldingDbModel? =
     use { connection ->

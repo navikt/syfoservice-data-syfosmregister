@@ -1,26 +1,23 @@
 package no.nav.syfo.service
 
 import java.time.Duration
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.Month
+import java.time.ZoneId
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.log
-import no.nav.syfo.model.Behandlingsutfall
 import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.model.Status
-import no.nav.syfo.model.ValidationResult
 import no.nav.syfo.objectMapper
 import no.nav.syfo.persistering.db.postgres.hentSykmeldingIdManglerBehandlingsutfall
-import no.nav.syfo.persistering.db.postgres.lagreBehandlingsutfall
 import no.nav.syfo.sak.avro.ProduceTask
 import no.nav.syfo.sak.avro.RegisterTask
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.Month
-import java.time.ZoneId
 
 class BehandlingsutfallFraOppgaveTopicService(
     private val kafkaConsumer: KafkaConsumer<String, RegisterTask>,
@@ -64,7 +61,7 @@ class BehandlingsutfallFraOppgaveTopicService(
             for (oppgave in opprettedeOppgaver) {
                 val sykmeldingId = databasePostgres.connection.hentSykmeldingIdManglerBehandlingsutfall(oppgave.messageId)
                     if (sykmeldingId != null) {
-                        //databasePostgres.connection.lagreBehandlingsutfall(Behandlingsutfall(sykmeldingId, ValidationResult(Status.MANUAL_PROCESSING, mapOppgaveTilRegler(oppgave.beskrivelse))))
+                        // databasePostgres.connection.lagreBehandlingsutfall(Behandlingsutfall(sykmeldingId, ValidationResult(Status.MANUAL_PROCESSING, mapOppgaveTilRegler(oppgave.beskrivelse))))
                         counterOppdatertBehandlingsutfall++
                         val regelListe = mapOppgaveTilRegler(oppgave.beskrivelse)
                         regelListe.forEach {
