@@ -52,7 +52,7 @@ fun toReceivedSykmelding(jsonMap: Map<String, Any?>): ReceivedSykmelding {
             msgId = "",
             signaturDato = LocalDateTime.parse((jsonMap["CREATED"].toString().substring(0, 19)))
         ),
-        personNrPasient = unmarshallerToHealthInformation.pasient.fodselsnummer.id,
+        personNrPasient = getPersonnr(unmarshallerToHealthInformation),
         tlfPasient = unmarshallerToHealthInformation.pasient.kontaktInfo.firstOrNull()?.teleAddress?.v,
         personNrLege = "",
         navLogId = jsonMap["MOTTAK_ID"].toString(),
@@ -66,6 +66,14 @@ fun toReceivedSykmelding(jsonMap: Map<String, Any?>): ReceivedSykmelding {
         fellesformat = "",
         tssid = ""
     )
+}
+
+private fun getPersonnr(unmarshallerToHealthInformation: HelseOpplysningerArbeidsuforhet): String {
+    val fnr = unmarshallerToHealthInformation.pasient.fodselsnummer.id
+    if (fnr.length == 12 && fnr.contains("-")) {
+        return fnr.replace("-", "")
+    }
+    return fnr
 }
 
 private fun getNullsafeAktorId(jsonMap: Map<String, Any?>): String {
