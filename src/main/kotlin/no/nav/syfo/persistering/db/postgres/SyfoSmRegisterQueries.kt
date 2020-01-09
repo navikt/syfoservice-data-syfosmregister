@@ -37,6 +37,7 @@ fun Connection.lagreReceivedSykmelding(receivedSykmelding: ReceivedSykmelding) {
     use { connection ->
         insertSykmeldingsopplysninger(connection, toSykmeldingsopplysninger(receivedSykmelding))
         insertSykmeldingsdokument(connection, toSykmeldingsdokument(receivedSykmelding))
+        lagreBehandlingsutfall(connection, Behandlingsutfall(receivedSykmelding.sykmelding.id, ValidationResult(Status.OK, emptyList())))
         connection.commit()
     }
 }
@@ -144,16 +145,16 @@ fun DatabaseInterfacePostgres.hentAntallSykmeldinger(): List<AntallSykmeldinger>
         }
     }
 
-fun Connection.erSykmeldingsopplysningerLagret(id: String) =
+fun Connection.erSykmeldingsopplysningerLagret(mottakId: String) =
     use { connection ->
         connection.prepareStatement(
             """
                 SELECT *
                 FROM SYKMELDINGSOPPLYSNINGER
-                WHERE id = ?
+                WHERE mottak_id = ?
                 """
         ).use {
-            it.setString(1, id)
+            it.setString(1, mottakId)
             it.executeQuery().next()
         }
     }
@@ -246,7 +247,6 @@ fun Connection.hentSykmelding(mottakId: String): SykmeldingDbModel? =
         connection.prepareStatement(
             """
                 select * from sykmeldingsopplysninger sm 
-                INNER JOIN sykmeldingsdokument sd on sm.id = sd.id
                 where sm.mottak_id = ?
             """
         ).use {

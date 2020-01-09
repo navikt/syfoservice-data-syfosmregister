@@ -13,7 +13,7 @@ import no.nav.syfo.utils.fellesformatUnmarshaller
 fun unmarshallerToHealthInformation(healthInformation: String): HelseOpplysningerArbeidsuforhet =
     fellesformatUnmarshaller.unmarshal(StringReader(healthInformation)) as HelseOpplysningerArbeidsuforhet
 
-fun toSykmeldingsdokument(receivedSykmelding: ReceivedSykmelding): Sykmeldingsdokument {
+public fun toSykmeldingsdokument(receivedSykmelding: ReceivedSykmelding): Sykmeldingsdokument {
     return Sykmeldingsdokument(
         id = receivedSykmelding.sykmelding.id,
         sykmelding = receivedSykmelding.sykmelding
@@ -47,7 +47,7 @@ fun toReceivedSykmelding(jsonMap: Map<String, Any?>): ReceivedSykmelding {
     return ReceivedSykmelding(
         sykmelding = unmarshallerToHealthInformation.toSykmelding(
             sykmeldingId = jsonMap["MELDING_ID"].toString(),
-            pasientAktoerId = jsonMap["AKTOR_ID"].toString(),
+            pasientAktoerId = getNullsafeAktorId(jsonMap),
             legeAktoerId = "",
             msgId = "",
             signaturDato = LocalDateTime.parse((jsonMap["CREATED"].toString().substring(0, 19)))
@@ -66,6 +66,13 @@ fun toReceivedSykmelding(jsonMap: Map<String, Any?>): ReceivedSykmelding {
         fellesformat = "",
         tssid = ""
     )
+}
+
+private fun getNullsafeAktorId(jsonMap: Map<String, Any?>): String {
+    if (jsonMap["AKTOR_ID"] == null) {
+        return ""
+    }
+    return jsonMap["AKTOR_ID"].toString()
 }
 
 fun HelseOpplysningerArbeidsuforhet.toSykmelding(

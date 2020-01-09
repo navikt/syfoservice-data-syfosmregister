@@ -66,7 +66,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    oppdaterStatusSyfosmregister(applicationState, environment)
+    oppdaterIds(applicationState, environment)
 }
 //
 // fun hentArbeidsgiverInformasjonPaaSykmelding(
@@ -222,7 +222,7 @@ fun ryddDuplikateSykmeldinger(applicationState: ApplicationState, environment: E
     ryddDuplikateSykmeldingerService.ryddDuplikateSykmeldinger()
 }
 
-fun oppdaterStatusSyfosmregister(applicationState: ApplicationState, environment: Environment) {
+fun oppdaterIds(applicationState: ApplicationState, environment: Environment) {
     val vaultConfig = VaultConfig(
         jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
     )
@@ -240,7 +240,7 @@ fun oppdaterStatusSyfosmregister(applicationState: ApplicationState, environment
         databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
         databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
     )
-    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "10")
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "11")
     val kafkaConsumerCleanSykmelding = KafkaConsumer<String, String>(consumerProperties)
     val vaultCredentialService = VaultCredentialService()
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
@@ -255,7 +255,7 @@ fun oppdaterStatusSyfosmregister(applicationState: ApplicationState, environment
         updateService,
         databaseOracle
     )
-    skrivTilSyfosmRegisterSyfoService.run()
+    skrivTilSyfosmRegisterSyfoService.updateId()
 }
 
 fun leggInnBehandlingsstatusForSykmeldinger(applicationState: ApplicationState, environment: Environment) {
