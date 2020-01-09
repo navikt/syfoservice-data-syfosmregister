@@ -233,7 +233,7 @@ fun oppdaterIds(applicationState: ApplicationState, environment: Environment) {
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sykmelding-clean-consumer-11",
+        "${environment.applicationName}-sykmelding-clean-consumer-12",
         valueDeserializer = StringDeserializer::class
     )
     val syfoserviceVaultSecrets = VaultCredentials(

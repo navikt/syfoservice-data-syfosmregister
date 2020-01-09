@@ -337,7 +337,7 @@ fun Connection.deleteAndInsertSykmelding(
         }
 
         insertSykmeldingsopplysninger(connection, sykmeldingDb.sykmeldingsopplysninger)
-        insertSykmeldingsdokument(connection, sykmeldingDb.sykmeldingsdokument)
+        insertSykmeldingsdokument(connection, sykmeldingDb.sykmeldingsdokument!!)
         lagreBehandlingsutfall(
             connection, Behandlingsutfall(
                 sykmeldingDb.sykmeldingsopplysninger.id, ValidationResult(
@@ -426,8 +426,6 @@ fun DatabaseInterfacePostgres.deleteSykmeldingStatus(sykmeldingId: String, kafka
 fun ResultSet.toSykmelding(mottakId: String): SykmeldingDbModel? {
     if (next()) {
         val sykmeldingId = getString("id")
-        val sykmeldingsdokument =
-            Sykmeldingsdokument(sykmeldingId, objectMapper.readValue(getString("sykmelding")))
         val sykmeldingsopplysninger = Sykmeldingsopplysninger(
             id = sykmeldingId,
             mottakId = getString("mottak_id"),
@@ -443,7 +441,7 @@ fun ResultSet.toSykmelding(mottakId: String): SykmeldingDbModel? {
             mottattTidspunkt = getTimestamp("mottatt_tidspunkt").toLocalDateTime(),
             tssid = getString("tss_id")
         )
-        return SykmeldingDbModel(sykmeldingsopplysninger, sykmeldingsdokument)
+        return SykmeldingDbModel(sykmeldingsopplysninger, null)
     }
     return null
 }
