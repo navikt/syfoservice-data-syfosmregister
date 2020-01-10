@@ -24,6 +24,7 @@ import no.nav.syfo.persistering.db.postgres.deleteAndInsertSykmelding
 import no.nav.syfo.persistering.db.postgres.erSykmeldingsopplysningerLagret
 import no.nav.syfo.persistering.db.postgres.hentSykmelding
 import no.nav.syfo.persistering.db.postgres.lagreReceivedSykmelding
+import no.nav.syfo.persistering.db.postgres.opprettSykmeldingsdokument
 import org.apache.kafka.clients.consumer.KafkaConsumer
 
 class SkrivTilSyfosmRegisterSyfoService(
@@ -151,6 +152,9 @@ class SkrivTilSyfosmRegisterSyfoService(
                                 newSykmeldingModel
                             )
                             counterIdUpdates++
+                        } else if(sykmeldingDb.sykmeldingsdokument == null) {
+                            log.info("Did not find sykmeldingsdokument for id {}. inserting new", update.sykmelding.id)
+                            databasePostgres.connection.opprettSykmeldingsdokument(toSykmeldingsdokument(update))
                         }
                     } else {
                         log.info("inserting sykmelding with id {}, mottak_id {}", update.sykmelding.id, update.navLogId)
