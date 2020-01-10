@@ -233,14 +233,14 @@ fun oppdaterIds(applicationState: ApplicationState, environment: Environment) {
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sykmelding-clean-consumer-13",
+        "${environment.applicationName}-sykmelding-clean-consumer-14",
         valueDeserializer = StringDeserializer::class
     )
     val syfoserviceVaultSecrets = VaultCredentials(
         databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
         databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
     )
-    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "500")
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "10")
     val kafkaConsumerCleanSykmelding = KafkaConsumer<String, String>(consumerProperties)
     val vaultCredentialService = VaultCredentialService()
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
@@ -378,7 +378,7 @@ fun runMapStringToJsonMap(
         "${environment.applicationName}-sykmelding-string-consumer-1",
         valueDeserializer = StringDeserializer::class
     )
-    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1000")
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "10")
     val kafkaConsumerStringSykmelding = KafkaConsumer<String, String>(consumerProperties)
 
     val producerProperties =

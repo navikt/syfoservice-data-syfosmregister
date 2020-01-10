@@ -35,7 +35,8 @@ class SkrivTilSyfosmRegisterSyfoService(
     private val databaseOracle: DatabaseOracle
 ) {
     var filterList = listOf(
-        "1805031428norh13329.1"
+        "1805031428norh13329.1",
+        "1912050914gild39509.1"
     )
     var lastTimestamp = LocalDateTime.of(2010, 1, 1, 0, 0)
     fun run() {
@@ -134,7 +135,6 @@ class SkrivTilSyfosmRegisterSyfoService(
                     }
                     .map { toReceivedSykmelding(it) }
             for (update in updateEvents) {
-
                 try {
                     log.info("updating sykmelding with id {}, mottak_id {}", update.sykmelding.id, update.navLogId)
                     val sykmeldingDb = databasePostgres.connection.hentSykmelding(convertToMottakid(update.navLogId))
