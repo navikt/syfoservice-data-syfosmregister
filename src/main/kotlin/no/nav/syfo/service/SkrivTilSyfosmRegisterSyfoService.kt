@@ -35,7 +35,7 @@ class SkrivTilSyfosmRegisterSyfoService(
     private val updateStatusService: UpdateStatusService,
     private val databaseOracle: DatabaseOracle
 ) {
-    var filterList = listOf(
+    var filterList = mutableListOf(
         "1805031428norh13329.1",
         "1912050914gild39509.1"
     )
@@ -161,6 +161,7 @@ class SkrivTilSyfosmRegisterSyfoService(
                         databasePostgres.connection.lagreReceivedSykmelding(update)
                         insertedSykmeldinger++
                     }
+                    filterList.remove(update.sykmelding.id)
                 } catch (ex: Exception) {
                     log.error("Noe gikk galt med mottakid {}", update.navLogId, ex)
                     applicationState.ready = false
