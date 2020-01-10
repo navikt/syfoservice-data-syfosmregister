@@ -247,6 +247,7 @@ fun Connection.hentSykmelding(mottakId: String): SykmeldingDbModel? =
         connection.prepareStatement(
             """
                 select * from sykmeldingsopplysninger sm 
+                LEFT OUTER JOIN sykmeldingsdokument sd on sm.id = sd.id
                 where sm.mottak_id = ?
             """
         ).use {
@@ -337,7 +338,7 @@ fun Connection.deleteAndInsertSykmelding(
         }
 
         insertSykmeldingsopplysninger(connection, sykmeldingDb.sykmeldingsopplysninger)
-        insertSykmeldingsdokument(connection, sykmeldingDb.sykmeldingsdokument)
+        insertSykmeldingsdokument(connection, sykmeldingDb.sykmeldingsdokument!!)
         lagreBehandlingsutfall(
             connection, Behandlingsutfall(
                 sykmeldingDb.sykmeldingsopplysninger.id, ValidationResult(
@@ -448,14 +449,13 @@ fun ResultSet.toSykmelding(mottakId: String): SykmeldingDbModel? {
     return null
 }
 
-private fun ResultSet.getNullsafeSykmeldingsdokument(sykmeldingId: String) : Sykmeldingsdokument? {
+private fun ResultSet.getNullsafeSykmeldingsdokument(sykmeldingId: String): Sykmeldingsdokument? {
     val sykmeldingDokument = getString("sykmelding")
-    if(sykmeldingDokument.isNullOrEmpty()) {
-        return Sykmeldingsdokument(sykmeldingId, objectMapper.readValue(getString("sykmelding")))
+    if (sykmeldingDokument.isNullOrEmpty()) {
+        return null
     }
-    return null
+    return Sykmeldingsdokument(sykmeldingId, objectMapper.readValue(getString("sykmelding")))
 }
-
 
 fun ResultSet.toSykmeldingMedBehandlingsutfall(): SykmeldingBehandlingsutfallDbModel {
     val sykmeldingId = getString("id")

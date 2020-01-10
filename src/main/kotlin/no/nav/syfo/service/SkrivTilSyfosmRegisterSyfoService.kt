@@ -152,7 +152,7 @@ class SkrivTilSyfosmRegisterSyfoService(
                                 newSykmeldingModel
                             )
                             counterIdUpdates++
-                        } else if(sykmeldingDb.sykmeldingsdokument == null) {
+                        } else if (sykmeldingDb.sykmeldingsdokument == null) {
                             log.info("Did not find sykmeldingsdokument for id {}. inserting new", update.sykmelding.id)
                             databasePostgres.connection.opprettSykmeldingsdokument(toSykmeldingsdokument(update))
                         }
