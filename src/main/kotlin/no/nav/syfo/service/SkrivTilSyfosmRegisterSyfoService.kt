@@ -35,9 +35,9 @@ class SkrivTilSyfosmRegisterSyfoService(
     private val updateStatusService: UpdateStatusService,
     private val databaseOracle: DatabaseOracle
 ) {
-    var filterList = mutableListOf(
-        "1805031428norh13329.1",
-        "1912050914gild39509.1"
+    var filterList = listOf(
+        "448ae5c7-0ed4-421c-955e-4c175cf280c5",
+        "bedd0998-7e07-4e29-98c0-2a69b5eb6db4"
     )
     var lastTimestamp = LocalDateTime.of(2010, 1, 1, 0, 0)
     fun run() {
@@ -161,7 +161,6 @@ class SkrivTilSyfosmRegisterSyfoService(
                         databasePostgres.connection.lagreReceivedSykmelding(update)
                         insertedSykmeldinger++
                     }
-                    filterList.remove(update.sykmelding.id)
                 } catch (ex: Exception) {
                     log.error("Noe gikk galt med mottakid {}", update.navLogId, ex)
                     applicationState.ready = false
