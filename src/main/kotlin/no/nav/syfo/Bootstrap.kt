@@ -66,6 +66,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
+    hentSykemeldingerFraSyfoserviceOgPubliserTilTopic(environment, applicationState)
     oppdaterIds(applicationState, environment)
 }
 //

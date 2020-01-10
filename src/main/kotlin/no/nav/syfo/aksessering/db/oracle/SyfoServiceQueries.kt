@@ -24,7 +24,51 @@ fun DatabaseInterfaceOracle.hentFravaerForSykmelding(sporsmalId: Int): DatabaseR
     }
 }
 
-fun DatabaseInterfaceOracle.hentSykmeldingerSyfoService(lastIndex: Int, limit: Int): DatabaseResult<MutableMap<String, Any?>> =
+fun DatabaseInterfaceOracle.hentSykmeldingFraSyfoService(sykmeldingIds: List<String>): DatabaseResult<MutableMap<String, Any?>> =
+    connection.use { connection ->
+        connection.prepareStatement(
+            """
+                SELECT sd.SYKMELDING_DOK_ID, 
+                sd.AKTOR_ID, 
+                sd.MELDING_ID, 
+                sd.DOKUMENT, 
+                sd.CREATED, 
+                sd.ARBEIDSSITUASJON, 
+                sd.SYKETILFELLE_START_DATO,
+                sd.UNNTATT_INNSYN,
+                sd.OPPFOLGINGSBEHOV, 
+                sd.STATUS, 
+                sd.ORGNUMMER, 
+                sd.SENDT_TIL_ARBEIDSGIVER_DATO,
+                sd.BEHANDLET_DATO, 
+                sd.OPPFOELGING, 
+                sd.MOTTAK_ID, 
+                sd.ARBEIDSGIVER_ID,
+                sp.SM_SPORSMAL_ID as SPM_SM_SPORSMAL_ID, 
+                sp.SYKMELDING_ID as SPM_SYKMELDING_ID, 
+                sp.ARBEIDSSITUASJON as SPM_ARBEIDSSITUASJON, 
+                sp.HAR_FORSIKRING as SPM_HAR_FORSIKRING, 
+                sp.HAR_FRAVAER as SPM_HAR_FRAVAER,
+                sa.ARBEIDSGIVER_ID as ARB_ARBEIDSGIVER_ID, 
+                sa.ORGNUMMER as ARB_ORGNUMMER,  
+                sa.JURIDISK_ORGNUMMER as ARB_JURIDISK_ORGNUMMER,  
+                sa.NAVN as ARB_NAVN FROM SYFOSERVICE.SYKMELDING_DOK sd 
+                left outer join sm_arbeidsgiver sa on (sa.arbeidsgiver_id = sd.arbeidsgiver_id)
+                left outer join sm_sporsmal sp on (sd.sykmelding_dok_id = sp.sykmelding_id)
+                WHERE MELDING_ID = ANY (?)
+                """
+        ).use {
+            it.setArray(1, connection.createArrayOf("VARCHAR", sykmeldingIds.toTypedArray()))
+            val resultSet = it.executeQuery()
+            val databaseResult = resultSet.toJsonStringSyfoService(0)
+            return databaseResult
+        }
+    }
+
+fun DatabaseInterfaceOracle.hentSykmeldingerSyfoService(
+    lastIndex: Int,
+    limit: Int
+): DatabaseResult<MutableMap<String, Any?>> =
     connection.use { connection ->
         connection.prepareStatement(
             """

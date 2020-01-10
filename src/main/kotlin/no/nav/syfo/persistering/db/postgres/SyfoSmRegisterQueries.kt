@@ -37,7 +37,7 @@ fun Connection.lagreReceivedSykmelding(receivedSykmelding: ReceivedSykmelding) {
     use { connection ->
         insertSykmeldingsopplysninger(connection, toSykmeldingsopplysninger(receivedSykmelding))
         insertSykmeldingsdokument(connection, toSykmeldingsdokument(receivedSykmelding))
-        lagreBehandlingsutfall(connection, Behandlingsutfall(receivedSykmelding.sykmelding.id, ValidationResult(Status.OK, emptyList())))
+        // lagreBehandlingsutfall(connection, Behandlingsutfall(receivedSykmelding.sykmelding.id, ValidationResult(Status.OK, emptyList())))
         connection.commit()
     }
 }
@@ -97,6 +97,7 @@ fun Connection.opprettSykmeldingsdokument(sykmeldingsdokument: Sykmeldingsdokume
         connection.commit()
     }
 }
+
 fun Connection.lagreBehandlingsutfallAndCommit(behandlingsutfall: Behandlingsutfall) =
     use { connection ->
         lagreBehandlingsutfall(connection, behandlingsutfall)

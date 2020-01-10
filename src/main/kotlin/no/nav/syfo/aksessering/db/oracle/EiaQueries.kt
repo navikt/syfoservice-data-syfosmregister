@@ -34,7 +34,7 @@ fun DatabaseInterfaceOracle.hentSykmeldingerEia(): DatabaseResult<Eia> =
                 SELECT *
                 FROM EIA2_1_P.melding
                 WHERE melding_type_kode = 'SYKMELD'
-                AND EDILOGGID IN ('1909091109holm02426.1','1909271110vest10640.1')
+                AND EDILOGGID IN ('1912050914gild39509.1','1805031428norh13329.1')
                 AND MELDING_TYPE_VERSJON = '2013-10-01'
             """
         ).use {
