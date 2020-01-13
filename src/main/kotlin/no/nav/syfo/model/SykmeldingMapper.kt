@@ -7,6 +7,7 @@ import no.nav.helse.sm2013.ArsakType
 import no.nav.helse.sm2013.CS
 import no.nav.helse.sm2013.CV
 import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
+import no.nav.syfo.persistering.db.postgres.SykmeldingDbModel
 import no.nav.syfo.service.convertToMottakid
 import no.nav.syfo.utils.fellesformatUnmarshaller
 
@@ -37,6 +38,29 @@ fun toSykmeldingsopplysninger(
         epjSystemVersjon = "1",
         mottattTidspunkt = receivedSykmelding.mottattDato,
         tssid = receivedSykmelding.tssid
+    )
+}
+
+fun toReceivedSykmelding(sykmeldingDbModel: SykmeldingDbModel): ReceivedSykmelding {
+
+    val sykmelding = sykmeldingDbModel.sykmeldingsdokument!!.sykmelding
+    val sykmeldingsopplysninger = sykmeldingDbModel.sykmeldingsopplysninger
+
+    return ReceivedSykmelding(
+        sykmelding = sykmelding,
+        tssid = sykmeldingsopplysninger.tssid,
+        legekontorReshId = sykmeldingsopplysninger.legekontorReshId,
+        legekontorHerId = sykmeldingsopplysninger.legekontorHerId,
+        legekontorOrgNr = sykmeldingsopplysninger.legekontorOrgNr,
+        legekontorOrgName = "",
+        fellesformat = "",
+        mottattDato = sykmeldingsopplysninger.mottattTidspunkt,
+        msgId = sykmelding.msgId,
+        navLogId = sykmeldingsopplysninger.mottakId,
+        personNrLege = sykmeldingsopplysninger.legeFnr,
+        personNrPasient = sykmeldingsopplysninger.pasientFnr,
+        rulesetVersion = null,
+        tlfPasient = null
     )
 }
 

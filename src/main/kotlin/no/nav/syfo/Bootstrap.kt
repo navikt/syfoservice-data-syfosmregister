@@ -14,11 +14,13 @@ import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.db.VaultCredentialService
 import no.nav.syfo.kafka.EiaSykmeldingKafkaProducer
+import no.nav.syfo.kafka.ReceivedSykmeldingKafkaProducer
 import no.nav.syfo.kafka.SykmeldingKafkaProducer
 import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
 import no.nav.syfo.model.Eia
+import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.sak.avro.RegisterTask
 import no.nav.syfo.service.BehandlingsutfallFraOppgaveTopicService
@@ -32,6 +34,7 @@ import no.nav.syfo.service.SkrivTilSyfosmRegisterServiceEia
 import no.nav.syfo.service.SkrivTilSyfosmRegisterSyfoService
 import no.nav.syfo.service.UpdateArbeidsgiverWhenSendtService
 import no.nav.syfo.service.UpdateStatusService
+import no.nav.syfo.service.WriteReceivedSykmeldingService
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
 import no.nav.syfo.vault.RenewVaultService
@@ -66,8 +69,42 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    hentSykemeldingerFraSyfoserviceOgPubliserTilTopic(environment, applicationState)
-    oppdaterIds(applicationState, environment)
+    addSykmeldingerToReceivedTopic(applicationState, environment)
+}
+
+fun addSykmeldingerToReceivedTopic(applicationState: ApplicationState, environment: Environment) {
+
+    val vaultServiceuser = VaultServiceUser(
+        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
+        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
+    )
+    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+
+    val consumerProperties = kafkaBaseConfig.toConsumerConfig(
+        "${environment.applicationName}-sykmelding-clean-consumer-15",
+        valueDeserializer = StringDeserializer::class
+    )
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "10")
+    val kafkaConsumerCleanSykmelding = KafkaConsumer<String, String>(consumerProperties)
+    val vaultCredentialService = VaultCredentialService()
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
+    val producerProperties =
+        kafkaBaseConfig.toProducerConfig(
+            environment.applicationName,
+            valueSerializer = JacksonKafkaSerializer::class
+        )
+    val kafkaProducer = KafkaProducer<String, ReceivedSykmelding>(producerProperties)
+    val receivedSykmeldingKafkaProducer =
+        ReceivedSykmeldingKafkaProducer(environment.sm2013ReceivedSykmelding, kafkaProducer)
+    val service = WriteReceivedSykmeldingService(
+        applicationState,
+        kafkaConsumerCleanSykmelding,
+        receivedSykmeldingKafkaProducer,
+        environment.sykmeldingCleanTopicFull,
+        databasePostgres
+    )
+    service.run()
 }
 //
 // fun hentArbeidsgiverInformasjonPaaSykmelding(

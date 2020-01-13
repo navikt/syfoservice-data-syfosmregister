@@ -6,7 +6,7 @@ import no.nav.syfo.kafka.KafkaCredentials
 data class Environment(
     val applicationPort: Int = getEnvVar("APPLICATION_PORT", "8080").toInt(),
     val sm2013SyfoserviceSykmeldingTopic: String = getEnvVar("KAFKA_SM2013_SYFOSERVICE_SYKMELDING_TOPIC", "privat-syfo-sm2013-syfoservice-sykmelding"),
-    val sm2013SyfoserviceSykmeldingCleanTopic: String = getEnvVar("KAFKA_SM2013_SYFOSERVICE_SYKMELDING_CLEAN_TOPIC", "privat-syfo-sm2013-syfoservice-received-sykmelding-clean"),
+    val sm2013ReceivedSykmelding: String = getEnvVar("KAFKA_SM2013_RECEIVED_SYKMELDING", "privat-syfo-sm2013-syfoservice-received-sykmelding"),
     val sm2013EiaSykmedlingTopic: String = getEnvVar("KAFKA_SM2013_EIA_SYKMELDING_TOPIC", "privat-syfo-sm2013-eia-sykmeldinger"),
     val sm2013SyfoSericeSykmeldingStatusTopic: String = getEnvVar("KAFKA_SM2013_SYFOSERVICE_SYKMELDING_STATUS_TOPIC", "privat-syfo-sm2013-syfoservice-sykmelding-status-2"),
     val sm2013SyfoSericeSykmeldingArbeidsgiverTopic: String = getEnvVar("KAFKA_SM2013_SYFOSERVICE_SYKMELDING_ARBEIDSGIVER_TOPIC", "private-syfoservice-arbeidsgiver"),
