@@ -36,7 +36,7 @@ class HentSykmeldingerFraSyfosmregisterService(
                     counter,
                     lastMottattDato
                 )
-                delay(120_000)
+                delay(30_000)
             }
         }
 
@@ -57,5 +57,6 @@ class HentSykmeldingerFraSyfosmregisterService(
             lastMottattDato = lastMottattDato.plusDays(1)
             counter += result.size
         }
+        log.info("Ferdig med alle sykmeldingene, totalt {}", counter)
     }
 }
