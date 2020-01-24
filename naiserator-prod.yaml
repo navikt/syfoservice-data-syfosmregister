@@ -8,8 +8,8 @@ metadata:
 spec:
   image: "docker.pkg.github.com/navikt/syfoservice-data-syfosmregister:{{tag}}"
   replicas:
-    min: 3
-    max: 3
+    min: 1
+    max: 1
     cpuThresholdPercentage: 90
   port: 8080
   liveness:
@@ -32,7 +32,7 @@ spec:
       memory: 2Gi
     requests:
       cpu: 100m
-      memory: 128Mi
+      memory: 1024Mi
   vault:
     enabled: true
     paths:
@@ -60,3 +60,5 @@ spec:
       value: "33745516"
     - name: LAST_INDEX_SYFOSERVICE
       value: "0"
+    - name: LAST_INDEX_SYFOSMREGISTER
+      value: "2015-01-01"
