@@ -285,8 +285,8 @@ fun DatabaseInterfacePostgres.hentSykmeldingerDokumentOgBehandlingsutfall(
                 AND sm.mottatt_tidspunkt < ?
                 """
         ).use {
-            it.setString(1, lastMottattTidspunkt.toString())
-            it.setString(2, lastMottattTidspunkt.plusDays(1).toString())
+            it.setTimestamp(1, Timestamp.valueOf(lastMottattTidspunkt.atStartOfDay())
+            it.setTimestamp(2, Timestamp.valueOf(lastMottattTidspunkt.plusDays(1).atStartOfDay())
             it.executeQuery().toList { toSykmeldingDokumentBehandlingsutfall() }
         }
     }
