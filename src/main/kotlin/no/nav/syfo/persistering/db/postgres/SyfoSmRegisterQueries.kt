@@ -5,6 +5,7 @@ import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.Statement
 import java.sql.Timestamp
+import java.time.LocalDate
 import java.time.LocalDateTime
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.db.toList
@@ -25,7 +26,6 @@ import no.nav.syfo.model.toPGObject
 import no.nav.syfo.model.toSykmeldingsdokument
 import no.nav.syfo.model.toSykmeldingsopplysninger
 import no.nav.syfo.objectMapper
-import java.time.LocalDate
 
 data class DatabaseResult(
     val lastIndex: Int,
@@ -290,7 +290,6 @@ fun DatabaseInterfacePostgres.hentSykmeldingerDokumentOgBehandlingsutfall(
             it.executeQuery().toList { toSykmeldingDokumentBehandlingsutfall() }
         }
     }
-
 
 fun Connection.hentSykmeldingIdManglerBehandlingsutfall(msgId: String): String? =
     use { connection ->

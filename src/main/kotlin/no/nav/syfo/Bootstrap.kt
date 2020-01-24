@@ -176,7 +176,7 @@ fun hentSykmeldingerFraSyfosmregisterOgPubliserTilTopic(applicationState: Applic
     HentSykmeldingerFraSyfosmregisterService(
         receivedSykmeldingKafkaProducer = receivedSykmeldingKafkaProducer,
         behandlingsutfallKafkaProducer = behandlingsutfallKafkaProducer,
-        databasePostgres = databasePostgres, lastIndexSyfosmregister = environment.lastIndexSyfosmregister
+        databasePostgres = databasePostgres, lastIndexSyfosmregister = environment.lastIndexSyfosmregister, applicationState = applicationState
     ).run()
 }
 
