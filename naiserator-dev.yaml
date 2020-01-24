@@ -60,3 +60,5 @@ spec:
       value: "161278"
     - name: LAST_INDEX_SYFOSERVICE
       value: "114402"
+    - name: LAST_INDEX_SYFOSMREGISTER
+      value: "2015-01-01"

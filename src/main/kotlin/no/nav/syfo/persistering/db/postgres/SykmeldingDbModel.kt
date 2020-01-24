@@ -13,3 +13,9 @@ data class SykmeldingBehandlingsutfallDbModel(
     val sykmeldingsopplysninger: Sykmeldingsopplysninger,
     val behandlingsutfall: Behandlingsutfall?
 )
+
+data class SykmeldingDokumentBehandlingsutfallDbModel(
+    val sykmeldingsopplysninger: Sykmeldingsopplysninger,
+    val sykmeldingsdokument: Sykmeldingsdokument?,
+    val behandlingsutfall: Behandlingsutfall?
+)

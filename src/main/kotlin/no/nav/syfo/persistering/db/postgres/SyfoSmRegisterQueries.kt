@@ -25,6 +25,7 @@ import no.nav.syfo.model.toPGObject
 import no.nav.syfo.model.toSykmeldingsdokument
 import no.nav.syfo.model.toSykmeldingsopplysninger
 import no.nav.syfo.objectMapper
+import java.time.LocalDate
 
 data class DatabaseResult(
     val lastIndex: Int,
@@ -271,6 +272,26 @@ fun Connection.hentSykmeldingListeMedBehandlingsutfall(mottakId: String): List<S
         }
     }
 
+fun DatabaseInterfacePostgres.hentSykmeldingerDokumentOgBehandlingsutfall(
+    lastMottattTidspunkt: LocalDate
+): List<SykmeldingDokumentBehandlingsutfallDbModel> =
+    connection.use { connection ->
+        connection.prepareStatement(
+            """
+                select * from sykmeldingsopplysninger sm 
+                LEFT OUTER JOIN sykmeldingsdokument sd on sm.id = sd.id
+                LEFT OUTER JOIN behandlingsutfall bu on sm.id = bu.id
+                WHERE sm.mottatt_tidspunkt >= ?
+                AND sm.mottatt_tidspunkt < ?
+                """
+        ).use {
+            it.setString(1, lastMottattTidspunkt.toString())
+            it.setString(2, lastMottattTidspunkt.plusDays(1).toString())
+            it.executeQuery().toList { toSykmeldingDokumentBehandlingsutfall() }
+        }
+    }
+
+
 fun Connection.hentSykmeldingIdManglerBehandlingsutfall(msgId: String): String? =
     use { connection ->
         connection.prepareStatement(
@@ -456,6 +477,18 @@ private fun ResultSet.getNullsafeSykmeldingsdokument(sykmeldingId: String): Sykm
         return null
     }
     return Sykmeldingsdokument(sykmeldingId, objectMapper.readValue(getString("sykmelding")))
+}
+
+fun ResultSet.toSykmeldingDokumentBehandlingsutfall(): SykmeldingDokumentBehandlingsutfallDbModel {
+    val sykmeldingId = getString("id")
+    val sykmeldingsDokument = this.getNullsafeSykmeldingsdokument(sykmeldingId)
+    val sykmeldingMedBehandlingsutfall = this.toSykmeldingMedBehandlingsutfall()
+
+    return SykmeldingDokumentBehandlingsutfallDbModel(
+        sykmeldingMedBehandlingsutfall.sykmeldingsopplysninger,
+        sykmeldingsDokument,
+        sykmeldingMedBehandlingsutfall.behandlingsutfall
+    )
 }
 
 fun ResultSet.toSykmeldingMedBehandlingsutfall(): SykmeldingBehandlingsutfallDbModel {

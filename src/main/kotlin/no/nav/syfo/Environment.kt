@@ -16,9 +16,12 @@ data class Environment(
     val cluster: String = getEnvVar("NAIS_CLUSTER_NAME"),
     val databaseName: String = getEnvVar("DATABASE_NAME", "syfosmregister"),
     val lastIndexSyfoservice: Int = getEnvVar("LAST_INDEX_SYFOSERVICE").toInt(),
+    val lastIndexSyfosmregister: String = getEnvVar("LAST_INDEX_SYFOSMREGISTER"),
     val lastIndexEia: Int = getEnvVar("LAST_INDEX_EIA").toInt(),
     val sykmeldingCleanTopic: String = getEnvVar("SYKEMLDING_CLEAN_TOPIC", "privat-syfoservice-clean-sykmelding"),
     val sykmeldingCleanTopicFull: String = getEnvVar("SYKEMLDING_CLEAN_TOPIC_FULL", "privat-syfoservice-clean-sykmelding-full"),
+    val receivedSykmeldingBackupTopic: String = getEnvVar("SYKMELDING_RECEIVED_SM_BACKUP", "privat-syfosmregister-received-sykmelding-backup"),
+    val behandlingsutfallBackupTopic: String = getEnvVar("SYKMELDING_BEHANDLINGSUTFALL_BACKUP", "privat-syfosmregister-behandlingsutfall-backup"),
     val oppgaveTopic: String = getEnvVar("OPPGAVE_TOPIC", "privat-syfo-oppgave-registrerOppgave"),
     override val kafkaBootstrapServers: String = getEnvVar("KAFKA_BOOTSTRAP_SERVERS_URL")
 ) : KafkaConfig
