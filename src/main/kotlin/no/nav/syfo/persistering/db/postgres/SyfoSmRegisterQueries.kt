@@ -120,6 +120,24 @@ fun lagreBehandlingsutfall(
     }
 }
 
+fun DatabaseInterfacePostgres.oppdaterBehandlingsutfall(behandlingsutfall: Behandlingsutfall) {
+    this.connection.use { connection ->
+        connection.prepareStatement(
+            """
+                UPDATE BEHANDLINGSUTFALL
+                SET behandlingsutfall = ?
+                WHERE
+                id = ?
+            """
+        ).use {
+            it.setObject(1, behandlingsutfall.behandlingsutfall.toPGObject())
+            it.setString(2, behandlingsutfall.id)
+            it.executeUpdate()
+        }
+        connection.commit()
+    }
+}
+
 private fun insertSykmeldingsdokument(
     connection: Connection,
     sykmeldingsdokument: Sykmeldingsdokument
