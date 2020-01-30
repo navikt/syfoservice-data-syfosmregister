@@ -46,6 +46,8 @@ spec:
         mountPath: /secrets/eia/credentials
       - kvPath: oracle/data/prod/config/eia_p
         mountPath: /secrets/eia/config
+      - kvPath: /kv/prod/fss/syfoservice-data-syfosmregister/default
+        mountPath: /var/run/secrets/nais.io/vault
   webproxy: true
   ingresses:
     - "https://syfoservice-data-syfosmregister.nais.adeo.no"
@@ -62,3 +64,5 @@ spec:
       value: "0"
     - name: LAST_INDEX_SYFOSMREGISTER
       value: "2019-05-09"
+    - name: LAST_INDEX_BACKUP
+      value: "2019-05-01"
