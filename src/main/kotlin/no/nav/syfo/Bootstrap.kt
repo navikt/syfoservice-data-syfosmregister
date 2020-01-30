@@ -101,7 +101,7 @@ fun hentSykmeldingerFraBackupUtenBehandlingsutfallOgPubliserTilTopic(application
     val databasePostgresUtenVault = DatabasePostgresUtenVault(environment, databaseVaultSecrets)
 
     HentSykmeldingsidFraBackupService(
-        sykmeldingIdKafkaProducer, databasePostgresUtenVault, environment.lastIndexSyfosmregister, applicationState
+        sykmeldingIdKafkaProducer, databasePostgresUtenVault, environment.lastIndexBackup, applicationState
     ).run()
 }
 

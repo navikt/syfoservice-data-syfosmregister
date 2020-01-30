@@ -43,6 +43,7 @@ class HentSykmeldingsidFraBackupService(
             val result = databasePostgresUtenVault.hentSykmeldingsIderUtenBehandlingsutfall(lastMottattDato)
             for (id in result) {
                 sykmeldingIdKafkaProducer.publishToKafka(id)
+                counterSykmeldingerUtenBehandlingsutfall++
             }
             lastMottattDato = lastMottattDato.plusDays(1)
             counter += result.size
