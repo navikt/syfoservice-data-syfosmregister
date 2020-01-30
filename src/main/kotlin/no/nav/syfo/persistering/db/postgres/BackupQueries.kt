@@ -35,7 +35,7 @@ fun DatabaseInterfacePostgresUtenVault.hentSykmeldingsIderUtenBehandlingsutfall(
             """
                 select sm.id from sykmeldingsopplysninger sm 
                 where NOT exists(select 1 from behandlingsutfall where id = sm.id)
-                AND epj_system_navn != 'SYFOSERVICE'
+                AND sm.epj_system_navn != 'SYFOSERVICE'
                 AND sm.mottatt_tidspunkt >= ?
                 AND sm.mottatt_tidspunkt < ?
                 """
