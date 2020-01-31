@@ -1,5 +1,6 @@
 package no.nav.syfo.service
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import java.time.Duration
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -11,6 +12,7 @@ import no.nav.syfo.kafka.RerunKafkaMessageKafkaProducer
 import no.nav.syfo.log
 import no.nav.syfo.model.Status
 import no.nav.syfo.model.toReceivedSykmelding
+import no.nav.syfo.objectMapper
 import no.nav.syfo.persistering.db.postgres.SykmeldingDbModel
 import no.nav.syfo.persistering.db.postgres.hentSykmeldingMedBehandlingsutfallForId
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -49,7 +51,7 @@ class OpprettPdfService(
             val iderFraBackup: List<String> =
                 kafkaConsumer.poll(Duration.ofMillis(100))
                 .map {
-                    it.value()
+                    objectMapper.readValue<String>(it.value())
                 }
             for (id in iderFraBackup) {
                 lastId = id

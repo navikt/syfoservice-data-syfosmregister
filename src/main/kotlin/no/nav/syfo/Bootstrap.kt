@@ -89,7 +89,7 @@ fun opprettPdf(applicationState: ApplicationState, environment: Environment) {
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-backup-id-consumer-1",
+        "${environment.applicationName}-backup-id-consumer-2",
         valueDeserializer = StringDeserializer::class
     )
     consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "10")
