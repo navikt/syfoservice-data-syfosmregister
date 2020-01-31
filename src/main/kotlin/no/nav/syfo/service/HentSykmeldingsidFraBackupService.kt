@@ -1,6 +1,7 @@
 package no.nav.syfo.service
 
 import java.time.LocalDate
+import java.time.Month
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -10,7 +11,6 @@ import no.nav.syfo.kafka.SykmeldingIdKafkaProducer
 import no.nav.syfo.log
 import no.nav.syfo.persistering.db.postgres.hentAntallSykmeldinger
 import no.nav.syfo.persistering.db.postgres.hentSykmeldingsIderUtenBehandlingsutfall
-import java.time.Month
 
 class HentSykmeldingsidFraBackupService(
     private val sykmeldingIdKafkaProducer: SykmeldingIdKafkaProducer,

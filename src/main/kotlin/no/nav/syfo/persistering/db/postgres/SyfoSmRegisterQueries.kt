@@ -290,6 +290,24 @@ fun Connection.hentSykmeldingListeMedBehandlingsutfall(mottakId: String): List<S
         }
     }
 
+fun Connection.hentSykmeldingMedBehandlingsutfallForId(id: String): SykmeldingDokumentBehandlingsutfallDbModel =
+    use { connection ->
+        connection.prepareStatement(
+            """
+                select * from sykmeldingsopplysninger sm 
+                LEFT OUTER JOIN sykmeldingsdokument sd on sm.id = sd.id 
+                LEFT OUTER JOIN behandlingsutfall bu on sm.id = bu.id
+                where sm.id = ?
+                and sm.epj_system_navn!='SYFOSERVICE' 
+                AND sm.mottatt_tidspunkt < '2019-12-19' 
+                AND sm.mottatt_tidspunkt >= '2019-10-07'
+            """
+        ).use {
+            it.setString(1, id)
+            it.executeQuery().toSykmeldingDokumentBehandlingsutfall()
+        }
+    }
+
 fun DatabaseInterfacePostgres.hentSykmeldingerDokumentOgBehandlingsutfall(
     lastMottattTidspunkt: LocalDate
 ): List<SykmeldingDokumentBehandlingsutfallDbModel> =
