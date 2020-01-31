@@ -32,12 +32,13 @@ class OpprettPdfService(
         var counterAll = 0
         var counterOpprettPdf = 0
         var lastCounter = 0
+        var lastId = ""
         GlobalScope.launch {
             while (applicationState.ready) {
                 if (lastCounter != counterAll) {
                     log.info(
-                        "Lest {} id totalt, antall det kan opprettes pdf for {}",
-                        counterAll, counterOpprettPdf
+                        "Lest {} id totalt, antall det kan opprettes pdf for {}, siste leste id: {}",
+                        counterAll, counterOpprettPdf, lastId
                     )
                     lastCounter = counterAll
                 }
@@ -51,6 +52,7 @@ class OpprettPdfService(
                     it.value()
                 }
             for (id in iderFraBackup) {
+                lastId = id
                 counterAll++
                 try {
                     val sykmeldingMedBehandlingsutfall = databaseInterfacePostgres.connection.hentSykmeldingMedBehandlingsutfallForId(id).firstOrNull()
