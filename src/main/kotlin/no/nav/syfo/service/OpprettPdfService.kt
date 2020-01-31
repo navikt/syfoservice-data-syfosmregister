@@ -53,8 +53,8 @@ class OpprettPdfService(
             for (id in iderFraBackup) {
                 counterAll++
                 try {
-                    val sykmeldingMedBehandlingsutfall = databaseInterfacePostgres.connection.hentSykmeldingMedBehandlingsutfallForId(id)
-                    if (sykmeldingMedBehandlingsutfall.behandlingsutfall != null &&
+                    val sykmeldingMedBehandlingsutfall = databaseInterfacePostgres.connection.hentSykmeldingMedBehandlingsutfallForId(id).firstOrNull()
+                    if (sykmeldingMedBehandlingsutfall?.behandlingsutfall != null &&
                         sykmeldingMedBehandlingsutfall.behandlingsutfall.behandlingsutfall.status == Status.OK) {
                         val rerunKafkaMessage = RerunKafkaMessage(toReceivedSykmelding(
                             SykmeldingDbModel(sykmeldingMedBehandlingsutfall.sykmeldingsopplysninger, sykmeldingMedBehandlingsutfall.sykmeldingsdokument)),

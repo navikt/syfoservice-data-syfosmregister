@@ -290,7 +290,7 @@ fun Connection.hentSykmeldingListeMedBehandlingsutfall(mottakId: String): List<S
         }
     }
 
-fun Connection.hentSykmeldingMedBehandlingsutfallForId(id: String): SykmeldingDokumentBehandlingsutfallDbModel =
+fun Connection.hentSykmeldingMedBehandlingsutfallForId(id: String): List<SykmeldingDokumentBehandlingsutfallDbModel> =
     use { connection ->
         connection.prepareStatement(
             """
@@ -304,7 +304,7 @@ fun Connection.hentSykmeldingMedBehandlingsutfallForId(id: String): SykmeldingDo
             """
         ).use {
             it.setString(1, id)
-            it.executeQuery().toSykmeldingDokumentBehandlingsutfall()
+            it.executeQuery().toList { toSykmeldingDokumentBehandlingsutfall() }
         }
     }
 
