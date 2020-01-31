@@ -17,6 +17,8 @@ import no.nav.syfo.db.VaultCredentialService
 import no.nav.syfo.kafka.BehandlingsutfallKafkaProducer
 import no.nav.syfo.kafka.EiaSykmeldingKafkaProducer
 import no.nav.syfo.kafka.ReceivedSykmeldingKafkaProducer
+import no.nav.syfo.kafka.RerunKafkaMessage
+import no.nav.syfo.kafka.RerunKafkaMessageKafkaProducer
 import no.nav.syfo.kafka.SykmeldingIdKafkaProducer
 import no.nav.syfo.kafka.SykmeldingKafkaProducer
 import no.nav.syfo.kafka.loadBaseConfig
@@ -34,6 +36,7 @@ import no.nav.syfo.service.HentSykmeldingerFraSyfosmregisterService
 import no.nav.syfo.service.HentSykmeldingsidFraBackupService
 import no.nav.syfo.service.InsertOKBehandlingsutfall
 import no.nav.syfo.service.MapSykmeldingStringToSykemldignJsonMap
+import no.nav.syfo.service.OpprettPdfService
 import no.nav.syfo.service.RyddDuplikateSykmeldingerService
 import no.nav.syfo.service.SkrivBehandlingsutfallTilSyfosmRegisterService
 import no.nav.syfo.service.SkrivTilSyfosmRegisterServiceEia
@@ -75,7 +78,41 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    hentSykmeldingerFraBackupUtenBehandlingsutfallOgPubliserTilTopic(applicationState, environment)
+    opprettPdf(applicationState, environment)
+}
+
+fun opprettPdf(applicationState: ApplicationState, environment: Environment) {
+    val vaultServiceuser = VaultServiceUser(
+        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
+        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
+    )
+    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+
+    val consumerProperties = kafkaBaseConfig.toConsumerConfig(
+        "${environment.applicationName}-backup-id-consumer",
+        valueDeserializer = StringDeserializer::class
+    )
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "10")
+    val kafkaConsumerIdFraBackup = KafkaConsumer<String, String>(consumerProperties)
+    val vaultCredentialService = VaultCredentialService()
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
+    val producerProperties =
+        kafkaBaseConfig.toProducerConfig(
+            environment.applicationName,
+            valueSerializer = JacksonKafkaSerializer::class
+        )
+    val kafkaProducer = KafkaProducer<String, RerunKafkaMessage>(producerProperties)
+    val rerunKafkaMessageKafkaProducer =
+        RerunKafkaMessageKafkaProducer(environment.rerunTopic, kafkaProducer)
+    val service = OpprettPdfService(
+        applicationState,
+        kafkaConsumerIdFraBackup,
+        rerunKafkaMessageKafkaProducer,
+        environment.idUtenBehandlingsutfallFraBackupTopic,
+        databasePostgres
+    )
+    service.run()
 }
 
 fun hentSykmeldingerFraBackupUtenBehandlingsutfallOgPubliserTilTopic(applicationState: ApplicationState, environment: Environment) {
@@ -86,9 +123,9 @@ fun hentSykmeldingerFraBackupUtenBehandlingsutfallOgPubliserTilTopic(application
 
     val databaseVaultSecrets = VaultCredentials(
         databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
-        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username"),
-        backupDbUsername = getEnvVar("BACKUP_USERNAME"),
-        backupDbPassword = getEnvVar("BACKUP_PASSWORD")
+        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
+        // backupDbUsername = getEnvVar("BACKUP_USERNAME"),
+        // backupDbPassword = getEnvVar("BACKUP_PASSWORD")
     )
 
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
@@ -336,9 +373,9 @@ fun oppdaterIds(applicationState: ApplicationState, environment: Environment) {
     )
     val syfoserviceVaultSecrets = VaultCredentials(
         databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
-        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username"),
-        backupDbUsername = getEnvVar("BACKUP_USERNAME"),
-        backupDbPassword = getEnvVar("BACKUP_PASSWORD")
+        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
+        // backupDbUsername = getEnvVar("BACKUP_USERNAME"),
+        // backupDbPassword = getEnvVar("BACKUP_PASSWORD")
     )
     consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1")
     val kafkaConsumerCleanSykmelding = KafkaConsumer<String, String>(consumerProperties)
@@ -386,9 +423,9 @@ fun leggInnBehandlingsstatusForSykmeldinger(applicationState: ApplicationState, 
 fun hentSykemldingerFraEia(environment: Environment) {
     val vaultSecrets = VaultCredentials(
         databasePassword = getFileAsString("/secrets/eia/credentials/password"),
-        databaseUsername = getFileAsString("/secrets/eia/credentials/username"),
-        backupDbUsername = getEnvVar("BACKUP_USERNAME"),
-        backupDbPassword = getEnvVar("BACKUP_PASSWORD")
+        databaseUsername = getFileAsString("/secrets/eia/credentials/username")
+        // backupDbUsername = getEnvVar("BACKUP_USERNAME"),
+        // backupDbPassword = getEnvVar("BACKUP_PASSWORD")
     )
     val vaultServiceuser = VaultServiceUser(
         serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
@@ -428,9 +465,9 @@ fun hentSykemeldingerFraSyfoserviceOgPubliserTilTopic(environment: Environment, 
 
     val syfoserviceVaultSecrets = VaultCredentials(
         databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
-        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username"),
-        backupDbUsername = getEnvVar("BACKUP_USERNAME"),
-        backupDbPassword = getEnvVar("BACKUP_PASSWORD")
+        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
+        // backupDbUsername = getEnvVar("BACKUP_USERNAME")
+        // backupDbPassword = getEnvVar("BACKUP_PASSWORD")
     )
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
     val producerProperties =

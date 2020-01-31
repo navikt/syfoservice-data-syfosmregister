@@ -19,9 +19,9 @@ class DatabasePostgresUtenVault(
     init {
 
         dataSource = HikariDataSource(HikariConfig().apply {
-            jdbcUrl = env.syfosmregisterBackupDBURL
-            username = vaultCredentials.backupDbUsername
-            password = vaultCredentials.backupDbPassword
+            // jdbcUrl = env.syfosmregisterBackupDBURL
+            // username = vaultCredentials.backupDbUsername
+            // password = vaultCredentials.backupDbPassword
             maximumPoolSize = 1
             isAutoCommit = false
             transactionIsolation = "TRANSACTION_REPEATABLE_READ"

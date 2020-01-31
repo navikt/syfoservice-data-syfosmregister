@@ -24,16 +24,17 @@ data class Environment(
     val behandlingsutfallBackupTopic: String = getEnvVar("SYKMELDING_BEHANDLINGSUTFALL_BACKUP", "privat-syfosmregister-behandlingsutfall-backup"),
     val oppgaveTopic: String = getEnvVar("OPPGAVE_TOPIC", "privat-syfo-oppgave-registrerOppgave"),
     override val kafkaBootstrapServers: String = getEnvVar("KAFKA_BOOTSTRAP_SERVERS_URL"),
-    val syfosmregisterBackupDBURL: String = getEnvVar("SYFOSMREGISTER_DB_BACKUP_URL"),
+//    val syfosmregisterBackupDBURL: String = getEnvVar("SYFOSMREGISTER_DB_BACKUP_URL"),
     val idUtenBehandlingsutfallFraBackupTopic: String = getEnvVar("SYKMELDINGID_UTEN_BEHANDLINGSUTFALL", "privat-syfosmregister-id-uten-behandlingsutfall"),
-    val lastIndexBackup: String = getEnvVar("LAST_INDEX_BACKUP")
+    val lastIndexBackup: String = getEnvVar("LAST_INDEX_BACKUP"),
+    val rerunTopic: String = getEnvVar("RERUN_TOPIC", "privat-syfo-register-rerun-tmp")
 ) : KafkaConfig
 
 data class VaultCredentials(
     val databaseUsername: String,
-    val databasePassword: String,
-    val backupDbUsername: String,
-    val backupDbPassword: String
+    val databasePassword: String
+    // val backupDbUsername: String,
+    // val backupDbPassword: String
 )
 
 data class VaultServiceUser(
