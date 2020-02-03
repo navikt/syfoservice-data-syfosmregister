@@ -39,7 +39,7 @@ class OpprettPdfService(
             while (applicationState.ready) {
                 if (lastCounter != counterAll) {
                     log.info(
-                        "Lest {} id totalt, antall det kan opprettes pdf for {}, siste leste id: {}",
+                        "Lest {} id totalt, antall det er opprettet pdf for {}, siste leste id: {}",
                         counterAll, counterOpprettPdf, lastId
                     )
                     lastCounter = counterAll
@@ -63,7 +63,7 @@ class OpprettPdfService(
                         val rerunKafkaMessage = RerunKafkaMessage(toReceivedSykmelding(
                             SykmeldingDbModel(sykmeldingMedBehandlingsutfall.sykmeldingsopplysninger, sykmeldingMedBehandlingsutfall.sykmeldingsdokument)),
                             sykmeldingMedBehandlingsutfall.behandlingsutfall.behandlingsutfall)
-                        // kafkaProducer.publishToKafka(rerunKafkaMessage)
+                        kafkaProducer.publishToKafka(rerunKafkaMessage)
                         counterOpprettPdf++
                     }
                 } catch (ex: Exception) {
