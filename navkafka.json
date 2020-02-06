@@ -72,6 +72,7 @@
       "topicName": "privat-syfosmregister-received-sykmelding-backup",
       "members": [
         {"member":"srvsyfoservice-dat", "role":"CONSUMER"},
+        {"member":"srvsyfoprediksjoner", "role":"CONSUMER"},
         {"member":"srvsyfoservice-dat", "role":"PRODUCER"},
         {"member":"s151890", "role":"MANAGER"},
         {"member":"k143566", "role":"MANAGER"},
