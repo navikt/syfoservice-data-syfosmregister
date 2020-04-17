@@ -1,12 +1,6 @@
 package no.nav.syfo.persistering.db.postgres
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import java.sql.Connection
-import java.sql.ResultSet
-import java.sql.Statement
-import java.sql.Timestamp
-import java.time.LocalDate
-import java.time.LocalDateTime
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.db.toList
 import no.nav.syfo.log
@@ -28,6 +22,12 @@ import no.nav.syfo.model.toSykmeldingsopplysninger
 import no.nav.syfo.objectMapper
 import no.nav.syfo.sendtsykmelding.model.SendtSykmeldingDbModel
 import no.nav.syfo.sendtsykmelding.model.toSendtSykmeldingDbModel
+import java.sql.Connection
+import java.sql.ResultSet
+import java.sql.Statement
+import java.sql.Timestamp
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class DatabaseResult(
     val lastIndex: Int,
@@ -35,9 +35,11 @@ data class DatabaseResult(
     var databaseTime: Double = 0.0,
     var processingTime: Double = 0.0
 )
+
 fun Connection.getSykmeldingMedSisteStatus(lastMottattTidspunkt: LocalDate): List<SendtSykmeldingDbModel> =
-    this.prepareStatement(
-        """
+    use { connection ->
+        this.prepareStatement(
+            """
                     SELECT opplysninger.id,
                     pasient_fnr,
                     mottatt_tidspunkt,
@@ -57,11 +59,13 @@ fun Connection.getSykmeldingMedSisteStatus(lastMottattTidspunkt: LocalDate): Lis
                      WHERE opplysninger.mottatt_tidspunkt >= ?
                      AND opplysninger.mottatt_tidspunkt < ?                                                         
                     """
-    ).use {
-        it.setTimestamp(1, Timestamp.valueOf(lastMottattTidspunkt.atStartOfDay()))
-        it.setTimestamp(2, Timestamp.valueOf(lastMottattTidspunkt.plusDays(1).atStartOfDay()))
-        it.executeQuery().toList { toSendtSykmeldingDbModel() }
+        ).use {
+            it.setTimestamp(1, Timestamp.valueOf(lastMottattTidspunkt.atStartOfDay()))
+            it.setTimestamp(2, Timestamp.valueOf(lastMottattTidspunkt.plusDays(1).atStartOfDay()))
+            it.executeQuery().toList { toSendtSykmeldingDbModel() }
+        }
     }
+
 
 fun Connection.lagreReceivedSykmelding(receivedSykmelding: ReceivedSykmelding) {
     use { connection ->
