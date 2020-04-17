@@ -26,6 +26,8 @@ import no.nav.syfo.model.toPGObject
 import no.nav.syfo.model.toSykmeldingsdokument
 import no.nav.syfo.model.toSykmeldingsopplysninger
 import no.nav.syfo.objectMapper
+import no.nav.syfo.sendtsykmelding.model.SendtSykmeldingDbModel
+import no.nav.syfo.sendtsykmelding.model.toSendtSykmeldingDbModel
 
 data class DatabaseResult(
     val lastIndex: Int,
@@ -33,6 +35,33 @@ data class DatabaseResult(
     var databaseTime: Double = 0.0,
     var processingTime: Double = 0.0
 )
+fun Connection.getSykmeldingMedSisteStatus(lastMottattTidspunkt: LocalDate): List<SendtSykmeldingDbModel> =
+    this.prepareStatement(
+        """
+                    SELECT opplysninger.id,
+                    pasient_fnr,
+                    mottatt_tidspunkt,
+                    behandlingsutfall,
+                    legekontor_org_nr,
+                    sykmelding,
+                    status.event,
+                    status.event_timestamp,
+                    arbeidsgiver.orgnummer,
+                    arbeidsgiver.juridisk_orgnummer,
+                    arbeidsgiver.navn
+                    FROM sykmeldingsopplysninger AS opplysninger
+                        INNER JOIN sykmeldingsdokument AS dokument ON opplysninger.id = dokument.id
+                        INNER JOIN behandlingsutfall AS utfall ON opplysninger.id = utfall.id
+                        INNER JOIN sykmeldingstatus AS status ON opplysninger.id = status.sykmelding_id AND status.event = 'SENDT'
+                        INNER JOIN arbeidsgiver as arbeidsgiver on arbeidsgiver.sykmelding_id = opplysninger.id
+                     WHERE opplysninger.mottatt_tidspunkt >= ?
+                     AND opplysninger.mottatt_tidspunkt < ?                                                         
+                    """
+    ).use {
+        it.setTimestamp(1, Timestamp.valueOf(lastMottattTidspunkt.atStartOfDay()))
+        it.setTimestamp(2, Timestamp.valueOf(lastMottattTidspunkt.plusDays(1).atStartOfDay()))
+        it.executeQuery().toList { toSendtSykmeldingDbModel() }
+    }
 
 fun Connection.lagreReceivedSykmelding(receivedSykmelding: ReceivedSykmelding) {
     use { connection ->
