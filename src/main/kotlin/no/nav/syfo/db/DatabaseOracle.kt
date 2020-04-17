@@ -30,7 +30,7 @@ class DatabaseOracle(
     }
 }
 
-fun <T> ResultSet.toList(mapper: ResultSet.() -> T) = mutableListOf<T>().apply {
+fun <T> ResultSet.toList(mapper: ResultSet.() -> T): List<T> = mutableListOf<T>().apply {
     while (next()) {
         add(mapper())
     }

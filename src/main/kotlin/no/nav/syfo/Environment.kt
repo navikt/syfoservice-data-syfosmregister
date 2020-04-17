@@ -27,7 +27,8 @@ data class Environment(
 //    val syfosmregisterBackupDBURL: String = getEnvVar("SYFOSMREGISTER_DB_BACKUP_URL"),
     val idUtenBehandlingsutfallFraBackupTopic: String = getEnvVar("SYKMELDINGID_UTEN_BEHANDLINGSUTFALL", "privat-syfosmregister-id-uten-behandlingsutfall"),
     val lastIndexBackup: String = getEnvVar("LAST_INDEX_BACKUP"),
-    val rerunTopic: String = getEnvVar("RERUN_TOPIC", "privat-syfo-register-rerun-tmp")
+    val rerunTopic: String = getEnvVar("RERUN_TOPIC", "privat-syfo-register-rerun-tmp"),
+    val sendSykmeldingTopic: String = "privat-syfo-sendt-sykmelding"
 ) : KafkaConfig
 
 data class VaultCredentials(

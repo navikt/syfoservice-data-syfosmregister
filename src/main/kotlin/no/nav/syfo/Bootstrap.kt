@@ -7,6 +7,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.ktor.util.KtorExperimentalAPI
+import java.time.LocalDate
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
@@ -29,6 +30,9 @@ import no.nav.syfo.model.Eia
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.sak.avro.RegisterTask
+import no.nav.syfo.sendtsykmelding.SendtSykmeldingKafkaProducer
+import no.nav.syfo.sendtsykmelding.SendtSykmeldingService
+import no.nav.syfo.sendtsykmelding.kafka.model.SendtSykmeldingKafkaMessage
 import no.nav.syfo.service.BehandlingsutfallFraOppgaveTopicService
 import no.nav.syfo.service.HentSykmeldingerFraEiaService
 import no.nav.syfo.service.HentSykmeldingerFraSyfoServiceService
@@ -78,7 +82,35 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    opprettPdf(applicationState, environment)
+    sendSykmelidnger(applicationState, environment)
+}
+
+fun sendSykmelidnger(applicationState: ApplicationState, environment: Environment) {
+    val vaultServiceuser = VaultServiceUser(
+        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
+        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
+    )
+    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+
+    val vaultCredentialService = VaultCredentialService()
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+
+    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
+    val producerProperties =
+        kafkaBaseConfig.toProducerConfig(
+            environment.applicationName,
+            valueSerializer = JacksonKafkaSerializer::class
+        )
+    val kafkaProducer = KafkaProducer<String, SendtSykmeldingKafkaMessage>(producerProperties)
+    val sendSykmeldingKafkaProducer =
+        SendtSykmeldingKafkaProducer(kafkaProducer, environment.sendSykmeldingTopic)
+    val service = SendtSykmeldingService(
+        applicationState,
+        databasePostgres,
+        sendSykmeldingKafkaProducer,
+        LocalDate.parse(environment.lastIndexSyfosmregister)
+    )
+    service.run()
 }
 
 fun opprettPdf(applicationState: ApplicationState, environment: Environment) {
