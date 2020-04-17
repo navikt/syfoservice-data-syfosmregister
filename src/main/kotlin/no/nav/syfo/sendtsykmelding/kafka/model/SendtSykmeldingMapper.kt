@@ -16,7 +16,6 @@ import no.nav.syfo.sendtsykmelding.sykmelding.model.toSykmeldingsperiodeDTO
 fun SendtSykmeldingDbModel.toSendtSykmelding(): SendtSykmelding {
     return SendtSykmelding(
             id = id,
-            andreTiltak = sykmeldingsDokument.andreTiltak,
             mottattTidspunkt = getUtcTime(mottattTidspunkt),
             legekontorOrgnr = legekontorOrgNr,
             behandletTidspunkt = getUtcTime(sykmeldingsDokument.behandletTidspunkt),
