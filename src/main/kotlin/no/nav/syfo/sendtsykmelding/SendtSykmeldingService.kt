@@ -51,9 +51,10 @@ class SendtSykmeldingService(
                         mapSykmelding(it)
                     } catch (ex: Exception) {
                         log.error("noe gikk galt med sykmelidng {}, på dato {}", it.sykmeldingsDokument.id, lastMottattDato, ex)
+                        throw ex
                     }
                 }.forEach {
-                    // sendtSykmeldingProducer.sendSykmelding(it)
+                    sendtSykmeldingProducer.sendSykmelding(it)
                     counterSendtSykmeldinger++
                 }
             lastMottattDato = lastMottattDato.plusDays(1)
