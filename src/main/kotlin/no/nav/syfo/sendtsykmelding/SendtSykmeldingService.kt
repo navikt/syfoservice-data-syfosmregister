@@ -21,6 +21,7 @@ import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaEventDTO
 import no.nav.syfo.persistering.db.postgres.getSykmeldingMedSisteStatus
 import no.nav.syfo.sendtsykmelding.kafka.model.SendtSykmeldingKafkaMessage
 import no.nav.syfo.sendtsykmelding.kafka.model.toSendtSykmelding
+import no.nav.syfo.sendtsykmelding.model.SendtSykmeldingDbModel
 
 class SendtSykmeldingService(
     private val applicationState: ApplicationState,
@@ -42,42 +43,59 @@ class SendtSykmeldingService(
                 delay(30_000)
             }
         }
-
         while (lastMottattDato.isBefore(LocalDate.now().plusDays(1))) {
-            databasePostgres.connection.getSykmeldingMedSisteStatus(lastMottattDato).map {
-                val sykmelding = it.toSendtSykmelding()
-                val metadata = KafkaMetadataDTO(
-                    sykmeldingId = it.id,
-                    timestamp = it.status.statusTimestamp.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime(),
-                    source = "syfoservice",
-                    fnr = it.fnr
-                )
-                val sykmeldingStatusKafkaEventDTO = SykmeldingStatusKafkaEventDTO(
-                    metadata.sykmeldingId,
-                    metadata.timestamp,
-                    StatusEventDTO.SENDT,
-                    ArbeidsgiverStatusDTO(it.status.arbeidsgiver!!.orgnummer, it.status.arbeidsgiver!!.juridiskOrgnummer, it.status.arbeidsgiver!!.orgNavn),
-                    listOf(SporsmalOgSvarDTO(
-                        tekst = "Jeg er sykmeldt fra",
-                        shortName = ShortNameDTO.ARBEIDSSITUASJON,
-                        svartype = SvartypeDTO.ARBEIDSSITUASJON,
-                        svar = "ARBEIDSTAKER"
-                    ))
-                )
-                SendtSykmeldingKafkaMessage(
-                    sykmelding = sykmelding,
-                    kafkaMetadataDTO = metadata,
-                    sendtEvent = sykmeldingStatusKafkaEventDTO
-                )
-            }.forEach {
-                sendtSykmeldingProducer.sendSykmelding(it)
-                counterSendtSykmeldinger++
-            }
+            val dbmodels = databasePostgres.connection.getSykmeldingMedSisteStatus(lastMottattDato)
+            val mapped = dbmodels
+                .map {
+                    try {
+                        mapSykmelding(it)
+                    } catch (ex: Exception) {
+                        log.error("noe gikk galt med sykmelidng {}, på dato {}", it.sykmeldingsDokument.id, lastMottattDato, ex)
+                        throw ex
+                    }
+                }.forEach {
+                    // sendtSykmeldingProducer.sendSykmelding(it)
+                    counterSendtSykmeldinger++
+                }
             lastMottattDato = lastMottattDato.plusDays(1)
         }
+
         log.info("Ferdig med alle sykmeldingene, totalt {}", counterSendtSykmeldinger)
         runBlocking {
             loggingJob.cancelAndJoin()
         }
+    }
+
+    private fun mapSykmelding(it: SendtSykmeldingDbModel): SendtSykmeldingKafkaMessage {
+        val sykmelding = it.toSendtSykmelding()
+        val metadata = KafkaMetadataDTO(
+            sykmeldingId = it.id,
+            timestamp = it.status.statusTimestamp.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime(),
+            source = "syfoservice",
+            fnr = it.fnr
+        )
+        val sykmeldingStatusKafkaEventDTO = SykmeldingStatusKafkaEventDTO(
+            metadata.sykmeldingId,
+            metadata.timestamp,
+            StatusEventDTO.SENDT,
+            ArbeidsgiverStatusDTO(
+                it.status.arbeidsgiver!!.orgnummer,
+                it.status.arbeidsgiver!!.juridiskOrgnummer,
+                it.status.arbeidsgiver!!.orgNavn
+            ),
+            listOf(
+                SporsmalOgSvarDTO(
+                    tekst = "Jeg er sykmeldt fra",
+                    shortName = ShortNameDTO.ARBEIDSSITUASJON,
+                    svartype = SvartypeDTO.ARBEIDSSITUASJON,
+                    svar = "ARBEIDSTAKER"
+                )
+            )
+        )
+        return SendtSykmeldingKafkaMessage(
+            sykmelding = sykmelding,
+            kafkaMetadataDTO = metadata,
+            sendtEvent = sykmeldingStatusKafkaEventDTO
+        )
     }
 }

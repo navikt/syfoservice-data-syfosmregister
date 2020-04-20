@@ -1,6 +1,12 @@
 package no.nav.syfo.persistering.db.postgres
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import java.sql.Connection
+import java.sql.ResultSet
+import java.sql.Statement
+import java.sql.Timestamp
+import java.time.LocalDate
+import java.time.LocalDateTime
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.db.toList
 import no.nav.syfo.log
@@ -22,12 +28,6 @@ import no.nav.syfo.model.toSykmeldingsopplysninger
 import no.nav.syfo.objectMapper
 import no.nav.syfo.sendtsykmelding.model.SendtSykmeldingDbModel
 import no.nav.syfo.sendtsykmelding.model.toSendtSykmeldingDbModel
-import java.sql.Connection
-import java.sql.ResultSet
-import java.sql.Statement
-import java.sql.Timestamp
-import java.time.LocalDate
-import java.time.LocalDateTime
 
 data class DatabaseResult(
     val lastIndex: Int,
@@ -65,7 +65,6 @@ fun Connection.getSykmeldingMedSisteStatus(lastMottattTidspunkt: LocalDate): Lis
             it.executeQuery().toList { toSendtSykmeldingDbModel() }
         }
     }
-
 
 fun Connection.lagreReceivedSykmelding(receivedSykmelding: ReceivedSykmelding) {
     use { connection ->
