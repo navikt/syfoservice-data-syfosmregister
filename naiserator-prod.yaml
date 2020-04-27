@@ -63,6 +63,6 @@ spec:
     - name: LAST_INDEX_SYFOSERVICE
       value: "0"
     - name: LAST_INDEX_SYFOSMREGISTER
-      value: "2016-01-01"
+      value: "2016-04-27"
     - name: LAST_INDEX_BACKUP
       value: "2019-05-01"

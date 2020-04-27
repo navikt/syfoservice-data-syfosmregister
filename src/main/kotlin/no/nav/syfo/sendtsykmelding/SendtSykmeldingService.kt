@@ -60,7 +60,7 @@ class SendtSykmeldingService(
             lastMottattDato = lastMottattDato.plusDays(1)
         }
 
-        log.info("Ferdig med alle sykmeldingene, totalt {}", counterSendtSykmeldinger)
+        log.info("Ferdig med alle sykmeldingene, totalt {}, siste dato {}", counterSendtSykmeldinger, lastMottattDato)
         runBlocking {
             loggingJob.cancelAndJoin()
         }
