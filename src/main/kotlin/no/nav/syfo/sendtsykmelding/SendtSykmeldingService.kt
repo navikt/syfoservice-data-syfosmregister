@@ -94,8 +94,8 @@ class SendtSykmeldingService(
         )
         return SendtSykmeldingKafkaMessage(
             sykmelding = sykmelding,
-            kafkaMetadataDTO = metadata,
-            sendtEvent = sykmeldingStatusKafkaEventDTO
+            kafkaMetadata = metadata,
+            event = sykmeldingStatusKafkaEventDTO
         )
     }
 }
