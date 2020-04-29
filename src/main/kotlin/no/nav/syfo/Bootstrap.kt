@@ -91,7 +91,7 @@ fun readAndCheckTombstone(applicationState: ApplicationState, environment: Envir
     val vaultServiceuser = getVaultServiceUser()
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-bekreftet-sykmelding-1",
+        "${environment.applicationName}-bekreftet-sykmelding-3",
         valueDeserializer = StringDeserializer::class
     )
     consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
