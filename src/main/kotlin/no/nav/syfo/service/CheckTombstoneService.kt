@@ -15,11 +15,13 @@ class CheckTombstoneService(val tombstoneConsumer: KafkaConsumer<String, String?
     private val idToCheck = "e8486578-c9a1-4e02-a11d-a1b3d27e1e60"
     fun run() {
         var counter = 0
+        var nullCounter = 0
         val loggingJob = GlobalScope.launch {
             while (applicationState.ready) {
                 log.info(
-                    "Antall sykmeldinger sjekket: {}",
-                    counter
+                    "Antall sykmeldinger sjekket: {}, antall null {}",
+                    counter,
+                    nullCounter
                 )
                 delay(10_000)
             }
@@ -32,12 +34,15 @@ class CheckTombstoneService(val tombstoneConsumer: KafkaConsumer<String, String?
             records.forEach {
                 counter++
                 if (it.key() == idToCheck){
-                    log.info("got hit, serializedValueSize", it.serializedValueSize())
+                    log.info("got hit, serializedValueSize {}", it.serializedValueSize())
                     when (it.value()) {
                         "" -> log.info("Found empty string for id {}", it.key())
                         null -> log.info("Found null value for id {}", it.key())
                         else -> log.info("Found bekreftet sykmelding for id {}", it.key())
                     }
+                }
+                if(it.value() == null) {
+                    nullCounter++
                 }
             }
             if (!records.isEmpty) {
