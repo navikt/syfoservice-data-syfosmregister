@@ -27,16 +27,17 @@ class CheckTombstoneService(val tombstoneConsumer: KafkaConsumer<String, String?
 
         var lastTime = LocalDateTime.now()
 
-        while (lastTime.isAfter(LocalDateTime.now().minusMinutes(5))) {
+        while (lastTime.isAfter(LocalDateTime.now().minusMinutes(2))) {
             val records = tombstoneConsumer.poll(Duration.ofMillis(0))
             records.forEach {
                 counter++
-                if (it.key() == idToCheck) {
+                if (it.key() == idToCheck)
+                    log.info("got hit, serializedValueSize", it.serializedValueSize())
                     when (it.value()) {
-                        null -> log.info("Found tombstone for id {}", it.key())
+                        "" -> log.info("Found empty string for id {}", it.key())
+                        null -> log.info("Found null value for id {}", it.key())
                         else -> log.info("Found bekreftet sykmelding for id {}", it.key())
                     }
-                }
             }
             if (!records.isEmpty) {
                 lastTime = LocalDateTime.now()
