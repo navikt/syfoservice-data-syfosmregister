@@ -27,7 +27,7 @@ class CheckTombstoneService(val tombstoneConsumer: KafkaConsumer<String, String?
 
         var lastTime = LocalDateTime.now()
 
-        while (lastTime.isBefore(LocalDateTime.now().minusMinutes(5))) {
+        while (lastTime.isAfter(LocalDateTime.now().minusMinutes(5))) {
             val records = tombstoneConsumer.poll(Duration.ofMillis(0))
             records.forEach {
                 counter++
