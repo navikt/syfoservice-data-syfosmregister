@@ -30,9 +30,6 @@ import no.nav.syfo.model.Eia
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.sak.avro.RegisterTask
-import no.nav.syfo.sendtsykmelding.SendtSykmeldingKafkaProducer
-import no.nav.syfo.sendtsykmelding.SendtSykmeldingService
-import no.nav.syfo.sendtsykmelding.kafka.model.SendtSykmeldingKafkaMessage
 import no.nav.syfo.service.BehandlingsutfallFraOppgaveTopicService
 import no.nav.syfo.service.HentSykmeldingerFraEiaService
 import no.nav.syfo.service.HentSykmeldingerFraSyfoServiceService
@@ -48,6 +45,10 @@ import no.nav.syfo.service.SkrivTilSyfosmRegisterSyfoService
 import no.nav.syfo.service.UpdateArbeidsgiverWhenSendtService
 import no.nav.syfo.service.UpdateStatusService
 import no.nav.syfo.service.WriteReceivedSykmeldingService
+import no.nav.syfo.sykmelding.BekreftSykmeldingService
+import no.nav.syfo.sykmelding.EnkelSykmeldingKafkaProducer
+import no.nav.syfo.sykmelding.SendtSykmeldingService
+import no.nav.syfo.sykmelding.kafka.model.SykmeldingKafkaMessage
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
 import no.nav.syfo.vault.RenewVaultService
@@ -82,14 +83,11 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    sendSykmelidnger(applicationState, environment)
+    sendBekreftetSykmeldinger(applicationState, environment)
 }
 
-fun sendSykmelidnger(applicationState: ApplicationState, environment: Environment) {
-    val vaultServiceuser = VaultServiceUser(
-        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
-        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
-    )
+fun sendBekreftetSykmeldinger(applicationState: ApplicationState, environment: Environment) {
+    val vaultServiceuser = getVaultServiceUser()
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val vaultCredentialService = VaultCredentialService()
@@ -101,9 +99,34 @@ fun sendSykmelidnger(applicationState: ApplicationState, environment: Environmen
             environment.applicationName,
             valueSerializer = JacksonKafkaSerializer::class
         )
-    val kafkaProducer = KafkaProducer<String, SendtSykmeldingKafkaMessage>(producerProperties)
+    val kafkaProducer = KafkaProducer<String, SykmeldingKafkaMessage>(producerProperties)
     val sendSykmeldingKafkaProducer =
-        SendtSykmeldingKafkaProducer(kafkaProducer, environment.sendSykmeldingTopic)
+        EnkelSykmeldingKafkaProducer(kafkaProducer, environment.bekreftSykmeldingKafkaTopic)
+    val service = BekreftSykmeldingService(
+        applicationState,
+        databasePostgres,
+        sendSykmeldingKafkaProducer,
+        LocalDate.parse(environment.lastIndexSyfosmregister)
+    )
+    service.run()
+}
+
+fun sendSendtSykmelidnger(applicationState: ApplicationState, environment: Environment) {
+    val vaultServiceuser = getVaultServiceUser()
+    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+
+    val vaultCredentialService = VaultCredentialService()
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+
+    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
+    val producerProperties =
+        kafkaBaseConfig.toProducerConfig(
+            environment.applicationName,
+            valueSerializer = JacksonKafkaSerializer::class
+        )
+    val kafkaProducer = KafkaProducer<String, SykmeldingKafkaMessage>(producerProperties)
+    val sendSykmeldingKafkaProducer =
+        EnkelSykmeldingKafkaProducer(kafkaProducer, environment.sendSykmeldingTopic)
     val service = SendtSykmeldingService(
         applicationState,
         databasePostgres,
@@ -114,10 +137,7 @@ fun sendSykmelidnger(applicationState: ApplicationState, environment: Environmen
 }
 
 fun opprettPdf(applicationState: ApplicationState, environment: Environment) {
-    val vaultServiceuser = VaultServiceUser(
-        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
-        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
-    )
+    val vaultServiceuser = getVaultServiceUser()
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
@@ -148,10 +168,7 @@ fun opprettPdf(applicationState: ApplicationState, environment: Environment) {
 }
 
 fun hentSykmeldingerFraBackupUtenBehandlingsutfallOgPubliserTilTopic(applicationState: ApplicationState, environment: Environment) {
-    val vaultServiceuser = VaultServiceUser(
-        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
-        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
-    )
+    val vaultServiceuser = getVaultServiceUser()
 
     val databaseVaultSecrets = VaultCredentials(
         databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
@@ -176,10 +193,7 @@ fun hentSykmeldingerFraBackupUtenBehandlingsutfallOgPubliserTilTopic(application
 
 fun addSykmeldingerToReceivedTopic(applicationState: ApplicationState, environment: Environment) {
 
-    val vaultServiceuser = VaultServiceUser(
-        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
-        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
-    )
+    val vaultServiceuser = getVaultServiceUser()
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
@@ -253,10 +267,7 @@ fun addSykmeldingerToReceivedTopic(applicationState: ApplicationState, environme
 // }
 
 fun hentSykmeldingerFraSyfosmregisterOgPubliserTilTopic(applicationState: ApplicationState, environment: Environment) {
-    val vaultServiceuser = VaultServiceUser(
-        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
-        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
-    )
+    val vaultServiceuser = getVaultServiceUser()
 
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
     val producerProperties =
@@ -280,10 +291,7 @@ fun hentSykmeldingerFraSyfosmregisterOgPubliserTilTopic(applicationState: Applic
 }
 
 fun lagreOkBehandlingsutfall(applicationState: ApplicationState, environment: Environment) {
-    val vaultServiceuser = VaultServiceUser(
-        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
-        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
-    )
+    val vaultServiceuser = getVaultServiceUser()
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
@@ -311,10 +319,7 @@ fun readFromRegistrerOppgaveTopic(
     ruleMap: Map<String, RuleInfo>
 ) {
 
-    val vaultServiceuser = VaultServiceUser(
-        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
-        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
-    )
+    val vaultServiceuser = getVaultServiceUser()
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
@@ -338,10 +343,7 @@ fun readFromRegistrerOppgaveTopic(
 }
 
 fun insertMissingArbeidsgivere(applicationState: ApplicationState, environment: Environment) {
-    val vaultServiceuser = VaultServiceUser(
-        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
-        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
-    )
+    val vaultServiceuser = getVaultServiceUser()
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
@@ -364,10 +366,7 @@ fun insertMissingArbeidsgivere(applicationState: ApplicationState, environment: 
 }
 
 fun ryddDuplikateSykmeldinger(applicationState: ApplicationState, environment: Environment) {
-    val vaultServiceuser = VaultServiceUser(
-        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
-        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
-    )
+    val vaultServiceuser = getVaultServiceUser()
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
@@ -393,10 +392,7 @@ fun oppdaterIds(applicationState: ApplicationState, environment: Environment) {
     val vaultConfig = VaultConfig(
         jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
     )
-    val vaultServiceuser = VaultServiceUser(
-        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
-        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
-    )
+    val vaultServiceuser = getVaultServiceUser()
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
@@ -428,10 +424,7 @@ fun oppdaterIds(applicationState: ApplicationState, environment: Environment) {
 }
 
 fun leggInnBehandlingsstatusForSykmeldinger(applicationState: ApplicationState, environment: Environment) {
-    val vaultServiceuser = VaultServiceUser(
-        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
-        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
-    )
+    val vaultServiceuser = getVaultServiceUser()
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
@@ -459,10 +452,7 @@ fun hentSykemldingerFraEia(environment: Environment) {
         // backupDbUsername = getEnvVar("BACKUP_USERNAME"),
         // backupDbPassword = getEnvVar("BACKUP_PASSWORD")
     )
-    val vaultServiceuser = VaultServiceUser(
-        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
-        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
-    )
+    val vaultServiceuser = getVaultServiceUser()
 
     val vaultConfig = VaultConfig(
         jdbcUrl = getFileAsString("/secrets/eia/config/jdbc_url")
@@ -490,10 +480,7 @@ fun hentSykemeldingerFraSyfoserviceOgPubliserTilTopic(environment: Environment, 
     val vaultConfig = VaultConfig(
         jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
     )
-    val vaultServiceuser = VaultServiceUser(
-        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
-        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
-    )
+    val vaultServiceuser = getVaultServiceUser()
 
     val syfoserviceVaultSecrets = VaultCredentials(
         databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
@@ -514,10 +501,7 @@ fun hentSykemeldingerFraSyfoserviceOgPubliserTilTopic(environment: Environment, 
 }
 
 fun oppdaterFraEia(applicationState: ApplicationState, environment: Environment) {
-    val vaultServiceuser = VaultServiceUser(
-        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
-        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
-    )
+    val vaultServiceuser = getVaultServiceUser()
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
         "${environment.applicationName}-eia-consumer",
@@ -541,10 +525,7 @@ fun runMapStringToJsonMap(
     environment: Environment
 ) {
 
-    val vaultServiceuser = VaultServiceUser(
-        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
-        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
-    )
+    val vaultServiceuser = getVaultServiceUser()
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
@@ -565,4 +546,12 @@ fun runMapStringToJsonMap(
         environment.sm2013SyfoserviceSykmeldingTopic,
         applicationState
     ).run()
+}
+
+private fun getVaultServiceUser(): VaultServiceUser {
+    val vaultServiceuser = VaultServiceUser(
+        serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
+        serviceuserUsername = getFileAsString("/secrets/serviceuser/username")
+    )
+    return vaultServiceuser
 }

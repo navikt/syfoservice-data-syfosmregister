@@ -14,10 +14,12 @@ import no.nav.syfo.model.ArbeidsgiverStatus
 import no.nav.syfo.model.Behandlingsutfall
 import no.nav.syfo.model.Eia
 import no.nav.syfo.model.ReceivedSykmelding
+import no.nav.syfo.model.ShortName
 import no.nav.syfo.model.Sporsmal
 import no.nav.syfo.model.Status
 import no.nav.syfo.model.StatusEvent
 import no.nav.syfo.model.Svar
+import no.nav.syfo.model.Svartype
 import no.nav.syfo.model.SykmeldingStatusEvent
 import no.nav.syfo.model.Sykmeldingsdokument
 import no.nav.syfo.model.Sykmeldingsopplysninger
@@ -26,8 +28,8 @@ import no.nav.syfo.model.toPGObject
 import no.nav.syfo.model.toSykmeldingsdokument
 import no.nav.syfo.model.toSykmeldingsopplysninger
 import no.nav.syfo.objectMapper
-import no.nav.syfo.sendtsykmelding.model.SendtSykmeldingDbModel
-import no.nav.syfo.sendtsykmelding.model.toSendtSykmeldingDbModel
+import no.nav.syfo.sykmelding.model.EnkelSykmeldingDbModel
+import no.nav.syfo.sykmelding.model.toSendtSykmeldingDbModel
 
 data class DatabaseResult(
     val lastIndex: Int,
@@ -36,8 +38,8 @@ data class DatabaseResult(
     var processingTime: Double = 0.0
 )
 
-fun Connection.getSykmeldingMedSisteStatus(lastMottattTidspunkt: LocalDate): List<SendtSykmeldingDbModel> =
-    use { connection ->
+fun Connection.getSykmeldingMedSisteStatus(lastMottattTidspunkt: LocalDate): List<EnkelSykmeldingDbModel> =
+    use {
         this.prepareStatement(
             """
                     SELECT opplysninger.id,
@@ -65,6 +67,94 @@ fun Connection.getSykmeldingMedSisteStatus(lastMottattTidspunkt: LocalDate): Lis
             it.executeQuery().toList { toSendtSykmeldingDbModel() }
         }
     }
+
+fun Connection.getSykmeldingMedSisteStatusBekreftet(lastMottattTidspunkt: LocalDate): List<EnkelSykmeldingDbModel> =
+    use {
+        this.prepareStatement(
+            """
+                    SELECT opplysninger.id,
+                    pasient_fnr,
+                    mottatt_tidspunkt,
+                    behandlingsutfall,
+                    legekontor_org_nr,
+                    sykmelding,
+                    status.event,
+                    status.event_timestamp
+                    FROM sykmeldingsopplysninger AS opplysninger
+                        INNER JOIN sykmeldingsdokument AS dokument ON opplysninger.id = dokument.id
+                        INNER JOIN behandlingsutfall AS utfall ON opplysninger.id = utfall.id
+                          INNER JOIN sykmeldingstatus AS status ON opplysninger.id = status.sykmelding_id AND
+                                                status.event_timestamp = (SELECT event_timestamp
+                                                                          FROM sykmeldingstatus
+                                                                          WHERE sykmelding_id = opplysninger.id
+                                                                          ORDER BY event_timestamp DESC
+                                                                          LIMIT 1) AND
+                                                                status.event = 'BEKREFTET'
+                     WHERE opplysninger.mottatt_tidspunkt >= ?
+                     AND opplysninger.mottatt_tidspunkt < ?                                                         
+                    """
+        ).use {
+            it.setTimestamp(1, Timestamp.valueOf(lastMottattTidspunkt.atStartOfDay()))
+            it.setTimestamp(2, Timestamp.valueOf(lastMottattTidspunkt.plusDays(1).atStartOfDay()))
+            it.executeQuery().toList { toSendtSykmeldingDbModel() }
+        }
+    }
+
+fun Connection.hentSporsmalOgSvar(sykmeldingId: String): List<Sporsmal> =
+    use {
+        this.prepareStatement(
+            """
+                    SELECT sporsmal.shortname,
+                           sporsmal.tekst,
+                           svar.sporsmal_id,
+                           svar.svar,
+                           svar.svartype,
+                           svar.sykmelding_id
+                    FROM svar
+                             INNER JOIN sporsmal
+                                        ON sporsmal.id = svar.sporsmal_id
+                    WHERE svar.sykmelding_id = ?
+                """
+        ).use {
+            it.setString(1, sykmeldingId)
+            it.executeQuery().toList { tilSporsmal() }
+        }
+    }
+
+fun ResultSet.tilSporsmal(): Sporsmal =
+    Sporsmal(
+        tekst = getString("tekst"),
+        shortName = tilShortName(getString("shortname")),
+        svar = tilSvar()
+    )
+
+fun ResultSet.tilSvar(): Svar =
+    Svar(
+        sykmeldingId = getString("sykmelding_id"),
+        sporsmalId = getInt("sporsmal_id"),
+        svartype = tilSvartype(getString("svartype")),
+        svar = getString("svar")
+    )
+
+private fun tilShortName(shortname: String): ShortName {
+    return when (shortname) {
+        "ARBEIDSSITUASJON" -> ShortName.ARBEIDSSITUASJON
+        "FORSIKRING" -> ShortName.FORSIKRING
+        "FRAVAER" -> ShortName.FRAVAER
+        "PERIODE" -> ShortName.PERIODE
+        "NY_NARMESTE_LEDER" -> ShortName.NY_NARMESTE_LEDER
+        else -> throw IllegalStateException("Sykmeldingen har en ukjent spørsmålskode, skal ikke kunne skje")
+    }
+}
+
+private fun tilSvartype(svartype: String): Svartype {
+    return when (svartype) {
+        "ARBEIDSSITUASJON" -> Svartype.ARBEIDSSITUASJON
+        "PERIODER" -> Svartype.PERIODER
+        "JA_NEI" -> Svartype.JA_NEI
+        else -> throw IllegalStateException("Sykmeldingen har en ukjent svartype, skal ikke kunne skje")
+    }
+}
 
 fun Connection.lagreReceivedSykmelding(receivedSykmelding: ReceivedSykmelding) {
     use { connection ->
