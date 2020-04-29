@@ -83,7 +83,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    sendSendtSykmelidnger(applicationState, environment)
+    sendBekreftetSykmeldinger(applicationState, environment)
 }
 
 fun sendBekreftetSykmeldinger(applicationState: ApplicationState, environment: Environment) {

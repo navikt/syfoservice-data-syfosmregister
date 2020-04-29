@@ -58,7 +58,7 @@ class BekreftSykmeldingService(
                         throw ex
                     }
                 }.forEach {
-                    // enkelSykmeldingKafkaProducer.sendSykmelding(it)
+                     enkelSykmeldingKafkaProducer.sendSykmelding(it)
                     counterBekreftetSykmeldinger++
                 }
             lastMottattDato = lastMottattDato.plusDays(1)
