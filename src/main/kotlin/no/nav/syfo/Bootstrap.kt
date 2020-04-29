@@ -31,6 +31,7 @@ import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.sak.avro.RegisterTask
 import no.nav.syfo.service.BehandlingsutfallFraOppgaveTopicService
+import no.nav.syfo.service.CheckTombstoneService
 import no.nav.syfo.service.HentSykmeldingerFraEiaService
 import no.nav.syfo.service.HentSykmeldingerFraSyfoServiceService
 import no.nav.syfo.service.HentSykmeldingerFraSyfosmregisterService
@@ -83,7 +84,22 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    sendBekreftetSykmeldinger(applicationState, environment)
+    readAndCheckTombstone(applicationState, environment)
+}
+
+fun readAndCheckTombstone(applicationState: ApplicationState, environment: Environment) {
+    val vaultServiceuser = getVaultServiceUser()
+    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+    val consumerProperties = kafkaBaseConfig.toConsumerConfig(
+        "${environment.applicationName}-bekreftet-sykmelding",
+        valueDeserializer = StringDeserializer::class
+    )
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
+    val tombstoneConsumer = KafkaConsumer<String, String?>(consumerProperties)
+    tombstoneConsumer.subscribe(listOf(environment.bekreftSykmeldingKafkaTopic))
+
+    val service = CheckTombstoneService(tombstoneConsumer, applicationState)
+    service.run()
 }
 
 fun sendBekreftetSykmeldinger(applicationState: ApplicationState, environment: Environment) {

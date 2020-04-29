@@ -54,17 +54,26 @@ class BekreftSykmeldingService(
                         val sporsmals = databasePostgres.connection.hentSporsmalOgSvar(it.id)
                         mapTilSykmelding(it, sporsmals)
                     } catch (ex: Exception) {
-                        log.error("noe gikk galt med sykmelidng {}, på dato {}", it.sykmeldingsDokument.id, lastMottattDato, ex)
+                        log.error(
+                            "noe gikk galt med sykmelidng {}, på dato {}",
+                            it.sykmeldingsDokument.id,
+                            lastMottattDato,
+                            ex
+                        )
                         throw ex
                     }
                 }.forEach {
-                     enkelSykmeldingKafkaProducer.sendSykmelding(it)
+                    enkelSykmeldingKafkaProducer.sendSykmelding(it)
                     counterBekreftetSykmeldinger++
                 }
             lastMottattDato = lastMottattDato.plusDays(1)
         }
 
-        log.info("Ferdig med alle sykmeldingene, totalt {}, siste dato {}", counterBekreftetSykmeldinger, lastMottattDato)
+        log.info(
+            "Ferdig med alle sykmeldingene, totalt {}, siste dato {}",
+            counterBekreftetSykmeldinger,
+            lastMottattDato
+        )
         runBlocking {
             loggingJob.cancelAndJoin()
         }
@@ -85,7 +94,8 @@ class BekreftSykmeldingService(
         }
         val metadata = KafkaMetadataDTO(
             sykmeldingId = it.id,
-            timestamp = it.status.statusTimestamp.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime(),
+            timestamp = it.status.statusTimestamp.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC)
+                .toOffsetDateTime(),
             source = "syfoservice",
             fnr = it.fnr
         )
