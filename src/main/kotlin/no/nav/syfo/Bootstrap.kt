@@ -7,6 +7,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.ktor.util.KtorExperimentalAPI
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
@@ -59,6 +61,7 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import javax.xml.bind.JAXBElement
 
 val objectMapper: ObjectMapper = ObjectMapper().apply {
     registerKotlinModule()
@@ -91,15 +94,16 @@ fun readAndCheckTombstone(applicationState: ApplicationState, environment: Envir
     val vaultServiceuser = getVaultServiceUser()
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-bekreftet-sykmelding-4",
+        "${environment.applicationName}-bekreftet-sykmelding-5",
         valueDeserializer = StringDeserializer::class
     )
     consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
     val tombstoneConsumer = KafkaConsumer<String, String?>(consumerProperties)
     tombstoneConsumer.subscribe(listOf(environment.bekreftSykmeldingKafkaTopic))
 
-    val service = CheckTombstoneService(tombstoneConsumer, applicationState)
-    service.run()
+    GlobalScope.launch {
+        CheckTombstoneService(tombstoneConsumer, applicationState).run()
+    }
 }
 
 fun sendBekreftetSykmeldinger(applicationState: ApplicationState, environment: Environment) {
