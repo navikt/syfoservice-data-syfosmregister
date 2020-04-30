@@ -6,14 +6,13 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.log
 import org.apache.kafka.clients.consumer.KafkaConsumer
 
 class CheckTombstoneService(val tombstoneConsumer: KafkaConsumer<String, String?>, val applicationState: ApplicationState) {
     private val idToCheck = "e8486578-c9a1-4e02-a11d-a1b3d27e1e60"
-    fun run() {
+    suspend fun run() {
         var counter = 0
         var nullCounter = 0
         val loggingJob = GlobalScope.launch {
@@ -33,17 +32,16 @@ class CheckTombstoneService(val tombstoneConsumer: KafkaConsumer<String, String?
             val records = tombstoneConsumer.poll(Duration.ofMillis(0))
             records.forEach {
                 counter++
-                if(it.value() == null) {
+                if (it.value() == null) {
                     nullCounter++
                 }
             }
             if (!records.isEmpty) {
                 lastTime = LocalDateTime.now()
             }
+            delay(100)
         }
         log.info("All done")
-        runBlocking {
-            loggingJob.cancelAndJoin()
-        }
+        loggingJob.cancelAndJoin()
     }
 }
