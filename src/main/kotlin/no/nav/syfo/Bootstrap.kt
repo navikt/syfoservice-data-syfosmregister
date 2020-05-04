@@ -86,7 +86,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    readAndCheckTombstone(applicationState, environment)
+    sendBekreftetSykmeldinger(applicationState, environment)
 }
 
 fun readAndCheckTombstone(applicationState: ApplicationState, environment: Environment) {
