@@ -16,13 +16,16 @@ class CheckSendtSykmeldinger(val sendtSykmeldingConsumer: KafkaConsumer<String, 
         var counter = 0
         var diagnoseCounter = 0
         var utdypendeCounter = 0
+        var duplicateCounter = 0
+        val hashSet = hashSetOf<String>()
         val loggingJob = GlobalScope.launch {
             while (applicationState.ready) {
                 log.info(
-                    "Antall sykmeldinger sjekket: {}, antall med diagnose {}, antall med utdypendeOpplysninger {}",
+                    "Antall sykmeldinger sjekket: {}, antall med diagnose {}, antall med utdypendeOpplysninger {}, antall duplikater {}",
                     counter,
                     diagnoseCounter,
-                    utdypendeCounter
+                    utdypendeCounter,
+                    duplicateCounter
                 )
                 delay(30_000)
             }
@@ -34,10 +37,15 @@ class CheckSendtSykmeldinger(val sendtSykmeldingConsumer: KafkaConsumer<String, 
             val records = sendtSykmeldingConsumer.poll(Duration.ofMillis(0))
             records.forEach {
                 counter++
-                if (it.value()!!.toLowerCase().contains("diagnose")) {
+                if (hashSet.contains(it.key())) {
+                    duplicateCounter++
+                } else {
+                    hashSet.add(it.key())
+                }
+                if (it.value()!!.contains("hovedDiagnose") || it.value()!!.contains("biDiagnoser")) {
                     diagnoseCounter++
                 }
-                if (it.value()!!.toLowerCase().contains("utdypende")) {
+                if (it.value()!!.toLowerCase().contains("utdypendeOpplysninger")) {
                     utdypendeCounter++
                 }
             }

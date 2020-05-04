@@ -94,7 +94,7 @@ fun chechSendtSykmelding(applicationState: ApplicationState, environment: Enviro
     val vaultServiceuser = getVaultServiceUser()
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sendt-sykmelding",
+        "${environment.applicationName}-sendt-sykmelding-1",
         valueDeserializer = StringDeserializer::class
     )
     consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
