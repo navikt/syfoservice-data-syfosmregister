@@ -45,7 +45,7 @@ class CheckSendtSykmeldinger(val sendtSykmeldingConsumer: KafkaConsumer<String, 
                 if (it.value()!!.contains("hovedDiagnose") || it.value()!!.contains("biDiagnoser")) {
                     diagnoseCounter++
                 }
-                if (it.value()!!.toLowerCase().contains("utdypendeOpplysninger")) {
+                if (it.value()!!.contains("utdypendeOpplysninger")) {
                     utdypendeCounter++
                 }
             }
