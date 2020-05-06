@@ -11,18 +11,20 @@ import no.nav.syfo.log
 import org.apache.kafka.clients.consumer.KafkaConsumer
 
 class CheckTombstoneService(val tombstoneConsumer: KafkaConsumer<String, String?>, val applicationState: ApplicationState) {
-    private val idToCheck = "e8486578-c9a1-4e02-a11d-a1b3d27e1e60"
     suspend fun run() {
         var counter = 0
         var nullCounter = 0
+        var duplicateCounter = 0
+        val hashSet = hashSetOf<String>()
         val loggingJob = GlobalScope.launch {
             while (applicationState.ready) {
                 log.info(
-                    "Antall sykmeldinger sjekket: {}, antall null {}",
+                    "Antall sykmeldinger sjekket: {}, antall null {}, duplikater {}",
                     counter,
-                    nullCounter
+                    nullCounter,
+                    duplicateCounter
                 )
-                delay(60_000)
+                delay(20_000)
             }
         }
 
@@ -32,6 +34,11 @@ class CheckTombstoneService(val tombstoneConsumer: KafkaConsumer<String, String?
             val records = tombstoneConsumer.poll(Duration.ofMillis(0))
             records.forEach {
                 counter++
+                if (hashSet.contains(it.key())) {
+                    duplicateCounter++
+                } else {
+                    hashSet.add(it.key())
+                }
                 if (it.value() == null) {
                     nullCounter++
                 }
@@ -39,7 +46,7 @@ class CheckTombstoneService(val tombstoneConsumer: KafkaConsumer<String, String?
             if (!records.isEmpty) {
                 lastTime = LocalDateTime.now()
             }
-            delay(100)
+            delay(1)
         }
         log.info("All done")
         loggingJob.cancelAndJoin()
