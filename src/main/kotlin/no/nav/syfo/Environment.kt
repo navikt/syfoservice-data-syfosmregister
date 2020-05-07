@@ -29,7 +29,8 @@ data class Environment(
     val lastIndexBackup: String = getEnvVar("LAST_INDEX_BACKUP"),
     val rerunTopic: String = getEnvVar("RERUN_TOPIC", "privat-syfo-register-rerun-tmp"),
     val sendSykmeldingTopic: String = "syfo-sendt-sykmelding",
-    val bekreftSykmeldingKafkaTopic: String = "syfo-bekreftet-sykmelding"
+    val bekreftSykmeldingKafkaTopic: String = "syfo-bekreftet-sykmelding",
+    val mottattSykmeldingTopic: String = "syfo-mottatt-sykmelding"
 ) : KafkaConfig
 
 data class VaultCredentials(

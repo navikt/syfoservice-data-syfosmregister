@@ -16,6 +16,17 @@ fun ResultSet.toSendtSykmeldingDbModel(): EnkelSykmeldingDbModel {
         fnr = getString("pasient_fnr")
     )
 }
+
+fun ResultSet.toMotattSykmeldingDbModel(): MottattSykmeldingDbModel {
+    return MottattSykmeldingDbModel(
+        sykmeldingsDokument = objectMapper.readValue(getString("sykmelding"), Sykmelding::class.java),
+        id = getString("id"),
+        mottattTidspunkt = getTimestamp("mottatt_tidspunkt").toLocalDateTime(),
+        legekontorOrgNr = getString("legekontor_org_nr"),
+        behandlingsutfall = objectMapper.readValue(getString("behandlingsutfall"), ValidationResult::class.java),
+        fnr = getString("pasient_fnr")
+    )
+}
 enum class StatusEvent {
     APEN, AVBRUTT, UTGATT, SENDT, BEKREFTET, SLETTET
 }
@@ -53,6 +64,15 @@ data class EnkelSykmeldingDbModel(
     val behandlingsutfall: ValidationResult,
     val sykmeldingsDokument: Sykmelding,
     val status: StatusDbModel,
+    val fnr: String
+)
+
+data class MottattSykmeldingDbModel(
+    val id: String,
+    val mottattTidspunkt: LocalDateTime,
+    val legekontorOrgNr: String?,
+    val behandlingsutfall: ValidationResult,
+    val sykmeldingsDokument: Sykmelding,
     val fnr: String
 )
 

@@ -29,6 +29,8 @@ import no.nav.syfo.model.toSykmeldingsdokument
 import no.nav.syfo.model.toSykmeldingsopplysninger
 import no.nav.syfo.objectMapper
 import no.nav.syfo.sykmelding.model.EnkelSykmeldingDbModel
+import no.nav.syfo.sykmelding.model.MottattSykmeldingDbModel
+import no.nav.syfo.sykmelding.model.toMotattSykmeldingDbModel
 import no.nav.syfo.sykmelding.model.toSendtSykmeldingDbModel
 
 data class DatabaseResult(
@@ -37,6 +39,30 @@ data class DatabaseResult(
     var databaseTime: Double = 0.0,
     var processingTime: Double = 0.0
 )
+
+fun Connection.getMottattSykmelding(lastMottattTidspunkt: LocalDate): List<MottattSykmeldingDbModel> =
+    use {
+        this.prepareStatement(
+            """
+                    SELECT opplysninger.id,
+                    pasient_fnr,
+                    mottatt_tidspunkt,
+                    behandlingsutfall,
+                    legekontor_org_nr,
+                    sykmelding
+                    FROM sykmeldingsopplysninger AS opplysninger
+                        INNER JOIN sykmeldingsdokument AS dokument ON opplysninger.id = dokument.id
+                        INNER JOIN behandlingsutfall AS utfall ON opplysninger.id = utfall.id
+                     WHERE opplysninger.mottatt_tidspunkt >= ?
+                     AND opplysninger.mottatt_tidspunkt < ?     
+                     and not exists(select 1 from sykmeldingstatus where sykmelding_id = opplysninger.id and event in ('SLETTET'));
+                    """
+        ).use {
+            it.setTimestamp(1, Timestamp.valueOf(lastMottattTidspunkt.atStartOfDay()))
+            it.setTimestamp(2, Timestamp.valueOf(lastMottattTidspunkt.plusDays(1).atStartOfDay()))
+            it.executeQuery().toList { toMotattSykmeldingDbModel() }
+        }
+    }
 
 fun Connection.getSykmeldingMedSisteStatus(lastMottattTidspunkt: LocalDate): List<EnkelSykmeldingDbModel> =
     use {

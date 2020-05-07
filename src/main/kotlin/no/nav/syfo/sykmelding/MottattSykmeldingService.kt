@@ -10,11 +10,12 @@ import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.log
+import no.nav.syfo.model.Status
 import no.nav.syfo.model.sykmeldingstatus.KafkaMetadataDTO
-import no.nav.syfo.persistering.db.postgres.getSykmeldingMedSisteStatus
+import no.nav.syfo.persistering.db.postgres.getMottattSykmelding
 import no.nav.syfo.sykmelding.kafka.model.MottattSykmeldingKafkaMessage
 import no.nav.syfo.sykmelding.kafka.model.toEnkelSykmelding
-import no.nav.syfo.sykmelding.model.EnkelSykmeldingDbModel
+import no.nav.syfo.sykmelding.model.MottattSykmeldingDbModel
 
 class MottattSykmeldingService(
     private val applicationState: ApplicationState,
@@ -36,8 +37,11 @@ class MottattSykmeldingService(
             }
         }
         while (lastMottattDato.isBefore(LocalDate.now().plusDays(1))) {
-            val dbmodels = databasePostgres.connection.getSykmeldingMedSisteStatus(lastMottattDato)
+            val dbmodels = databasePostgres.connection.getMottattSykmelding(lastMottattDato)
             val mapped = dbmodels
+                .filter {
+                    it.behandlingsutfall.status != Status.INVALID
+                }
                 .map {
                     try {
                         mapTilMottattSykmelding(it)
@@ -67,14 +71,16 @@ class MottattSykmeldingService(
         }
     }
 
-    private fun mapTilMottattSykmelding(it: EnkelSykmeldingDbModel): MottattSykmeldingKafkaMessage {
-        val sykmelding = it.toEnkelSykmelding()
-        val metadata = KafkaMetadataDTO(
-            sykmeldingId = it.id,
-            fnr = it.fnr,
-            source = "syfosmregister",
-            timestamp = it.mottattTidspunkt.atOffset(ZoneOffset.UTC)
+    private fun mapTilMottattSykmelding(mottattSykmeldingDbModel: MottattSykmeldingDbModel): MottattSykmeldingKafkaMessage {
+        return MottattSykmeldingKafkaMessage(
+            sykmelding = mottattSykmeldingDbModel.toEnkelSykmelding(),
+            kafkaMetadata = KafkaMetadataDTO(
+                sykmeldingId = mottattSykmeldingDbModel.id,
+                timestamp = mottattSykmeldingDbModel.mottattTidspunkt.atOffset(ZoneOffset.UTC),
+                fnr = mottattSykmeldingDbModel.fnr,
+                source = "syfosmregister"
+
+            )
         )
-        return MottattSykmeldingKafkaMessage(sykmelding = sykmelding, kafkaMetadata = metadata)
     }
 }

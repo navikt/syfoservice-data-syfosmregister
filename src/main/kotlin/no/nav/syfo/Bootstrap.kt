@@ -51,7 +51,10 @@ import no.nav.syfo.service.UpdateStatusService
 import no.nav.syfo.service.WriteReceivedSykmeldingService
 import no.nav.syfo.sykmelding.BekreftSykmeldingService
 import no.nav.syfo.sykmelding.EnkelSykmeldingKafkaProducer
+import no.nav.syfo.sykmelding.MottattSykmeldingKafkaProducer
+import no.nav.syfo.sykmelding.MottattSykmeldingService
 import no.nav.syfo.sykmelding.SendtSykmeldingService
+import no.nav.syfo.sykmelding.kafka.model.MottattSykmeldingKafkaMessage
 import no.nav.syfo.sykmelding.kafka.model.SykmeldingKafkaMessage
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
@@ -87,14 +90,39 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    readAndCheckTombstone(applicationState, environment)
+    chechSendtSykmelding(applicationState, environment)
+}
+
+fun sendtMottattSykmeldinger(applicationState: ApplicationState, environment: Environment) {
+    val vaultServiceuser = getVaultServiceUser()
+    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+
+    val vaultCredentialService = VaultCredentialService()
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+
+    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
+    val producerProperties =
+        kafkaBaseConfig.toProducerConfig(
+            environment.applicationName,
+            valueSerializer = JacksonKafkaSerializer::class
+        )
+    val kafkaProducer = KafkaProducer<String, MottattSykmeldingKafkaMessage>(producerProperties)
+    val mottatSykmeldingKafkaProducer =
+        MottattSykmeldingKafkaProducer(kafkaProducer, environment.mottattSykmeldingTopic)
+    val service = MottattSykmeldingService(
+        applicationState,
+        databasePostgres,
+        mottatSykmeldingKafkaProducer,
+        LocalDate.parse(environment.lastIndexSyfosmregister)
+    )
+    service.run()
 }
 
 fun chechSendtSykmelding(applicationState: ApplicationState, environment: Environment) {
     val vaultServiceuser = getVaultServiceUser()
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-sendt-sykmelding-2",
+        "${environment.applicationName}-sendt-sykmelding-3",
         valueDeserializer = StringDeserializer::class
     )
     consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
