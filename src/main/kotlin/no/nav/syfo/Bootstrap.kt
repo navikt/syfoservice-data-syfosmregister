@@ -90,7 +90,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    chechSendtSykmelding(applicationState, environment)
+    readAndCheckTombstone(applicationState, environment)
 }
 
 fun sendtMottattSykmeldinger(applicationState: ApplicationState, environment: Environment) {
@@ -138,7 +138,7 @@ fun readAndCheckTombstone(applicationState: ApplicationState, environment: Envir
     val vaultServiceuser = getVaultServiceUser()
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "${environment.applicationName}-bekreftet-sykmelding-7",
+        "${environment.applicationName}-bekreftet-sykmelding-8",
         valueDeserializer = StringDeserializer::class
     )
     consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
