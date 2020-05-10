@@ -1,6 +1,7 @@
 package no.nav.syfo.model
 
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 
 data class SykmeldingStatus(
     val timestamp: LocalDateTime,
@@ -18,8 +19,9 @@ data class ArbeidsgiverStatus(
 
 data class SykmeldingStatusEvent(
     val sykmeldingId: String,
-    val timestamp: LocalDateTime,
-    val event: StatusEvent
+    val eventTimestamp: LocalDateTime,
+    val event: StatusEvent,
+    val timestamp: OffsetDateTime? = null
 )
 
 enum class StatusEvent {

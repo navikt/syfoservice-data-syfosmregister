@@ -56,6 +56,7 @@ import no.nav.syfo.sykmelding.MottattSykmeldingService
 import no.nav.syfo.sykmelding.SendtSykmeldingService
 import no.nav.syfo.sykmelding.kafka.model.MottattSykmeldingKafkaMessage
 import no.nav.syfo.sykmelding.kafka.model.SykmeldingKafkaMessage
+import no.nav.syfo.sykmelding.status.SykmeldingStatusService
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
 import no.nav.syfo.vault.RenewVaultService
@@ -90,7 +91,10 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    readAndCheckTombstone(applicationState, environment)
+    val sykmeldingStatusService = SykmeldingStatusService(applicationState, environment)
+    GlobalScope.launch {
+        sykmeldingStatusService.startUpdateTimestamps()
+    }
 }
 
 fun sendtMottattSykmeldinger(applicationState: ApplicationState, environment: Environment) {
@@ -612,7 +616,7 @@ fun runMapStringToJsonMap(
     ).run()
 }
 
-private fun getVaultServiceUser(): VaultServiceUser {
+fun getVaultServiceUser(): VaultServiceUser {
     val vaultServiceuser = VaultServiceUser(
         serviceuserPassword = getFileAsString("/secrets/serviceuser/password"),
         serviceuserUsername = getFileAsString("/secrets/serviceuser/username")

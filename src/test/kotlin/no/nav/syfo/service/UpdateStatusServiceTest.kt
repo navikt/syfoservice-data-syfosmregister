@@ -164,7 +164,7 @@ class UpdateStatusServiceTest : Spek({
                         SykmeldingStatusEvent(
                             sykmeldingId = sykmeldingId,
                             event = StatusEvent.APEN,
-                            timestamp = createdDate
+                            eventTimestamp = createdDate
                         )
                     )
                 )

@@ -7,6 +7,7 @@ import java.sql.Statement
 import java.sql.Timestamp
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.db.toList
 import no.nav.syfo.log
@@ -39,6 +40,22 @@ data class DatabaseResult(
     var databaseTime: Double = 0.0,
     var processingTime: Double = 0.0
 )
+fun Connection.getSykmeldingIds(lastMottattDato: LocalDate): List<String> =
+    use {
+        this.prepareStatement(
+            """
+                    SELECT id
+                    FROM sykmeldingsopplysninger AS opplysninger
+                     WHERE opplysninger.mottatt_tidspunkt >= ?
+                     AND opplysninger.mottatt_tidspunkt < ?
+                     and not exists(select 1 from sykmeldingstatus where sykmelding_id = opplysninger.id and event in ('SLETTET'));
+                    """
+        ).use {
+            it.setTimestamp(1, Timestamp.valueOf(lastMottattDato.atStartOfDay()))
+            it.setTimestamp(2, Timestamp.valueOf(lastMottattDato.plusDays(1).atStartOfDay()))
+            it.executeQuery().toList { getString("id") }
+        }
+    }
 
 fun Connection.getMottattSykmelding(lastMottattTidspunkt: LocalDate): List<MottattSykmeldingDbModel> =
     use {
@@ -381,7 +398,7 @@ fun DatabaseInterfacePostgres.oppdaterSykmeldingStatus(sykmeldingStatusEvents: L
             for (status in sykmeldingStatusEvents) {
 
                 it.setString(1, status.sykmeldingId)
-                it.setTimestamp(2, Timestamp.valueOf(status.timestamp))
+                it.setTimestamp(2, Timestamp.valueOf(status.eventTimestamp))
                 it.setString(3, status.event.name)
                 it.addBatch()
             }
@@ -598,7 +615,7 @@ fun DatabaseInterfacePostgres.getStatusesForSykmelding(id: String): List<Sykmeld
     this.connection.use { connection ->
         connection.prepareStatement(
             """
-           select * from sykmeldingstatus where sykmelding_id = ? order by event_timestamp 
+           select * from sykmeldingstatus where sykmelding_id = ? order by event_timestamp asc
         """
         ).use {
             it.setString(1, id)
@@ -610,7 +627,8 @@ fun ResultSet.toStatusEvent(): SykmeldingStatusEvent {
     return SykmeldingStatusEvent(
         getString("sykmelding_id"),
         getTimestamp("event_timestamp").toLocalDateTime(),
-        StatusEvent.valueOf(getString("event"))
+        StatusEvent.valueOf(getString("event")),
+        getTimestamp("timestamp")?.toInstant()?.atOffset(ZoneOffset.UTC)
     )
 }
 
@@ -833,6 +851,24 @@ fun DatabaseInterfacePostgres.lagreSporsmalOgSvarOgArbeidsgiver(
         }
         if (arbeidsgiverStatus != null) {
             connection.insertArbeidsgiver(arbeidsgiverStatus)
+        }
+        connection.commit()
+    }
+}
+
+fun Connection.oppdaterSykmeldingStatusTimestamp(newStatuses: List<SykmeldingStatusEvent>) {
+    use {
+        connection ->
+        connection.prepareStatement("""
+            update sykmeldingstatus set timestamp = ? where sykmelding_id = ? and event_timestamp = ?;
+        """).use {
+            for (status in newStatuses) {
+                it.setTimestamp(1, Timestamp.from(status.timestamp!!.toInstant()))
+                it.setString(2, status.sykmeldingId)
+                it.setTimestamp(3, Timestamp.valueOf(status.eventTimestamp))
+                it.addBatch()
+            }
+            it.executeBatch()
         }
         connection.commit()
     }
