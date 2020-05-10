@@ -53,41 +53,45 @@ class SykmeldingStatusService(
                     updateCounter,
                     lastMottattDato
                 )
-                delay(30_000)
+                delay(10_000)
             }
+        }
+        try {
+            while (lastMottattDato.isBefore(LocalDate.now().plusDays(1))) {
+                val sykmeldingIds = databasePostgres.connection.getSykmeldingIds(lastMottattDato)
+                sykmeldingIds.forEach { it ->
+                    val statuses = databasePostgres.getStatusesForSykmelding(it)
+                    var first = true
+                    val newStatuses = statuses.map {
+                        val mapped: SykmeldingStatusEvent
+                        if (it.timestamp == null) {
+                            if (first) {
+                                mapped = it.copy(timestamp = it.eventTimestamp.atOffset(ZoneOffset.UTC))
+                            } else {
+                                mapped = it.copy(timestamp = it.eventTimestamp.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime())
+                            }
+                        } else {
+                            mapped = it
+                        }
+                        first = false
+                        mapped
+                    }
+                    var lastTimestamp = OffsetDateTime.MIN
+                    newStatuses.forEach {
+                        if (it.timestamp!!.isBefore(lastTimestamp)) {
+                            log.info("Incorrect timestamp order for sykmelding {}", it.sykmeldingId)
+                        }
+                        lastTimestamp = it.timestamp
+                    }
+                    databasePostgres.connection.oppdaterSykmeldingStatusTimestamp(newStatuses)
+                }
+                updateCounter += sykmeldingIds.size
+                lastMottattDato = lastMottattDato.plusDays(1)
+            }
+        } catch (ex: Exception) {
+            log.info("Stopping due to exception")
         }
 
-        while (lastMottattDato.isBefore(LocalDate.now().plusDays(1))) {
-            val sykmeldingIds = databasePostgres.connection.getSykmeldingIds(lastMottattDato)
-            sykmeldingIds.forEach { it ->
-                val statuses = databasePostgres.getStatusesForSykmelding(it)
-                var first = true
-                val newStatuses = statuses.map {
-                    val mapped: SykmeldingStatusEvent
-                    if (it.timestamp == null) {
-                        if (first) {
-                            mapped = it.copy(timestamp = it.eventTimestamp.atOffset(ZoneOffset.UTC))
-                        } else {
-                            mapped = it.copy(timestamp = it.eventTimestamp.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime())
-                        }
-                    } else {
-                        mapped = it
-                    }
-                    first = false
-                    mapped
-                }
-                var lastTimestamp = OffsetDateTime.MIN
-                newStatuses.forEach {
-                    if (it.timestamp!!.isBefore(lastTimestamp)) {
-                        log.error("Inncorrect timestamp order for sykmelding {}", it.sykmeldingId)
-                    }
-                    lastTimestamp = it.timestamp
-                }
-                updateCounter += newStatuses.size
-                databasePostgres.connection.oppdaterSykmeldingStatusTimestamp(newStatuses)
-            }
-            lastMottattDato = lastMottattDato.plusDays(1)
-        }
         log.info(
             "Ferdig med alle sykmeldingene, totalt {}, siste dato {}",
             updateCounter,
