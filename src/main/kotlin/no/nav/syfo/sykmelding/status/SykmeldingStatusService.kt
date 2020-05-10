@@ -1,5 +1,6 @@
 package no.nav.syfo.sykmelding.status
 
+import java.lang.RuntimeException
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -24,7 +25,6 @@ import no.nav.syfo.persistering.db.postgres.oppdaterSykmeldingStatusTimestamp
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.vault.RenewVaultService
 import org.apache.kafka.clients.producer.KafkaProducer
-import java.lang.RuntimeException
 
 class SykmeldingStatusService(
     private val applicationState: ApplicationState,
@@ -54,11 +54,11 @@ class SykmeldingStatusService(
                     updateCounter,
                     lastMottattDato
                 )
-                delay(10_000)
+                delay(120_000)
             }
         }
         try {
-            while (lastMottattDato.isBefore(LocalDate.of(2020, 2,18).plusDays(1))) {
+            while (lastMottattDato.isBefore(LocalDate.of(2020, 2, 18).plusDays(1))) {
                 val sykmeldingIds = databasePostgres.connection.getSykmeldingIds(lastMottattDato)
                 sykmeldingIds.forEach { it ->
                     val statuses = databasePostgres.getStatusesForSykmelding(it)
