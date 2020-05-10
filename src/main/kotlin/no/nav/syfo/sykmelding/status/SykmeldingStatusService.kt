@@ -57,7 +57,7 @@ class SykmeldingStatusService(
             }
         }
 
-        while (updateCounter == 0) {
+        while (lastMottattDato.isBefore(LocalDate.now().plusDays(1))) {
             val sykmeldingIds = databasePostgres.connection.getSykmeldingIds(lastMottattDato)
             sykmeldingIds.forEach { it ->
                 val statuses = databasePostgres.getStatusesForSykmelding(it)
