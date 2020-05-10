@@ -17,6 +17,7 @@ import no.nav.syfo.getVaultServiceUser
 import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toProducerConfig
 import no.nav.syfo.log
+import no.nav.syfo.model.StatusEvent
 import no.nav.syfo.model.SykmeldingStatusEvent
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.persistering.db.postgres.getStatusesForSykmelding
@@ -66,7 +67,7 @@ class SykmeldingStatusService(
                     val newStatuses = statuses.map {
                         val mapped: SykmeldingStatusEvent
                         if (it.timestamp == null) {
-                            if (first) {
+                            if (first || it.event == StatusEvent.SLETTET) {
                                 mapped = it.copy(timestamp = it.eventTimestamp.atOffset(ZoneOffset.UTC))
                             } else {
                                 mapped = it.copy(timestamp = it.eventTimestamp.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime())
