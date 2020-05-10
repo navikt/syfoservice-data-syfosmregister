@@ -86,6 +86,7 @@ class SykmeldingStatusService(
                 updateCounter += newStatuses.size
                 databasePostgres.connection.oppdaterSykmeldingStatusTimestamp(newStatuses)
             }
+            lastMottattDato = lastMottattDato.plusDays(1)
         }
         log.info(
             "Ferdig med alle sykmeldingene, totalt {}, siste dato {}",
