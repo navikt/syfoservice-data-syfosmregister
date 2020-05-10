@@ -47,8 +47,7 @@ fun Connection.getSykmeldingIds(lastMottattDato: LocalDate): List<String> =
                     SELECT id
                     FROM sykmeldingsopplysninger AS opplysninger
                      WHERE opplysninger.mottatt_tidspunkt >= ?
-                     AND opplysninger.mottatt_tidspunkt < ?
-                     and not exists(select 1 from sykmeldingstatus where sykmelding_id = opplysninger.id and event in ('SLETTET'));
+                     AND opplysninger.mottatt_tidspunkt < ?;
                     """
         ).use {
             it.setTimestamp(1, Timestamp.valueOf(lastMottattDato.atStartOfDay()))

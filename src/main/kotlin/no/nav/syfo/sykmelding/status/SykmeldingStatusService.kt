@@ -24,6 +24,7 @@ import no.nav.syfo.persistering.db.postgres.oppdaterSykmeldingStatusTimestamp
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.vault.RenewVaultService
 import org.apache.kafka.clients.producer.KafkaProducer
+import java.lang.RuntimeException
 
 class SykmeldingStatusService(
     private val applicationState: ApplicationState,
@@ -57,7 +58,7 @@ class SykmeldingStatusService(
             }
         }
         try {
-            while (lastMottattDato.isBefore(LocalDate.now().plusDays(1))) {
+            while (lastMottattDato.isBefore(LocalDate.of(2020, 2,18).plusDays(1))) {
                 val sykmeldingIds = databasePostgres.connection.getSykmeldingIds(lastMottattDato)
                 sykmeldingIds.forEach { it ->
                     val statuses = databasePostgres.getStatusesForSykmelding(it)
@@ -80,6 +81,7 @@ class SykmeldingStatusService(
                     newStatuses.forEach {
                         if (it.timestamp!!.isBefore(lastTimestamp)) {
                             log.info("Incorrect timestamp order for sykmelding {}", it.sykmeldingId)
+                            throw RuntimeException("Error with timestamps")
                         }
                         lastTimestamp = it.timestamp
                     }
