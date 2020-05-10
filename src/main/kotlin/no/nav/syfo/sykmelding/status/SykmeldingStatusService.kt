@@ -77,13 +77,14 @@ class SykmeldingStatusService(
                         first = false
                         mapped
                     }
-                    var lastTimestamp = OffsetDateTime.MIN
-                    newStatuses.forEach {
-                        if (it.timestamp!!.isBefore(lastTimestamp)) {
-                            log.info("Incorrect timestamp order for sykmelding {}", it.sykmeldingId)
-                            throw RuntimeException("Error with timestamps")
-                        }
-                        lastTimestamp = it.timestamp
+                    var valid = checkTimestamps(newStatuses)
+                    if (!valid) {
+                        log.info("not valid timestamp order for sykmelding {}, fixing first timestamp", it)
+                        newStatuses[0].timestamp = newStatuses[0].eventTimestamp.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime()
+                        valid = checkTimestamps(newStatuses)
+                    }
+                    if (!valid) {
+                        throw RuntimeException("timestamps not valid for sykmelding $it")
                     }
                     databasePostgres.connection.oppdaterSykmeldingStatusTimestamp(newStatuses)
                 }
@@ -100,5 +101,17 @@ class SykmeldingStatusService(
             lastMottattDato
         )
         loggingJob.cancelAndJoin()
+    }
+
+    private fun checkTimestamps(newStatuses: List<SykmeldingStatusEvent>): Boolean {
+        var lastTimestamp = OffsetDateTime.MIN
+        newStatuses.forEach {
+            if (it.timestamp!!.isBefore(lastTimestamp)) {
+                log.info("Incorrect timestamp order for sykmelding {}", it.sykmeldingId)
+                return false
+            }
+            lastTimestamp = it.timestamp
+        }
+        return true
     }
 }

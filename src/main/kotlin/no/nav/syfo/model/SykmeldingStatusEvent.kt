@@ -21,7 +21,7 @@ data class SykmeldingStatusEvent(
     val sykmeldingId: String,
     val eventTimestamp: LocalDateTime,
     val event: StatusEvent,
-    val timestamp: OffsetDateTime? = null
+    var timestamp: OffsetDateTime? = null
 )
 
 enum class StatusEvent {
