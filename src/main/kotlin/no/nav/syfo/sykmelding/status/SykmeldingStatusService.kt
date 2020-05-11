@@ -71,7 +71,6 @@ class SykmeldingStatusService(
                             needToUpdate = true
                             if (first) {
                                 mapped = it.copy(timestamp = it.eventTimestamp.atOffset(ZoneOffset.UTC))
-                                lastTimestamp = mapped.timestamp
                             } else {
                                 var timestamp = it.eventTimestamp.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime()
                                 mapped = if(timestamp.isBefore(lastTimestamp)) {
@@ -83,6 +82,7 @@ class SykmeldingStatusService(
                         } else {
                             mapped = it
                         }
+                        lastTimestamp = mapped.timestamp
                         first = false
                         mapped
                     }
