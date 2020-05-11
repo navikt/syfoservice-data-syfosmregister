@@ -58,18 +58,27 @@ class SykmeldingStatusService(
             }
         }
         try {
-            while (lastMottattDato.isBefore(LocalDate.of(2020, 2, 18).plusDays(1))) {
+            while (lastMottattDato.isBefore(LocalDate.of(2020, 2, 19).plusDays(1))) {
                 val sykmeldingIds = databasePostgres.connection.getSykmeldingIds(lastMottattDato)
                 sykmeldingIds.forEach { it ->
                     val statuses = databasePostgres.getStatusesForSykmelding(it)
                     var first = true
+                    var needToUpdate = false
+                    var lastTimestamp = OffsetDateTime.MIN;
                     val newStatuses = statuses.map {
                         val mapped: SykmeldingStatusEvent
-                        if (it.timestamp == null) {
-                            if (first && lastMottattDato.isAfter(LocalDate.of(2019, 9, 13))) {
+                        if(it.timestamp == null) {
+                            needToUpdate = true
+                            if (first) {
                                 mapped = it.copy(timestamp = it.eventTimestamp.atOffset(ZoneOffset.UTC))
+                                lastTimestamp = mapped.timestamp
                             } else {
-                                mapped = it.copy(timestamp = it.eventTimestamp.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime())
+                                var timestamp = it.eventTimestamp.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime()
+                                mapped = if(timestamp.isBefore(lastTimestamp)) {
+                                    it.copy(timestamp = it.eventTimestamp.atOffset(ZoneOffset.UTC))
+                                } else {
+                                    it.copy(timestamp = it.eventTimestamp.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime())
+                                }
                             }
                         } else {
                             mapped = it
@@ -78,15 +87,12 @@ class SykmeldingStatusService(
                         mapped
                     }
                     var valid = checkTimestamps(newStatuses)
-                    if (!valid) {
-                        log.info("not valid timestamp order for sykmelding {}, fixing first timestamp", it)
-                        newStatuses[0].timestamp = newStatuses[0].eventTimestamp.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime()
-                        valid = checkTimestamps(newStatuses)
+                    if(!valid) {
+                        throw RuntimeException("incorrect timestamps")
                     }
-                    if (!valid) {
-                        throw RuntimeException("timestamps not valid for sykmelding $it")
+                    if(needToUpdate) {
+                        databasePostgres.connection.oppdaterSykmeldingStatusTimestamp(newStatuses)
                     }
-                    databasePostgres.connection.oppdaterSykmeldingStatusTimestamp(newStatuses)
                 }
                 updateCounter += sykmeldingIds.size
                 lastMottattDato = lastMottattDato.plusDays(1)
