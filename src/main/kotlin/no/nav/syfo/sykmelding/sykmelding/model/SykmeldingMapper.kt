@@ -32,7 +32,7 @@ import no.nav.syfo.sykmelding.model.StatusDbModel
 import no.nav.syfo.sykmelding.model.SvarRestriksjon
 
 fun MedisinskVurdering.getHarRedusertArbeidsgiverperiode(): Boolean {
-    val diagnoserSomGirRedusertArbgiverPeriode = listOf("R991", "U071")
+    val diagnoserSomGirRedusertArbgiverPeriode =  listOf("R991", "U071", "U072", "A23", "R992")
     if (hovedDiagnose != null && diagnoserSomGirRedusertArbgiverPeriode.contains(hovedDiagnose.kode)) {
         return true
     } else if (!biDiagnoser.isNullOrEmpty() && biDiagnoser.find { diagnoserSomGirRedusertArbgiverPeriode.contains(it.kode) } != null) {

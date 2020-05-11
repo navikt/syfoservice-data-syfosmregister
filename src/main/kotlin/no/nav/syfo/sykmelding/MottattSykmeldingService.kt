@@ -23,7 +23,7 @@ class MottattSykmeldingService(
     private val mottattSykmeldingProudcer: MottattSykmeldingKafkaProducer,
     private val lastMottattDato: LocalDate
 ) {
-    fun run() {
+    suspend fun run() {
         var counter = 0
         var lastMottattDato = lastMottattDato
         val loggingJob = GlobalScope.launch {
@@ -33,7 +33,7 @@ class MottattSykmeldingService(
                     counter,
                     lastMottattDato
                 )
-                delay(30_000)
+                delay(60_000)
             }
         }
         while (lastMottattDato.isBefore(LocalDate.now().plusDays(1))) {
@@ -49,8 +49,7 @@ class MottattSykmeldingService(
                         log.error(
                             "noe gikk galt med sykmelidng {}, på dato {}",
                             it.sykmeldingsDokument.id,
-                            lastMottattDato,
-                            ex
+                            lastMottattDato
                         )
                         throw ex
                     }
@@ -66,9 +65,6 @@ class MottattSykmeldingService(
             counter,
             lastMottattDato
         )
-        runBlocking {
-            loggingJob.cancelAndJoin()
-        }
     }
 
     private fun mapTilMottattSykmelding(mottattSykmeldingDbModel: MottattSykmeldingDbModel): MottattSykmeldingKafkaMessage {
