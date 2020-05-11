@@ -91,9 +91,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    GlobalScope.launch {
-        sendtMottattSykmeldinger(applicationState, environment)
-    }
+
 }
 
 suspend fun sendtMottattSykmeldinger(applicationState: ApplicationState, environment: Environment) {
