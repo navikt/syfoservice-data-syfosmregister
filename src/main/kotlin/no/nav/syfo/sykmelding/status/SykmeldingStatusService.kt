@@ -8,6 +8,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import no.nav.syfo.Environment
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabasePostgres
@@ -64,7 +65,7 @@ class SykmeldingStatusService(
         databasePostgres = DatabasePostgres(environment, vaultCredentialService)
     }
 
-    suspend fun publishToStatusTopic() {
+    fun publishToStatusTopic() {
         var totalSykmeldinger = 0
         var totalStatuses = 0
         var onlyOneStatus = 0
@@ -119,7 +120,9 @@ class SykmeldingStatusService(
             totalStatuses,
             onlyOneStatus
         )
-        loggingJob.cancelAndJoin()
+        runBlocking {
+            loggingJob.cancelAndJoin()
+        }
     }
 
     private fun getSykmeldingStatusKafkaMessage(
