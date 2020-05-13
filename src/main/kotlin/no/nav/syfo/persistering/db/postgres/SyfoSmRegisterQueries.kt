@@ -31,6 +31,7 @@ import no.nav.syfo.model.toSykmeldingsopplysninger
 import no.nav.syfo.objectMapper
 import no.nav.syfo.sykmelding.model.EnkelSykmeldingDbModel
 import no.nav.syfo.sykmelding.model.MottattSykmeldingDbModel
+import no.nav.syfo.sykmelding.model.SykmeldingIdAndFnr
 import no.nav.syfo.sykmelding.model.toMotattSykmeldingDbModel
 import no.nav.syfo.sykmelding.model.toSendtSykmeldingDbModel
 
@@ -47,7 +48,8 @@ fun Connection.getSykmeldingIds(lastMottattDato: LocalDate): List<String> =
                     SELECT id
                     FROM sykmeldingsopplysninger AS opplysninger
                      WHERE opplysninger.mottatt_tidspunkt >= ?
-                     AND opplysninger.mottatt_tidspunkt < ?;
+                     AND opplysninger.mottatt_tidspunkt < ?
+                     and not exists(select 1 from sykmeldingstatus where sykmelding_id = opplysninger.id and event in ('SLETTET'));
                     """
         ).use {
             it.setTimestamp(1, Timestamp.valueOf(lastMottattDato.atStartOfDay()))
@@ -55,6 +57,30 @@ fun Connection.getSykmeldingIds(lastMottattDato: LocalDate): List<String> =
             it.executeQuery().toList { getString("id") }
         }
     }
+
+fun Connection.getSykmeldingIdsAndFnr(lastMottattDato: LocalDate): List<SykmeldingIdAndFnr> =
+    use {
+        this.prepareStatement(
+            """
+                    SELECT id, pasient_fnr
+                    FROM sykmeldingsopplysninger AS opplysninger
+                     WHERE opplysninger.mottatt_tidspunkt >= ?
+                     AND opplysninger.mottatt_tidspunkt < ?
+                     and not exists(select 1 from sykmeldingstatus where sykmelding_id = opplysninger.id and event in ('SLETTET'));
+                    """
+        ).use {
+            it.setTimestamp(1, Timestamp.valueOf(lastMottattDato.atStartOfDay()))
+            it.setTimestamp(2, Timestamp.valueOf(lastMottattDato.plusDays(1).atStartOfDay()))
+            it.executeQuery().toList { getIdAndFnr() }
+        }
+    }
+
+private fun ResultSet.getIdAndFnr(): SykmeldingIdAndFnr {
+    return SykmeldingIdAndFnr(
+        sykmeldingId = getString("id"),
+        fnr = getString("pasient_fnr")
+    )
+}
 
 fun Connection.getMottattSykmelding(lastMottattTidspunkt: LocalDate): List<MottattSykmeldingDbModel> =
     use {

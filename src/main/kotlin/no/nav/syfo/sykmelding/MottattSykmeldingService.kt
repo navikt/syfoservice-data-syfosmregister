@@ -3,10 +3,8 @@ package no.nav.syfo.sykmelding
 import java.time.LocalDate
 import java.time.ZoneOffset
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.log
