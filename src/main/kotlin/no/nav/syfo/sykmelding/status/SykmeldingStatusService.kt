@@ -78,10 +78,10 @@ class SykmeldingStatusService(
                     totalStatuses,
                     onlyOneStatus
                 )
-                delay(120_000)
+                delay(30_000)
             }
         }
-
+        log.info("Starting")
         while (lastMottattDato.isBefore(LocalDate.now().plusDays(1))) {
             val sykmeldingsIds = databasePostgres.connection.getSykmeldingIdsAndFnr(lastMottattDato)
             sykmeldingsIds.forEach {
@@ -107,7 +107,7 @@ class SykmeldingStatusService(
             lastMottattDato.plusDays(1)
         }
         log.info(
-            "Antall sykmeldinger prosessert: {}, lastMottattDato {}, statuser {}, with only one {}",
+            "Ferdig, sykmeldinger prosessert: {}, lastMottattDato {}, statuser {}, with only one {}",
             totalSykmeldinger,
             lastMottattDato,
             totalStatuses,
