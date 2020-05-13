@@ -94,10 +94,10 @@ fun main() {
     applicationState.ready = true
 
     var sykmeldingStatusService = SykmeldingStatusService(applicationState, environment)
-    sykmeldingStatusService.publishToStatusTopic()
+    GlobalScope.launch {
+        sykmeldingStatusService.publishToStatusTopic()
+    }
 }
-
-
 
 suspend fun sendtMottattSykmeldinger(applicationState: ApplicationState, environment: Environment) {
     val vaultServiceuser = getVaultServiceUser()
