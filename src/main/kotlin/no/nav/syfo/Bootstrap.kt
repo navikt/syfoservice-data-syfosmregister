@@ -96,6 +96,9 @@ fun main() {
     var sykmeldingStatusService = SykmeldingStatusService(applicationState, environment)
 
     GlobalScope.launch {
+        delay(
+            1000
+        )
         sykmeldingStatusService.publishToStatusTopic()
     }
 }
