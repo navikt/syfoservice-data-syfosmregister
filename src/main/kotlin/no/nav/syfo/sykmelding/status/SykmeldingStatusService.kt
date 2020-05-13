@@ -82,30 +82,36 @@ class SykmeldingStatusService(
             }
         }
         log.info("Starting")
-        while (lastMottattDato.isBefore(LocalDate.now().plusDays(1))) {
-            val sykmeldingsIds = databasePostgres.connection.getSykmeldingIdsAndFnr(lastMottattDato)
-            sykmeldingsIds.forEach {
-                val statuses = databasePostgres.getStatusesForSykmelding(it.sykmeldingId)
-                totalSykmeldinger++
-                if (statuses.isEmpty()) {
-                    log.info("no statuses found for sykmeldingId {}", it)
-                }
-                val firstStatus = statuses.first()
-                val lastStatus = statuses.last()
+        try {
+            while (lastMottattDato.isBefore(LocalDate.now().plusDays(1))) {
+                val sykmeldingsIds = databasePostgres.connection.getSykmeldingIdsAndFnr(lastMottattDato)
+                sykmeldingsIds.forEach {
+                    val statuses = databasePostgres.getStatusesForSykmelding(it.sykmeldingId)
+                    totalSykmeldinger++
+                    if (statuses.isEmpty()) {
+                        log.info("no statuses found for sykmeldingId {}", it)
+                    }
+                    val firstStatus = statuses.first()
+                    val lastStatus = statuses.last()
 
-                val firstSykmeldingStatusKafkaMessageDTO = getSykmeldingStatusKafkaMessage(it, firstStatus)
-                kafkaPublisher.send(ProducerRecord(topic, it.sykmeldingId, firstSykmeldingStatusKafkaMessageDTO))
+                    val firstSykmeldingStatusKafkaMessageDTO = getSykmeldingStatusKafkaMessage(it, firstStatus)
+                    kafkaPublisher.send(ProducerRecord(topic, it.sykmeldingId, firstSykmeldingStatusKafkaMessageDTO))
 
-                if (lastStatus != firstStatus && lastStatus.event != StatusEvent.APEN) {
-                    totalStatuses += 2
-                    val secondStatus = getSykmeldingStatusKafkaMessage(it, lastStatus)
-                    kafkaPublisher.send(ProducerRecord(topic, it.sykmeldingId, secondStatus))
-                } else {
-                    onlyOneStatus++
+                    if (lastStatus != firstStatus && lastStatus.event != StatusEvent.APEN) {
+                        totalStatuses += 2
+                        val secondStatus = getSykmeldingStatusKafkaMessage(it, lastStatus)
+                        kafkaPublisher.send(ProducerRecord(topic, it.sykmeldingId, secondStatus))
+                    } else {
+                        onlyOneStatus++
+                    }
                 }
+                lastMottattDato.plusDays(1)
             }
-            lastMottattDato.plusDays(1)
         }
+        catch (ex: Exception) {
+            log.info("Noe gikk galt", ex)
+        }
+
         log.info(
             "Ferdig, sykmeldinger prosessert: {}, lastMottattDato {}, statuser {}, with only one {}",
             totalSykmeldinger,
