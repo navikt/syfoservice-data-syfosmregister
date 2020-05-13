@@ -105,7 +105,7 @@ class SykmeldingStatusService(
                         onlyOneStatus++
                     }
                 }
-                lastMottattDato.plusDays(1)
+                lastMottattDato = lastMottattDato.plusDays(1)
             }
         } catch (ex: Exception) {
             log.info("Noe gikk galt", ex)
