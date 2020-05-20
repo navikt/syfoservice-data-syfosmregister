@@ -45,6 +45,7 @@ import no.nav.syfo.service.MapSykmeldingStringToSykemldignJsonMap
 import no.nav.syfo.service.OpprettPdfService
 import no.nav.syfo.service.RyddDuplikateSykmeldingerService
 import no.nav.syfo.service.SkrivBehandlingsutfallTilSyfosmRegisterService
+import no.nav.syfo.service.SkrivManglendeSykmelidngTilTopic
 import no.nav.syfo.service.SkrivTilSyfosmRegisterServiceEia
 import no.nav.syfo.service.SkrivTilSyfosmRegisterSyfoService
 import no.nav.syfo.service.UpdateArbeidsgiverWhenSendtService
@@ -92,11 +93,30 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
+    skrivMangledeSykmeldingTilTopic(applicationState, environment)
 
-    var sykmeldingStatusService = SykmeldingStatusService(applicationState, environment)
-    GlobalScope.launch {
-        sykmeldingStatusService.publishToStatusTopic()
-    }
+}
+
+fun skrivMangledeSykmeldingTilTopic(applicationState: ApplicationState, environment: Environment) {
+    val syfoserviceVaultSecrets = VaultCredentials(
+        databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
+        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
+    )
+
+    val vaultConfig = VaultConfig(
+        jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
+    )
+    val vaultServiceuser = getVaultServiceUser()
+    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+    val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
+    val producerProperties =
+        kafkaBaseConfig.toProducerConfig(
+            environment.applicationName,
+            valueSerializer = JacksonKafkaSerializer::class
+        )
+    val kafkaProducer = KafkaProducer<String, ReceivedSykmelding>(producerProperties)
+    val service = SkrivManglendeSykmelidngTilTopic(kafkaProducer = kafkaProducer, databaseOracle = databaseOracle)
+    service.run()
 }
 
 suspend fun sendtMottattSykmeldinger(applicationState: ApplicationState, environment: Environment) {
