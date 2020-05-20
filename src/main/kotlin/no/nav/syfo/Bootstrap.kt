@@ -58,7 +58,6 @@ import no.nav.syfo.sykmelding.MottattSykmeldingService
 import no.nav.syfo.sykmelding.SendtSykmeldingService
 import no.nav.syfo.sykmelding.kafka.model.MottattSykmeldingKafkaMessage
 import no.nav.syfo.sykmelding.kafka.model.SykmeldingKafkaMessage
-import no.nav.syfo.sykmelding.status.SykmeldingStatusService
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
 import no.nav.syfo.vault.RenewVaultService
@@ -94,7 +93,6 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
     skrivMangledeSykmeldingTilTopic(applicationState, environment)
-
 }
 
 fun skrivMangledeSykmeldingTilTopic(applicationState: ApplicationState, environment: Environment) {

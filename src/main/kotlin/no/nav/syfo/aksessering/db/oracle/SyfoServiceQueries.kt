@@ -55,7 +55,7 @@ fun DatabaseInterfaceOracle.hentSykmeldingFraSyfoService(sykmeldingIds: List<Str
                 sa.NAVN as ARB_NAVN FROM SYFOSERVICE.SYKMELDING_DOK sd 
                 left outer join sm_arbeidsgiver sa on (sa.arbeidsgiver_id = sd.arbeidsgiver_id)
                 left outer join sm_sporsmal sp on (sd.sykmelding_dok_id = sp.sykmelding_id)
-                WHERE MELDING_ID = ANY ('448ae5c7-0ed4-421c-955e-4c175cf280c5', 'bedd0998-7e07-4e29-98c0-2a69b5eb6db4')
+                WHERE MELDING_ID = ANY ('50c04985-7b25-47c5-9d90-7178cccbab5e')
                 """
         ).use {
             val resultSet = it.executeQuery()
