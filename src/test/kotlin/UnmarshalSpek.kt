@@ -1,10 +1,12 @@
 import java.io.StringReader
+import java.sql.Timestamp
 import java.time.LocalDate
 import java.time.LocalDateTime
 import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.syfo.utils.fellesformatUnmarshaller
 import no.nav.syfo.utils.getFileAsString
 import org.amshove.kluent.shouldEqual
+import org.amshove.kluent.shouldNotBe
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
@@ -27,6 +29,12 @@ object UnmarshalSpek : Spek({
             } else {
                 LocalDate.parse(string).atTime(12, 0)
             }
+        }
+
+        it("test timestamp") {
+            val string = Timestamp.valueOf(LocalDateTime.now()).toString()
+            var r = Timestamp.valueOf(string).toLocalDateTime()
+            r shouldNotBe null
         }
     }
 })

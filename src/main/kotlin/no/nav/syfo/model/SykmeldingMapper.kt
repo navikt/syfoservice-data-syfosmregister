@@ -1,6 +1,7 @@
 package no.nav.syfo.model
 
 import java.io.StringReader
+import java.sql.Timestamp
 import java.time.LocalDateTime
 import no.nav.helse.sm2013.Address
 import no.nav.helse.sm2013.ArsakType
@@ -74,7 +75,7 @@ fun toReceivedSykmelding(jsonMap: Map<String, Any?>): ReceivedSykmelding {
             pasientAktoerId = getNullsafeAktorId(jsonMap),
             legeAktoerId = "",
             msgId = "",
-            signaturDato = LocalDateTime.parse((jsonMap["CREATED"].toString().substring(0, 19)))
+            signaturDato = Timestamp.valueOf((jsonMap["CREATED"].toString())).toLocalDateTime()
         ),
         personNrPasient = getPersonnr(unmarshallerToHealthInformation),
         tlfPasient = unmarshallerToHealthInformation.pasient.kontaktInfo.firstOrNull()?.teleAddress?.v,
@@ -85,7 +86,7 @@ fun toReceivedSykmelding(jsonMap: Map<String, Any?>): ReceivedSykmelding {
         legekontorOrgName = "",
         legekontorHerId = "",
         legekontorReshId = "",
-        mottattDato = LocalDateTime.parse((jsonMap["CREATED"].toString().substring(0, 19))),
+        mottattDato = Timestamp.valueOf((jsonMap["CREATED"].toString())).toLocalDateTime(),
         rulesetVersion = unmarshallerToHealthInformation.regelSettVersjon,
         fellesformat = "",
         tssid = ""
