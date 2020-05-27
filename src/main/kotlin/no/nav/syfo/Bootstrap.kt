@@ -92,7 +92,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    skrivMangledeSykmeldingTilTopic(applicationState, environment)
+    //skrivMangledeSykmeldingTilTopic(applicationState, environment)
 }
 
 fun skrivMangledeSykmeldingTilTopic(applicationState: ApplicationState, environment: Environment) {
