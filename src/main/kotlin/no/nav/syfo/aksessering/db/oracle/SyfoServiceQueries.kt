@@ -87,7 +87,7 @@ fun DatabaseInterfaceOracle.updateDiagnose(dokument: HelseOpplysningerArbeidsufo
                 WHERE MELDING_ID = ?
                 """
         ).use {
-            it.setString(2, getStringForDokument(dokument))
+            it.setString(1, getStringForDokument(dokument))
             it.setString(2, sykmeldingId)
             val updated = it.executeUpdate()
             log.info("Updated {} sykmeldingsdokument", updated)
