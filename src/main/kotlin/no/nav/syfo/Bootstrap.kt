@@ -32,6 +32,7 @@ import no.nav.syfo.model.Behandlingsutfall
 import no.nav.syfo.model.Eia
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.RuleInfo
+import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.sak.avro.RegisterTask
 import no.nav.syfo.service.BehandlingsutfallFraOppgaveTopicService
 import no.nav.syfo.service.CheckSendtSykmeldinger
@@ -92,7 +93,26 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    //skrivMangledeSykmeldingTilTopic(applicationState, environment)
+
+    updateDiagnose(applicationState, environment)
+}
+
+fun updateDiagnose(applicationState: ApplicationState, environment: Environment) {
+    val vaultConfig = VaultConfig(
+        jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
+    )
+    val syfoserviceVaultSecrets = VaultCredentials(
+        databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
+        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
+    )
+    val vaultCredentialService = VaultCredentialService()
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+
+    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
+    val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
+
+    val diagnoseService = DiagnoseService(databaseOracle, databasePostgres)
+    diagnoseService.start()
 }
 
 fun skrivMangledeSykmeldingTilTopic(applicationState: ApplicationState, environment: Environment) {

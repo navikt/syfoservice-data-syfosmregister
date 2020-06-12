@@ -9,10 +9,12 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import no.nav.syfo.db.DatabaseInterfacePostgres
+import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.db.toList
 import no.nav.syfo.log
 import no.nav.syfo.model.ArbeidsgiverStatus
 import no.nav.syfo.model.Behandlingsutfall
+import no.nav.syfo.model.Diagnose
 import no.nav.syfo.model.Eia
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.ShortName
@@ -29,6 +31,7 @@ import no.nav.syfo.model.toPGObject
 import no.nav.syfo.model.toSykmeldingsdokument
 import no.nav.syfo.model.toSykmeldingsopplysninger
 import no.nav.syfo.objectMapper
+import no.nav.syfo.sm.Diagnosekoder
 import no.nav.syfo.sykmelding.model.EnkelSykmeldingDbModel
 import no.nav.syfo.sykmelding.model.MottattSykmeldingDbModel
 import no.nav.syfo.sykmelding.model.SykmeldingIdAndFnr
@@ -894,6 +897,21 @@ fun Connection.oppdaterSykmeldingStatusTimestamp(newStatuses: List<SykmeldingSta
                 it.addBatch()
             }
             it.executeBatch()
+        }
+        connection.commit()
+    }
+}
+
+fun DatabasePostgres.updateDiagnose(diagnose: Diagnosekoder.DiagnosekodeType, sykmeldingId: String) {
+    connection.use { connection ->
+        connection.prepareStatement("""
+            UPDATE sykmeldingsdokument set sykmelding = jsonb_set(sykmelding, '{medisinskVurdering,hovedDiagnose}', ?::jsonb) where id = ?;
+        """).use {
+            val diag = Diagnose(diagnose.oid, diagnose.code, diagnose.text)
+            it.setString(1, objectMapper.writeValueAsString(diag))
+            it.setString(2, sykmeldingId)
+            val updated = it.executeUpdate()
+            log.info("Updated {} sykmeldingsdokument", updated)
         }
         connection.commit()
     }
