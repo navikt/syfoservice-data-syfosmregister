@@ -1,8 +1,19 @@
 package no.nav.syfo.aksessering.db.oracle
 
+import java.io.StringReader
+import java.io.StringWriter
+import java.lang.Boolean.TRUE
 import java.sql.ResultSet
+import javax.xml.bind.JAXBContext
+import javax.xml.bind.JAXBException
+import javax.xml.bind.Marshaller.JAXB_ENCODING
+import javax.xml.bind.Marshaller.JAXB_FORMATTED_OUTPUT
+import javax.xml.bind.Marshaller.JAXB_FRAGMENT
+import javax.xml.transform.stream.StreamResult
+import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.db.toList
+import no.nav.syfo.log
 
 data class DatabaseResult<T>(
     val lastIndex: Int,
@@ -21,6 +32,67 @@ fun DatabaseInterfaceOracle.hentFravaerForSykmelding(sporsmalId: Int): DatabaseR
             val databaseResult = resultSet.toJsonStringSyfoServiceFravaer()
             return databaseResult
         }
+    }
+}
+
+fun DatabaseInterfaceOracle.getSykmeldingsDokument(sykmeldingId: String): DatabaseResult<HelseOpplysningerArbeidsuforhet?> {
+    connection.use { connection ->
+        connection.prepareStatement(
+            """
+                SELECT sd.dokument FROM SYFOSERVICE.SYKMELDING_DOK sd 
+                WHERE MELDING_ID = ?
+                """
+        ).use {
+            it.setString(1, sykmeldingId)
+            val resultSet = it.executeQuery()
+            val databaseResult = resultSet.toHelseOpplysningerArbeidsuforhet()
+            return databaseResult
+        }
+    }
+}
+
+private fun ResultSet.toHelseOpplysningerArbeidsuforhet(): DatabaseResult<HelseOpplysningerArbeidsuforhet?> {
+
+    if (next()) {
+        val context = JAXBContext.newInstance(
+            HelseOpplysningerArbeidsuforhet::class.java
+        )
+        return DatabaseResult(0, listOf(context.createUnmarshaller().unmarshal(StringReader(getString("dokument"))) as HelseOpplysningerArbeidsuforhet))
+    }
+    return DatabaseResult(0, emptyList())
+}
+
+fun getStringForDokument(dokument: HelseOpplysningerArbeidsuforhet): String {
+    try {
+        val writer = StringWriter()
+        val context = JAXBContext.newInstance(
+            HelseOpplysningerArbeidsuforhet::class.java
+        )
+        val marshaller = context.createMarshaller()
+        marshaller.setProperty(JAXB_FORMATTED_OUTPUT, TRUE)
+        marshaller.setProperty(JAXB_ENCODING, "UTF-8")
+        marshaller.setProperty(JAXB_FRAGMENT, true)
+        marshaller.marshal(dokument, StreamResult(writer))
+        return writer.toString()
+    } catch (e: JAXBException) {
+        throw RuntimeException(e)
+    }
+}
+
+fun DatabaseInterfaceOracle.updateDiagnose(dokument: HelseOpplysningerArbeidsuforhet, sykmeldingId: String) {
+    connection.use { connection ->
+        connection.prepareStatement(
+            """
+                update SYFOSERVICE.SYKMELDING_DOK set dokument = ?
+                WHERE MELDING_ID = ?
+                """
+        ).use {
+            it.setString(2, getStringForDokument(dokument))
+            it.setString(2, sykmeldingId)
+            val updated = it.executeUpdate()
+            log.info("Updated {} sykmeldingsdokument", updated)
+        }
+        connection.commit()
     }
 }
 
