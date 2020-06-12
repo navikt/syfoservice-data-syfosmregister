@@ -10,8 +10,8 @@ import no.nav.syfo.sm.Diagnosekoder
 
 class DiagnoseService(private val databaseoracle: DatabaseOracle, private val databasePostgres: DatabasePostgres) {
 
-    val sykmeldingId = "fc74ed00-1a15-44f2-b415-f3f8e24a4f36"
-    val correctSystem = Diagnosekoder.ICD10_CODE
+    val sykmeldingId = "5770aba8-8289-4dd7-8e6b-6fe5394814a2"
+    val correctSystem = Diagnosekoder.ICPC2_CODE
 
     fun start() {
         val result = databaseoracle.getSykmeldingsDokument(sykmeldingId)
