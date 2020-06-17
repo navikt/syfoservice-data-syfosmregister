@@ -755,12 +755,17 @@ fun ResultSet.toSykmeldingMedBehandlingsutfall(): SykmeldingBehandlingsutfallDbM
 }
 
 private fun ResultSet.getBehandlingsutfall(sykmeldingId: String): Behandlingsutfall? {
-    val behandlingsutfallString = getString("behandlingsutfall")
-    val behandlingsutfall = if (behandlingsutfallString != null) Behandlingsutfall(
-        sykmeldingId,
-        objectMapper.readValue(behandlingsutfallString)
-    ) else null
-    return behandlingsutfall
+    if(next()) {
+        val behandlingsutfallString = getString("behandlingsutfall")
+        val behandlingsutfall = if (behandlingsutfallString != null) Behandlingsutfall(
+            sykmeldingId,
+            objectMapper.readValue(behandlingsutfallString)
+        ) else null
+        return behandlingsutfall
+    }  else {
+        return null
+    }
+
 }
 
 fun Connection.lagreSporsmalOgSvar(sporsmal: Sporsmal) {
