@@ -469,6 +469,19 @@ fun Connection.hentSykmelding(mottakId: String): SykmeldingDbModel? =
         }
     }
 
+fun Connection.getBehandlingsutfall(sykmeldingId: String) : Behandlingsutfall? {
+    return use { connection ->
+        connection.prepareStatement(
+            """
+                select * from behandlingsutfall where id = ?
+            """
+        ).use {
+            it.setString(1, sykmeldingId)
+            it.executeQuery().getBehandlingsutfall(sykmeldingId)
+        }
+    }
+}
+
 fun Connection.hentSykmeldingListeMedBehandlingsutfall(mottakId: String): List<SykmeldingBehandlingsutfallDbModel> =
     use { connection ->
         connection.prepareStatement(
@@ -722,10 +735,7 @@ fun ResultSet.toSykmeldingDokumentBehandlingsutfall(): SykmeldingDokumentBehandl
 
 fun ResultSet.toSykmeldingMedBehandlingsutfall(): SykmeldingBehandlingsutfallDbModel {
     val sykmeldingId = getString("id")
-    val behandlingsutfall = if (getString("behandlingsutfall") != null) Behandlingsutfall(
-        sykmeldingId,
-        objectMapper.readValue(getString("behandlingsutfall"))
-    ) else null
+    val behandlingsutfall = getBehandlingsutfall(sykmeldingId)
     val sykmeldingsopplysninger = Sykmeldingsopplysninger(
         id = sykmeldingId,
         mottakId = getString("mottak_id"),
@@ -742,6 +752,15 @@ fun ResultSet.toSykmeldingMedBehandlingsutfall(): SykmeldingBehandlingsutfallDbM
         tssid = getString("tss_id")
     )
     return SykmeldingBehandlingsutfallDbModel(sykmeldingsopplysninger, behandlingsutfall)
+}
+
+private fun ResultSet.getBehandlingsutfall(sykmeldingId: String): Behandlingsutfall? {
+    val behandlingsutfallString = getString("behandlingsutfall")
+    val behandlingsutfall = if (behandlingsutfallString != null) Behandlingsutfall(
+        sykmeldingId,
+        objectMapper.readValue(behandlingsutfallString)
+    ) else null
+    return behandlingsutfall
 }
 
 fun Connection.lagreSporsmalOgSvar(sporsmal: Sporsmal) {
