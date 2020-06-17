@@ -41,7 +41,7 @@ class HentSykmeldingerFraSyfosmregisterService(
                     counter,
                     lastMottattDato
                 )
-                delay(30_000)
+                delay(10_000)
             }
         }
         while (lastMottattDato.isBefore(toDate.plusDays(1))) {
