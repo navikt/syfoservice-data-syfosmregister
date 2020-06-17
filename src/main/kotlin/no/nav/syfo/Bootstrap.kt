@@ -93,8 +93,9 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-
-    updateDiagnose(applicationState, environment)
+    GlobalScope.launch {
+        hentBehandlingsutfallOgSkrivTilTopic(applicationState, environment)
+    }
 }
 
 fun updateDiagnose(applicationState: ApplicationState, environment: Environment) {
@@ -375,7 +376,7 @@ fun addSykmeldingerToReceivedTopic(applicationState: ApplicationState, environme
 //    ).run()
 // }
 
-fun hentSykmeldingerFraSyfosmregisterOgPubliserTilTopic(applicationState: ApplicationState, environment: Environment) {
+suspend fun hentBehandlingsutfallOgSkrivTilTopic(applicationState: ApplicationState, environment: Environment) {
     val vaultServiceuser = getVaultServiceUser()
 
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
@@ -392,11 +393,13 @@ fun hentSykmeldingerFraSyfosmregisterOgPubliserTilTopic(applicationState: Applic
     val vaultCredentialService = VaultCredentialService()
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
     val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
+
+
     HentSykmeldingerFraSyfosmregisterService(
         receivedSykmeldingKafkaProducer = receivedSykmeldingKafkaProducer,
         behandlingsutfallKafkaProducer = behandlingsutfallKafkaProducer,
         databasePostgres = databasePostgres, lastIndexSyfosmregister = environment.lastIndexSyfosmregister, applicationState = applicationState
-    ).run()
+    ).skrivBehandlingsutfallTilTopic()
 }
 
 fun lagreOkBehandlingsutfall(applicationState: ApplicationState, environment: Environment) {

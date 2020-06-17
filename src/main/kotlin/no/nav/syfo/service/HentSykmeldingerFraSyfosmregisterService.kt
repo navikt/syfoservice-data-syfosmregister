@@ -2,6 +2,7 @@ package no.nav.syfo.service
 
 import java.time.LocalDate
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import no.nav.syfo.application.ApplicationState
@@ -13,7 +14,10 @@ import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.model.Status
 import no.nav.syfo.model.toReceivedSykmelding
 import no.nav.syfo.persistering.db.postgres.SykmeldingDbModel
+import no.nav.syfo.persistering.db.postgres.getBehandlingsutfall
+import no.nav.syfo.persistering.db.postgres.getSykmeldingIds
 import no.nav.syfo.persistering.db.postgres.hentAntallSykmeldinger
+import no.nav.syfo.persistering.db.postgres.hentSykmeldingMedBehandlingsutfallForId
 import no.nav.syfo.persistering.db.postgres.hentSykmeldingerDokumentOgBehandlingsutfall
 import no.nav.syfo.persistering.db.postgres.oppdaterBehandlingsutfall
 
@@ -24,6 +28,40 @@ class HentSykmeldingerFraSyfosmregisterService(
     private val lastIndexSyfosmregister: String,
     private val applicationState: ApplicationState
 ) {
+
+    suspend fun skrivBehandlingsutfallTilTopic() {
+        var counter = 0
+        var lastMottattDato = LocalDate.of(2019, 9, 26)
+        var toDate = LocalDate.of(2019, 12, 9)
+
+        val job = GlobalScope.launch {
+            while (applicationState.ready) {
+                log.info(
+                    "Antall behandlingsutfall skrevet til kafka: {}, lastMottattDato {}",
+                    counter,
+                    lastMottattDato
+                )
+                delay(30_000)
+            }
+        }
+        while (lastMottattDato.isBefore(toDate.plusDays(1))) {
+            val ids = databasePostgres.connection.getSykmeldingIds(lastMottattDato)
+            ids.forEach {
+                val behandlingsutfall = databasePostgres.connection.getBehandlingsutfall(it)
+                if (behandlingsutfall != null) {
+                    behandlingsutfallKafkaProducer.publishToKafka(behandlingsutfall)
+                    counter++
+                }
+            }
+            lastMottattDato = lastMottattDato.plusDays(1)
+        }
+        log.info(
+            "Antall behandlingsutfall skrevet til kafka: {}, lastMottattDato {}",
+            counter,
+            lastMottattDato
+        )
+        job.cancelAndJoin()
+    }
 
     fun run() {
         val hentantallSykmeldinger = databasePostgres.hentAntallSykmeldinger()
