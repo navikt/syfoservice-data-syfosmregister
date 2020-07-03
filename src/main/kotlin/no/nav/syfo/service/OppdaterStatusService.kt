@@ -11,7 +11,7 @@ import no.nav.syfo.sykmelding.SykmeldingStatusKafkaProducer
 
 class OppdaterStatusService(private val databaseoracle: DatabaseOracle, private val sykmeldingStatusKafkaProducer: SykmeldingStatusKafkaProducer) {
 
-    val sykmeldingId = "4dbe0766-3d59-45e9-a6bf-63c97888abcc"
+    val sykmeldingId = "a9888b61-6da3-4e6e-a89a-21af5dfc5936"
 
     fun start(fnr: String) {
         val sykmeldingStatusKafkaEventDTO = SykmeldingStatusKafkaEventDTO(
