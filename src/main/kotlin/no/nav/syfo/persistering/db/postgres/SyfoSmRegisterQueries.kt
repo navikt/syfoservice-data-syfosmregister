@@ -469,7 +469,7 @@ fun Connection.hentSykmelding(mottakId: String): SykmeldingDbModel? =
         }
     }
 
-fun Connection.getBehandlingsutfall(sykmeldingId: String) : Behandlingsutfall? {
+fun Connection.getBehandlingsutfall(sykmeldingId: String): Behandlingsutfall? {
     return use { connection ->
         connection.prepareStatement(
             """
@@ -755,17 +755,16 @@ fun ResultSet.toSykmeldingMedBehandlingsutfall(): SykmeldingBehandlingsutfallDbM
 }
 
 private fun ResultSet.getBehandlingsutfall(sykmeldingId: String): Behandlingsutfall? {
-    if(next()) {
+    if (next()) {
         val behandlingsutfallString = getString("behandlingsutfall")
         val behandlingsutfall = if (behandlingsutfallString != null) Behandlingsutfall(
             sykmeldingId,
             objectMapper.readValue(behandlingsutfallString)
         ) else null
         return behandlingsutfall
-    }  else {
+    } else {
         return null
     }
-
 }
 
 fun Connection.lagreSporsmalOgSvar(sporsmal: Sporsmal) {

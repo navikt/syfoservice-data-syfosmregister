@@ -32,6 +32,7 @@ import no.nav.syfo.model.Behandlingsutfall
 import no.nav.syfo.model.Eia
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.RuleInfo
+import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.sak.avro.RegisterTask
 import no.nav.syfo.service.BehandlingsutfallFraOppgaveTopicService
@@ -43,6 +44,7 @@ import no.nav.syfo.service.HentSykmeldingerFraSyfosmregisterService
 import no.nav.syfo.service.HentSykmeldingsidFraBackupService
 import no.nav.syfo.service.InsertOKBehandlingsutfall
 import no.nav.syfo.service.MapSykmeldingStringToSykemldignJsonMap
+import no.nav.syfo.service.OppdaterStatusService
 import no.nav.syfo.service.OpprettPdfService
 import no.nav.syfo.service.RyddDuplikateSykmeldingerService
 import no.nav.syfo.service.SkrivBehandlingsutfallTilSyfosmRegisterService
@@ -57,6 +59,7 @@ import no.nav.syfo.sykmelding.EnkelSykmeldingKafkaProducer
 import no.nav.syfo.sykmelding.MottattSykmeldingKafkaProducer
 import no.nav.syfo.sykmelding.MottattSykmeldingService
 import no.nav.syfo.sykmelding.SendtSykmeldingService
+import no.nav.syfo.sykmelding.SykmeldingStatusKafkaProducer
 import no.nav.syfo.sykmelding.kafka.model.MottattSykmeldingKafkaMessage
 import no.nav.syfo.sykmelding.kafka.model.SykmeldingKafkaMessage
 import no.nav.syfo.utils.JacksonKafkaSerializer
@@ -94,8 +97,32 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
     GlobalScope.launch {
-        hentBehandlingsutfallOgSkrivTilTopic(applicationState, environment)
+        oppdaterStatus(applicationState, environment)
     }
+}
+
+fun oppdaterStatus(applicationState: ApplicationState, environment: Environment) {
+    val vaultServiceuser = getVaultServiceUser()
+    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+    val vaultConfig = VaultConfig(
+        jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
+    )
+    val syfoserviceVaultSecrets = VaultCredentials(
+        databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
+        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
+    )
+    val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
+    val producerProperties =
+        kafkaBaseConfig.toProducerConfig(
+            environment.applicationName,
+            valueSerializer = JacksonKafkaSerializer::class
+        )
+    val vaultSecrets = VaultSecrets()
+    val kafkaProducer = KafkaProducer<String, SykmeldingStatusKafkaMessageDTO>(producerProperties)
+    val statusKafkaProducer = SykmeldingStatusKafkaProducer(kafkaProducer, environment.sykmeldingStatusTopic)
+    val oppdaterStatusService = OppdaterStatusService(databaseOracle, statusKafkaProducer)
+
+    oppdaterStatusService.start(vaultSecrets.fnr)
 }
 
 fun updateDiagnose(applicationState: ApplicationState, environment: Environment) {
@@ -393,7 +420,6 @@ suspend fun hentBehandlingsutfallOgSkrivTilTopic(applicationState: ApplicationSt
     val vaultCredentialService = VaultCredentialService()
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
     val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
-
 
     HentSykmeldingerFraSyfosmregisterService(
         receivedSykmeldingKafkaProducer = receivedSykmeldingKafkaProducer,

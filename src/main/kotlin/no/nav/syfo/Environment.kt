@@ -31,6 +31,7 @@ data class Environment(
     val sendSykmeldingTopic: String = "syfo-sendt-sykmelding",
     val bekreftSykmeldingKafkaTopic: String = "syfo-bekreftet-sykmelding",
     val mottattSykmeldingTopic: String = "syfo-mottatt-sykmelding",
+    val sykmeldingStatusTopic: String = "aapen-syfo-sykmeldingstatus-leesah-v1",
     val sykmeldingStatusBackupTopic: String = "privat-syfo-register-status-backup"
 ) : KafkaConfig
 
@@ -39,6 +40,10 @@ data class VaultCredentials(
     val databasePassword: String
     // val backupDbUsername: String,
     // val backupDbPassword: String
+)
+
+data class VaultSecrets(
+    val fnr: String = getEnvVar("FNR")
 )
 
 data class VaultServiceUser(
