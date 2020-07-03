@@ -96,9 +96,9 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    GlobalScope.launch {
+    /*GlobalScope.launch {
         oppdaterStatus(applicationState, environment)
-    }
+    }*/
 }
 
 fun oppdaterStatus(applicationState: ApplicationState, environment: Environment) {
@@ -117,12 +117,12 @@ fun oppdaterStatus(applicationState: ApplicationState, environment: Environment)
             environment.applicationName,
             valueSerializer = JacksonKafkaSerializer::class
         )
-    val vaultSecrets = VaultSecrets()
+    // val vaultSecrets = VaultSecrets()
     val kafkaProducer = KafkaProducer<String, SykmeldingStatusKafkaMessageDTO>(producerProperties)
     val statusKafkaProducer = SykmeldingStatusKafkaProducer(kafkaProducer, environment.sykmeldingStatusTopic)
     val oppdaterStatusService = OppdaterStatusService(databaseOracle, statusKafkaProducer)
 
-    oppdaterStatusService.start(vaultSecrets.fnr)
+    // oppdaterStatusService.start(vaultSecrets.fnr)
 }
 
 fun updateDiagnose(applicationState: ApplicationState, environment: Environment) {

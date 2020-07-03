@@ -42,9 +42,9 @@ data class VaultCredentials(
     // val backupDbPassword: String
 )
 
-data class VaultSecrets(
+/*data class VaultSecrets(
     val fnr: String = getEnvVar("FNR")
-)
+)*/
 
 data class VaultServiceUser(
     val serviceuserUsername: String,
