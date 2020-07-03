@@ -17,7 +17,6 @@ import no.nav.syfo.persistering.db.postgres.SykmeldingDbModel
 import no.nav.syfo.persistering.db.postgres.getBehandlingsutfall
 import no.nav.syfo.persistering.db.postgres.getSykmeldingIds
 import no.nav.syfo.persistering.db.postgres.hentAntallSykmeldinger
-import no.nav.syfo.persistering.db.postgres.hentSykmeldingMedBehandlingsutfallForId
 import no.nav.syfo.persistering.db.postgres.hentSykmeldingerDokumentOgBehandlingsutfall
 import no.nav.syfo.persistering.db.postgres.oppdaterBehandlingsutfall
 
