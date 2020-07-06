@@ -97,9 +97,9 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    GlobalScope.launch {
+    /*GlobalScope.launch {
         updatePeriode(applicationState, environment)
-    }
+    }*/
 }
 
 fun updatePeriode(applicationState: ApplicationState, environment: Environment) {
