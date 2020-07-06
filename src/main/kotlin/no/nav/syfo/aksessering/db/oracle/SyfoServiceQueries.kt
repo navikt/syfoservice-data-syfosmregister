@@ -79,7 +79,7 @@ fun getStringForDokument(dokument: HelseOpplysningerArbeidsuforhet): String {
     }
 }
 
-fun DatabaseInterfaceOracle.updateDiagnose(dokument: HelseOpplysningerArbeidsuforhet, sykmeldingId: String) {
+fun DatabaseInterfaceOracle.updateDocument(dokument: HelseOpplysningerArbeidsuforhet, sykmeldingId: String) {
     connection.use { connection ->
         connection.prepareStatement(
             """

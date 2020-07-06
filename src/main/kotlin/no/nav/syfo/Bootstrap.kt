@@ -34,6 +34,7 @@ import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.papirsykmelding.DiagnoseService
+import no.nav.syfo.papirsykmelding.PeriodeService
 import no.nav.syfo.sak.avro.RegisterTask
 import no.nav.syfo.service.BehandlingsutfallFraOppgaveTopicService
 import no.nav.syfo.service.CheckSendtSykmeldinger
@@ -96,9 +97,27 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    /*GlobalScope.launch {
-        oppdaterStatus(applicationState, environment)
-    }*/
+    GlobalScope.launch {
+        updatePeriode(applicationState, environment)
+    }
+}
+
+fun updatePeriode(applicationState: ApplicationState, environment: Environment) {
+    val vaultConfig = VaultConfig(
+        jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
+    )
+    val syfoserviceVaultSecrets = VaultCredentials(
+        databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
+        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
+    )
+    val vaultCredentialService = VaultCredentialService()
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+
+    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
+    val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
+
+    val periodeService = PeriodeService(databaseOracle, databasePostgres)
+    periodeService.start()
 }
 
 fun oppdaterStatus(applicationState: ApplicationState, environment: Environment) {
