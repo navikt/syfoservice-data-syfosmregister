@@ -34,6 +34,7 @@ import no.nav.syfo.objectMapper
 import no.nav.syfo.sm.Diagnosekoder
 import no.nav.syfo.sykmelding.model.EnkelSykmeldingDbModel
 import no.nav.syfo.sykmelding.model.MottattSykmeldingDbModel
+import no.nav.syfo.sykmelding.model.Periode
 import no.nav.syfo.sykmelding.model.SykmeldingIdAndFnr
 import no.nav.syfo.sykmelding.model.toMotattSykmeldingDbModel
 import no.nav.syfo.sykmelding.model.toSendtSykmeldingDbModel
@@ -932,6 +933,20 @@ fun DatabasePostgres.updateDiagnose(diagnose: Diagnosekoder.DiagnosekodeType, sy
         """).use {
             val diag = Diagnose(diagnose.oid, diagnose.code, diagnose.text)
             it.setString(1, objectMapper.writeValueAsString(diag))
+            it.setString(2, sykmeldingId)
+            val updated = it.executeUpdate()
+            log.info("Updated {} sykmeldingsdokument", updated)
+        }
+        connection.commit()
+    }
+}
+
+fun DatabasePostgres.updatePeriode(periodeListe: List<Periode>, sykmeldingId: String) {
+    connection.use { connection ->
+        connection.prepareStatement("""
+            UPDATE sykmeldingsdokument set sykmelding = jsonb_set(sykmelding, '{perioder}', ?::jsonb) where id = ?;
+        """).use {
+            it.setString(1, objectMapper.writeValueAsString(periodeListe))
             it.setString(2, sykmeldingId)
             val updated = it.executeUpdate()
             log.info("Updated {} sykmeldingsdokument", updated)

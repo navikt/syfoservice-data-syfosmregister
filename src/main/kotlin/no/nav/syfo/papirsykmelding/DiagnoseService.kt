@@ -1,7 +1,7 @@
 package no.nav.syfo.papirsykmelding
 
 import no.nav.syfo.aksessering.db.oracle.getSykmeldingsDokument
-import no.nav.syfo.aksessering.db.oracle.updateDiagnose
+import no.nav.syfo.aksessering.db.oracle.updateDocument
 import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.log
@@ -30,7 +30,7 @@ class DiagnoseService(private val databaseoracle: DatabaseOracle, private val da
                 document.medisinskVurdering.hovedDiagnose.diagnosekode.v = diagnose.code
                 document.medisinskVurdering.hovedDiagnose.diagnosekode.dn = diagnose.text
 
-                databaseoracle.updateDiagnose(document, sykmeldingId)
+                databaseoracle.updateDocument(document, sykmeldingId)
                 databasePostgres.updateDiagnose(diagnose, sykmeldingId)
             }
         } else {
