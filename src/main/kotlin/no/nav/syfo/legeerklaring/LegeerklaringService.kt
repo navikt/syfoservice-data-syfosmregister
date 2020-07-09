@@ -20,7 +20,9 @@ import no.nav.syfo.legeerklaring.util.extractPersonIdent
 import no.nav.syfo.legeerklaring.util.extractSenderOrganisationName
 import no.nav.syfo.legeerklaring.util.sha256hashstring
 import no.nav.syfo.log
+import no.nav.syfo.utils.fellesformatMarshaller
 import no.nav.syfo.utils.get
+import no.nav.syfo.utils.toString
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.serialization.StringDeserializer
 
@@ -30,7 +32,7 @@ class LegeerklaringService(private val environment: Environment, private val app
     init {
         val vaultServiceuser = getVaultServiceUser()
         val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
-        val consumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-consumer-2",
+        val consumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-consumer-3",
         StringDeserializer::class)
         kafkaConsumer = KafkaConsumer(consumerProperties)
     }
@@ -60,6 +62,7 @@ class LegeerklaringService(private val environment: Environment, private val app
                 val fnrLege = receiverBlock.avsenderFnrFraDigSignatur
                 val legekontorHerId = extractOrganisationHerNumberFromSender(fellesformat)?.id
                 val legekontorReshId = extractOrganisationRashNumberFromSender(fellesformat)?.id
+                val stringToTopic = fellesformatMarshaller.toString(fellesformat)
 
                 counter++
             }
