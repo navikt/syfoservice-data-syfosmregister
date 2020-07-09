@@ -37,7 +37,7 @@ val avroVersion = "1.8.2"
 val confluentVersion = "5.0.0"
 val syfoAvroSchemasVersion = "c8be932543e7356a34690ce7979d494c5d8516d8"
 val smCommonDiagnosisCodesVersion = "1.68817ee"
-
+val legeerklaering = "2019.07.29-02-53-86b22e73f7843e422ee500b486dac387a582f2d1"
 plugins {
     kotlin("jvm") version "1.3.60"
     id("org.jmailen.kotlinter") version "2.1.1"
@@ -117,7 +117,7 @@ dependencies {
     testImplementation ("org.spekframework.spek2:spek-dsl-jvm:$spekVersion")
     testImplementation ("com.nimbusds:nimbus-jose-jwt:$nimbusjosejwtVersion")
     testImplementation ("io.ktor:ktor-server-test-host:$ktorVersion")
-
+    implementation("no.nav.helse.xml:legeerklaering:$legeerklaering")
     testImplementation("org.spekframework.spek2:spek-dsl-jvm:$spekVersion") {
         exclude(group = "org.jetbrains.kotlin")
     }

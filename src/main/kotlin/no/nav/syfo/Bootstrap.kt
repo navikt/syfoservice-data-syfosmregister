@@ -28,6 +28,7 @@ import no.nav.syfo.kafka.SykmeldingKafkaProducer
 import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
+import no.nav.syfo.legeerklaring.LegeerklaringService
 import no.nav.syfo.model.Behandlingsutfall
 import no.nav.syfo.model.Eia
 import no.nav.syfo.model.ReceivedSykmelding
@@ -81,6 +82,14 @@ val objectMapper: ObjectMapper = ObjectMapper().apply {
     configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true)
 }
 
+val legeerklaringObjectMapper: ObjectMapper = ObjectMapper().apply {
+    registerKotlinModule()
+    registerModule(JavaTimeModule())
+    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true)
+    configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+    configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true)
+}
+
 val log: Logger = LoggerFactory.getLogger("no.nav.syfo.syfoservicedatasyfosmregister")
 
 @KtorExperimentalAPI
@@ -97,9 +106,10 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    /*GlobalScope.launch {
-        updatePeriode(applicationState, environment)
-    }*/
+
+    GlobalScope.launch {
+        LegeerklaringService(environment, applicationState).start()
+    }
 }
 
 fun updatePeriode(applicationState: ApplicationState, environment: Environment) {
