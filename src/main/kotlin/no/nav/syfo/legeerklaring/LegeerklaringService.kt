@@ -29,6 +29,7 @@ import no.nav.syfo.utils.get
 import no.nav.syfo.utils.toString
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.serialization.StringDeserializer
+import java.time.ZoneOffset
 
 class LegeerklaringService(private val environment: Environment, private val applicationState: ApplicationState) {
 
@@ -38,8 +39,8 @@ class LegeerklaringService(private val environment: Environment, private val app
     init {
         val vaultServiceuser = getVaultServiceUser()
         val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
-        val consumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-consumer-6", StringDeserializer::class)
-        val hashConsumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-hash-2", StringDeserializer::class)
+        val consumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-consumer-7", StringDeserializer::class)
+        val hashConsumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-hash-3", StringDeserializer::class)
 
         kafkaConsumer = KafkaConsumer(consumerProperties)
         simpleLegeerklaringConsumer = KafkaConsumer(hashConsumerProperties)
@@ -110,6 +111,8 @@ class LegeerklaringService(private val environment: Environment, private val app
                     duplicateCounter++
                 } else {
                     hashSet.add(sha256String)
+                    log.info("found missing, received at {}", receiverBlock.mottattDatotid.toGregorianCalendar().toInstant().atZone(
+                        ZoneOffset.UTC))
                     missingCounter++
                 }
             }
