@@ -8,6 +8,8 @@ import no.nav.helse.eiFellesformat.XMLMottakenhetBlokk
 import no.nav.helse.msgHead.XMLMsgHead
 import no.nav.syfo.Environment
 import no.nav.syfo.application.ApplicationState
+import no.nav.syfo.db.DatabasePale2Postgres
+import no.nav.syfo.db.VaultCredentialService
 import no.nav.syfo.getVaultServiceUser
 import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
@@ -29,6 +31,8 @@ import org.apache.kafka.common.serialization.StringDeserializer
 class LegeerklaringService(private val environment: Environment, private val applicationState: ApplicationState) {
 
     private val kafkaConsumer: KafkaConsumer<String?, String>
+    private val databasePale2Postgres: DatabasePale2Postgres = DatabasePale2Postgres(environment, VaultCredentialService())
+
     init {
         val vaultServiceuser = getVaultServiceUser()
         val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
@@ -39,10 +43,11 @@ class LegeerklaringService(private val environment: Environment, private val app
 
     fun start() {
         var counter = 0
+        var missingCounter = 0
         GlobalScope.launch {
             while (applicationState.ready) {
-                log.info("Lest og mapped {} legeærklæringer", counter)
-                delay(30_000)
+                log.info("Lest og mapped {} legeærklæringer, manglende legeerkleringer {}", counter, missingCounter)
+                delay(10_000)
             }
         }
         kafkaConsumer.subscribe(listOf(environment.pale2dump))
@@ -63,7 +68,10 @@ class LegeerklaringService(private val environment: Environment, private val app
                 val legekontorHerId = extractOrganisationHerNumberFromSender(fellesformat)?.id
                 val legekontorReshId = extractOrganisationRashNumberFromSender(fellesformat)?.id
                 val stringToTopic = fellesformatMarshaller.toString(fellesformat)
-
+                val exists = databasePale2Postgres.exists(mottakId = ediLoggId, msgId = msgId)
+                if (!exists) {
+                    missingCounter++
+                }
                 counter++
             }
         }

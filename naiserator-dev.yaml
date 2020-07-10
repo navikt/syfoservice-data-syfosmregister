@@ -56,6 +56,8 @@ spec:
       value: SSL://b27apvl00045.preprod.local:8443,SSL://b27apvl00046.preprod.local:8443,SSL://b27apvl00047.preprod.local:8443
     - name: SYFOSMREGISTER_DB_URL
       value: jdbc:postgresql://B27DBVL003.preprod.local:5432/syfosmregister
+    - name: PALE_2_REGISTER_DB_URL
+      value: jdbc:postgresql://b27dbvl013.preprod.local:5432/pale-2-register
     - name: MOUNT_PATH_VAULT
       value: /postgresql/preprod-fss
     - name: LAST_INDEX_EIA
