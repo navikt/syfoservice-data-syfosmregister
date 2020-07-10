@@ -36,7 +36,7 @@ class DatabasePale2Postgres(
         vaultCredentialService.renewCredentialsTaskData = RenewCredentialsTaskData(
             dataSource = dataSource,
             mountPath = env.mountPathVault,
-            databaseName = env.databaseName,
+            databaseName = env.databasePaleName,
             role = Role.USER
         )
     }
