@@ -1,7 +1,10 @@
 package no.nav.syfo.legeerklaring
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import java.time.Duration
+import java.time.LocalDateTime
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import no.nav.helse.eiFellesformat.XMLMottakenhetBlokk
@@ -20,6 +23,7 @@ import no.nav.syfo.legeerklaring.util.extractPersonIdent
 import no.nav.syfo.legeerklaring.util.extractSenderOrganisationName
 import no.nav.syfo.legeerklaring.util.sha256hashstring
 import no.nav.syfo.log
+import no.nav.syfo.objectMapper
 import no.nav.syfo.utils.fellesformatMarshaller
 import no.nav.syfo.utils.get
 import no.nav.syfo.utils.toString
@@ -29,20 +33,58 @@ import org.apache.kafka.common.serialization.StringDeserializer
 class LegeerklaringService(private val environment: Environment, private val applicationState: ApplicationState) {
 
     private val kafkaConsumer: KafkaConsumer<String?, String>
+    private val simpleLegeerklaringConsumer: KafkaConsumer<String?, String>
+    private val hashSet = HashSet<String>()
     init {
         val vaultServiceuser = getVaultServiceUser()
         val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
-        val consumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-consumer-3",
-        StringDeserializer::class)
+        val consumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-consumer-5", StringDeserializer::class)
+        val hashConsumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-hash-1", StringDeserializer::class)
+
         kafkaConsumer = KafkaConsumer(consumerProperties)
+        simpleLegeerklaringConsumer = KafkaConsumer(hashConsumerProperties)
     }
 
-    fun start() {
+    suspend fun buildUpHash() {
         var counter = 0
+        val job = GlobalScope.launch {
+            while (applicationState.ready) {
+                log.info("Lest {} legeærklæringer og lagret i hashset", counter)
+                delay(10_000)
+            }
+        }
+
+        simpleLegeerklaringConsumer.subscribe(listOf("privat-syfo-pale2-avvist-v1", "privat-syfo-pale2-ok-v1"))
+
+        var stopTime = LocalDateTime.now().plusSeconds(180)
+
+        while (LocalDateTime.now().isBefore(stopTime)) {
+            val records = simpleLegeerklaringConsumer.poll(Duration.ZERO)
+            if (!records.isEmpty) {
+                records.forEach {
+                    val simpleMessage = objectMapper.readValue<SimpleLegeerklaeringKafkaMessage>(it.value())
+                    val adjustedXml = LegeerklaringMapper.getAdjustedXml(simpleMessage)
+                    val sha256 = sha256hashstring(extractLegeerklaering(adjustedXml))
+                    hashSet.add(sha256)
+                    counter++
+                }
+                stopTime = LocalDateTime.now().plusSeconds(10)
+            }
+        }
+        simpleLegeerklaringConsumer.close()
+        job.cancelAndJoin()
+        log.info("Lest {} legeærklæringer og lagret i hashset", counter)
+    }
+
+    suspend fun start() {
+        buildUpHash()
+        var counter = 0
+        var missingCounter = 0
+        var duplicateCounter = 0
         GlobalScope.launch {
             while (applicationState.ready) {
-                log.info("Lest og mapped {} legeærklæringer", counter)
-                delay(30_000)
+                log.info("Lest og mapped {} legeærklæringer, duplikater {}, missing {}", counter, duplicateCounter, missingCounter)
+                delay(10_000)
             }
         }
         kafkaConsumer.subscribe(listOf(environment.pale2dump))
@@ -63,8 +105,12 @@ class LegeerklaringService(private val environment: Environment, private val app
                 val legekontorHerId = extractOrganisationHerNumberFromSender(fellesformat)?.id
                 val legekontorReshId = extractOrganisationRashNumberFromSender(fellesformat)?.id
                 val stringToTopic = fellesformatMarshaller.toString(fellesformat)
-
-                counter++
+                counter ++
+                if (hashSet.contains(sha256String)) {
+                    duplicateCounter++
+                } else {
+                    missingCounter++
+                }
             }
         }
     }
