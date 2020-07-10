@@ -38,10 +38,11 @@ class LegeerklaringService(private val environment: Environment, private val app
     init {
         val vaultServiceuser = getVaultServiceUser()
         val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
-        val consumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-consumer-5",
-        StringDeserializer::class)
+        val consumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-consumer-5", StringDeserializer::class)
+        val hashConsumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-hash-1", StringDeserializer::class)
+
         kafkaConsumer = KafkaConsumer(consumerProperties)
-        simpleLegeerklaringConsumer = KafkaConsumer(consumerProperties)
+        simpleLegeerklaringConsumer = KafkaConsumer(hashConsumerProperties)
     }
 
     suspend fun buildUpHash() {
@@ -55,7 +56,7 @@ class LegeerklaringService(private val environment: Environment, private val app
 
         simpleLegeerklaringConsumer.subscribe(listOf("privat-syfo-pale2-avvist-v1", "privat-syfo-pale2-ok-v1"))
 
-        var stopTime = LocalDateTime.now().plusSeconds(30)
+        var stopTime = LocalDateTime.now().plusSeconds(180)
 
         while (LocalDateTime.now().isBefore(stopTime)) {
             val records = simpleLegeerklaringConsumer.poll(Duration.ZERO)
@@ -69,7 +70,7 @@ class LegeerklaringService(private val environment: Environment, private val app
                 stopTime = LocalDateTime.now().plusSeconds(10)
             }
         }
-
+        simpleLegeerklaringConsumer.close()
         job.cancelAndJoin()
         log.info("Lest {} legeærklæringer og lagret i hashset", counter)
     }
