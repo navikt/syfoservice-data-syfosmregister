@@ -66,6 +66,7 @@ class LegeerklaringService(private val environment: Environment, private val app
                     val adjustedXml = LegeerklaringMapper.getAdjustedXml(simpleMessage)
                     val sha256 = sha256hashstring(extractLegeerklaering(adjustedXml))
                     hashSet.add(sha256)
+                    counter++
                 }
                 stopTime = LocalDateTime.now().plusSeconds(10)
             }
