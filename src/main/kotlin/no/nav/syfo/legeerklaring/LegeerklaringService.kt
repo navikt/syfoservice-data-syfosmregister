@@ -38,8 +38,8 @@ class LegeerklaringService(private val environment: Environment, private val app
     init {
         val vaultServiceuser = getVaultServiceUser()
         val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
-        val consumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-consumer-5", StringDeserializer::class)
-        val hashConsumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-hash-1", StringDeserializer::class)
+        val consumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-consumer-6", StringDeserializer::class)
+        val hashConsumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-hash-2", StringDeserializer::class)
 
         kafkaConsumer = KafkaConsumer(consumerProperties)
         simpleLegeerklaringConsumer = KafkaConsumer(hashConsumerProperties)
@@ -109,6 +109,7 @@ class LegeerklaringService(private val environment: Environment, private val app
                 if (hashSet.contains(sha256String)) {
                     duplicateCounter++
                 } else {
+                    hashSet.add(sha256String)
                     missingCounter++
                 }
             }
