@@ -1,15 +1,16 @@
 package no.nav.syfo.legeerklaring
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import java.time.Duration
+import java.time.LocalDateTime
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import no.nav.helse.eiFellesformat.XMLMottakenhetBlokk
 import no.nav.helse.msgHead.XMLMsgHead
 import no.nav.syfo.Environment
 import no.nav.syfo.application.ApplicationState
-import no.nav.syfo.db.DatabasePale2Postgres
-import no.nav.syfo.db.VaultCredentialService
 import no.nav.syfo.getVaultServiceUser
 import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
@@ -22,6 +23,7 @@ import no.nav.syfo.legeerklaring.util.extractPersonIdent
 import no.nav.syfo.legeerklaring.util.extractSenderOrganisationName
 import no.nav.syfo.legeerklaring.util.sha256hashstring
 import no.nav.syfo.log
+import no.nav.syfo.objectMapper
 import no.nav.syfo.utils.fellesformatMarshaller
 import no.nav.syfo.utils.get
 import no.nav.syfo.utils.toString
@@ -31,22 +33,55 @@ import org.apache.kafka.common.serialization.StringDeserializer
 class LegeerklaringService(private val environment: Environment, private val applicationState: ApplicationState) {
 
     private val kafkaConsumer: KafkaConsumer<String?, String>
-    private val databasePale2Postgres: DatabasePale2Postgres = DatabasePale2Postgres(environment, VaultCredentialService())
-
+    private val simpleLegeerklaringConsumer: KafkaConsumer<String?, String>
+    private val hashSet = HashSet<String>()
     init {
         val vaultServiceuser = getVaultServiceUser()
         val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
-        val consumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-consumer-4",
+        val consumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-consumer-5",
         StringDeserializer::class)
         kafkaConsumer = KafkaConsumer(consumerProperties)
+        simpleLegeerklaringConsumer = KafkaConsumer(consumerProperties)
     }
 
-    fun start() {
+    suspend fun buildUpHash() {
+        var counter = 0
+        val job = GlobalScope.launch {
+            while (applicationState.ready) {
+                log.info("Lest {} legeærklæringer og lagret i hashset", counter)
+                delay(10_000)
+            }
+        }
+
+        simpleLegeerklaringConsumer.subscribe(listOf("privat-syfo-pale2-avvist-v1", "privat-syfo-pale2-ok-v1"))
+
+        var stopTime = LocalDateTime.now().plusSeconds(30)
+
+        while (LocalDateTime.now().isBefore(stopTime)) {
+            val records = simpleLegeerklaringConsumer.poll(Duration.ZERO)
+            if (!records.isEmpty) {
+                records.forEach {
+                    val simpleMessage = objectMapper.readValue<SimpleLegeerklaeringKafkaMessage>(it.value())
+                    val adjustedXml = LegeerklaringMapper.getAdjustedXml(simpleMessage)
+                    val sha256 = sha256hashstring(extractLegeerklaering(adjustedXml))
+                    hashSet.add(sha256)
+                }
+                stopTime = LocalDateTime.now().plusSeconds(10)
+            }
+        }
+
+        job.cancelAndJoin()
+        log.info("Lest {} legeærklæringer og lagret i hashset", counter)
+    }
+
+    suspend fun start() {
+        buildUpHash()
         var counter = 0
         var missingCounter = 0
+        var duplicateCounter = 0
         GlobalScope.launch {
             while (applicationState.ready) {
-                log.info("Lest og mapped {} legeærklæringer, manglende legeerkleringer {}", counter, missingCounter)
+                log.info("Lest og mapped {} legeærklæringer, duplikater {}, missing {}", counter, duplicateCounter, missingCounter)
                 delay(10_000)
             }
         }
@@ -68,11 +103,12 @@ class LegeerklaringService(private val environment: Environment, private val app
                 val legekontorHerId = extractOrganisationHerNumberFromSender(fellesformat)?.id
                 val legekontorReshId = extractOrganisationRashNumberFromSender(fellesformat)?.id
                 val stringToTopic = fellesformatMarshaller.toString(fellesformat)
-                val exists = databasePale2Postgres.exists(mottakId = ediLoggId, msgId = msgId)
-                if (!exists) {
+                counter ++
+                if (hashSet.contains(sha256String)) {
+                    duplicateCounter++
+                } else {
                     missingCounter++
                 }
-                counter++
             }
         }
     }

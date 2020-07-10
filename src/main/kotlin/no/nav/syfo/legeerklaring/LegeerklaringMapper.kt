@@ -2,6 +2,7 @@ package no.nav.syfo.legeerklaring
 
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.readValue
+import java.io.StringReader
 import javax.xml.namespace.QName
 import no.nav.helse.eiFellesformat.XMLEIFellesformat
 import no.nav.helse.eiFellesformat.XMLMottakenhetBlokk
@@ -13,6 +14,7 @@ import no.nav.helse.msgHead.XMLRSAKeyValueType
 import no.nav.helse.msgHead.XMLX509DataType
 import no.nav.syfo.legeerklaringObjectMapper
 import no.nav.syfo.objectMapper
+import no.nav.syfo.utils.fellesformatUnmarshaller
 import no.nav.syfo.utils.get
 
 data class CustomeX509Cert(val value: String)
@@ -100,6 +102,15 @@ class LegeerklaringMapper private constructor() {
             } catch (ex: Exception) {
                 throw RuntimeException("Could not convert object")
             }
+        }
+
+        fun getAdjustedXml(message: SimpleLegeerklaeringKafkaMessage): XMLEIFellesformat {
+            val fellesformat = fellesformatUnmarshaller.unmarshal(StringReader(message.receivedLegeerklaering.fellesformat)) as XMLEIFellesformat
+            return getMappedDumpXml(objectMapper.writeValueAsString(fellesformat))
+        }
+
+        fun getMappedDumpXml(dumpmessage: String): XMLEIFellesformat {
+            return mapToXml(dumpmessage)
         }
     }
 }

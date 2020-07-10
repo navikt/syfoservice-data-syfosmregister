@@ -3,11 +3,15 @@ package no.nav.syfo.legeerklaring
 import java.io.File
 import java.io.StringReader
 import no.nav.helse.eiFellesformat.XMLEIFellesformat
+import no.nav.syfo.legeerklaring.LegeerklaringMapper.Companion.getAdjustedXml
+import no.nav.syfo.legeerklaring.util.extractLegeerklaering
+import no.nav.syfo.legeerklaring.util.sha256hashstring
 import no.nav.syfo.objectMapper
 import no.nav.syfo.utils.fellesformatMarshaller
 import no.nav.syfo.utils.fellesformatUnmarshaller
 import no.nav.syfo.utils.getFileAsString
 import no.nav.syfo.utils.toString
+import org.amshove.kluent.shouldEqual
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
@@ -26,6 +30,15 @@ class TestParsingLegeerklaring : Spek({
             val xmlFellesformat = LegeerklaringMapper.mapToXml(inputString)
 
             File("src/test/resources/legeerklaringnyxml.xml").writeText(fellesformatMarshaller.toString(xmlFellesformat))
+        }
+
+        it("test dump and original") {
+            val dump = LegeerklaringMapper.mapToXml(getFileAsString("src/test/resources/lekeerklaringjson.txt"))
+            val original = getFileAsString("src/test/resources/legeerklearing.xml")
+            val simpleKafkaMessage = SimpleLegeerklaeringKafkaMessage(SimpleReceivedLegeerklaeering(original))
+            val adjustedXml = getAdjustedXml(simpleKafkaMessage)
+
+            sha256hashstring(extractLegeerklaering(dump)) shouldEqual sha256hashstring(extractLegeerklaering(adjustedXml))
         }
     }
 })
