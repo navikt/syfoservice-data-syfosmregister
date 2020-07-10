@@ -37,7 +37,7 @@ class DatabasePale2Postgres(
             dataSource = dataSource,
             mountPath = env.mountPathVault,
             databaseName = env.databasePaleName,
-            role = Role.READONLY
+            role = Role.USER
         )
     }
 }
