@@ -36,7 +36,7 @@ class LegeerklaringService(private val environment: Environment, private val app
     init {
         val vaultServiceuser = getVaultServiceUser()
         val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
-        val consumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-consumer-3",
+        val consumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-consumer-4",
         StringDeserializer::class)
         kafkaConsumer = KafkaConsumer(consumerProperties)
     }
