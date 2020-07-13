@@ -45,8 +45,8 @@ class LegeerklaringService(private val environment: Environment, private val app
 
         val vaultServiceuser = getVaultServiceUser()
         val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
-        val consumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-consumer-7", StringDeserializer::class)
-        val hashConsumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-hash-3", StringDeserializer::class)
+        val consumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-consumer-8", StringDeserializer::class)
+        val hashConsumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-hash-4", StringDeserializer::class)
 
         kafkaConsumer = KafkaConsumer(consumerProperties)
         simpleLegeerklaringConsumer = KafkaConsumer(hashConsumerProperties)
