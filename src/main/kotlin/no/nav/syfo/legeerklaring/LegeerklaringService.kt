@@ -3,6 +3,7 @@ package no.nav.syfo.legeerklaring
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.time.Duration
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
@@ -14,6 +15,7 @@ import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.getVaultServiceUser
 import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
+import no.nav.syfo.kafka.toProducerConfig
 import no.nav.syfo.legeerklaring.LegeerklaringMapper.Companion.mapToXml
 import no.nav.syfo.legeerklaring.util.extractLegeerklaering
 import no.nav.syfo.legeerklaring.util.extractOrganisationHerNumberFromSender
@@ -28,22 +30,27 @@ import no.nav.syfo.utils.fellesformatMarshaller
 import no.nav.syfo.utils.get
 import no.nav.syfo.utils.toString
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringDeserializer
-import java.time.ZoneOffset
+import org.apache.kafka.common.serialization.StringSerializer
 
 class LegeerklaringService(private val environment: Environment, private val applicationState: ApplicationState) {
 
     private val kafkaConsumer: KafkaConsumer<String?, String>
     private val simpleLegeerklaringConsumer: KafkaConsumer<String?, String>
+    private val legeerklaringProducer: KafkaProducer<String, String>
     private val hashSet = HashSet<String>()
     init {
+
         val vaultServiceuser = getVaultServiceUser()
         val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
-        val consumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-consumer-7", StringDeserializer::class)
-        val hashConsumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-hash-3", StringDeserializer::class)
+        val consumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-consumer-8", StringDeserializer::class)
+        val hashConsumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-hash-5", StringDeserializer::class)
 
         kafkaConsumer = KafkaConsumer(consumerProperties)
         simpleLegeerklaringConsumer = KafkaConsumer(hashConsumerProperties)
+        legeerklaringProducer = KafkaProducer(kafkaBaseConfig.toProducerConfig("${environment.applicationName}-producer", StringSerializer::class))
     }
 
     suspend fun buildUpHash() {
@@ -78,44 +85,50 @@ class LegeerklaringService(private val environment: Environment, private val app
     }
 
     suspend fun start() {
-        buildUpHash()
-        var counter = 0
-        var missingCounter = 0
-        var duplicateCounter = 0
-        GlobalScope.launch {
-            while (applicationState.ready) {
-                log.info("Lest og mapped {} legeærklæringer, duplikater {}, missing {}", counter, duplicateCounter, missingCounter)
-                delay(10_000)
-            }
-        }
-        kafkaConsumer.subscribe(listOf(environment.pale2dump))
-        while (applicationState.ready) {
-            val records = kafkaConsumer.poll(Duration.ofMillis(1000))
-            records.forEach {
-                val fellesformat = mapToXml(it.value())
-                val receiverBlock = fellesformat.get<XMLMottakenhetBlokk>()
-                val msgHead = fellesformat.get<XMLMsgHead>()
-                val ediLoggId = receiverBlock.ediLoggId
-                val msgId = msgHead.msgInfo.msgId
-                val legekontorOrgNr = extractOrganisationNumberFromSender(fellesformat)?.id
-                val legeerklaringxml = extractLegeerklaering(fellesformat)
-                val sha256String = sha256hashstring(legeerklaringxml)
-                val fnrPasient = extractPersonIdent(legeerklaringxml)!!
-                val legekontorOrgName = extractSenderOrganisationName(fellesformat)
-                val fnrLege = receiverBlock.avsenderFnrFraDigSignatur
-                val legekontorHerId = extractOrganisationHerNumberFromSender(fellesformat)?.id
-                val legekontorReshId = extractOrganisationRashNumberFromSender(fellesformat)?.id
-                val stringToTopic = fellesformatMarshaller.toString(fellesformat)
-                counter ++
-                if (hashSet.contains(sha256String)) {
-                    duplicateCounter++
-                } else {
-                    hashSet.add(sha256String)
-                    log.info("found missing, received at {}", receiverBlock.mottattDatotid.toGregorianCalendar().toInstant().atZone(
-                        ZoneOffset.UTC))
-                    missingCounter++
+        try {
+            buildUpHash()
+            var counter = 0
+            var missingCounter = 0
+            var duplicateCounter = 0
+            GlobalScope.launch {
+                while (applicationState.ready) {
+                    log.info("Lest og mapped {} legeærklæringer, duplikater {}, missing {}", counter, duplicateCounter, missingCounter)
+                    delay(10_000)
                 }
             }
+            kafkaConsumer.subscribe(listOf(environment.pale2dump))
+            while (applicationState.ready) {
+                val records = kafkaConsumer.poll(Duration.ofMillis(1000))
+                records.forEach {
+                    val fellesformat = mapToXml(it.value())
+                    val receiverBlock = fellesformat.get<XMLMottakenhetBlokk>()
+                    val msgHead = fellesformat.get<XMLMsgHead>()
+                    val ediLoggId = receiverBlock.ediLoggId
+                    val msgId = msgHead.msgInfo.msgId
+                    val legekontorOrgNr = extractOrganisationNumberFromSender(fellesformat)?.id
+                    val legeerklaringxml = extractLegeerklaering(fellesformat)
+                    val sha256String = sha256hashstring(legeerklaringxml)
+                    val fnrPasient = extractPersonIdent(legeerklaringxml)!!
+                    val legekontorOrgName = extractSenderOrganisationName(fellesformat)
+                    val fnrLege = receiverBlock.avsenderFnrFraDigSignatur
+                    val legekontorHerId = extractOrganisationHerNumberFromSender(fellesformat)?.id
+                    val legekontorReshId = extractOrganisationRashNumberFromSender(fellesformat)?.id
+                    val stringToTopic = fellesformatMarshaller.toString(fellesformat)
+                    counter ++
+                    if (hashSet.contains(sha256String)) {
+                        duplicateCounter++
+                    } else {
+                        hashSet.add(sha256String)
+                        log.info("found missing publishing to rerun topic, received at {}", receiverBlock.mottattDatotid?.toGregorianCalendar()?.toInstant()?.atZone(
+                            ZoneOffset.UTC))
+                        missingCounter++
+                        legeerklaringProducer.send(ProducerRecord(environment.pale2RerunTopic, stringToTopic)).get()
+                    }
+                }
+            }
+        } catch (ex: Exception) {
+            log.error("Error handling dump topic", ex)
+            throw ex
         }
     }
 }

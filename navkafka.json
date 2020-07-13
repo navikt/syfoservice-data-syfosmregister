@@ -89,6 +89,24 @@
       "configEntries": {
         "retention.ms": "-1"
       }
+    },
+    {
+      "topicName": "pale-2-rerun-v1",
+      "members": [
+        {"member":"srvsyfoservice-dat", "role":"PRODUCER"},
+        {"member":"srvpale2", "role":"CONSUMER"},
+        {"member":"s151890", "role":"MANAGER"},
+        {"member":"k143566", "role":"MANAGER"},
+        {"member":"f133008", "role":"MANAGER"},
+        {"member":"n157016", "role":"MANAGER"},
+        {"member":"k157140", "role":"MANAGER"},
+        {"member":"g153850", "role":"MANAGER"},
+        {"member":"h157812", "role":"MANAGER"}
+      ],
+      "numPartitions": 3,
+      "configEntries": {
+        "retention.ms": "-1"
+      }
     }
   ]
 }
