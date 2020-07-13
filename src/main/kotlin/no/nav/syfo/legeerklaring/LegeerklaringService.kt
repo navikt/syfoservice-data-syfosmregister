@@ -46,7 +46,7 @@ class LegeerklaringService(private val environment: Environment, private val app
         val vaultServiceuser = getVaultServiceUser()
         val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
         val consumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-consumer-8", StringDeserializer::class)
-        val hashConsumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-hash-4", StringDeserializer::class)
+        val hashConsumerProperties = kafkaBaseConfig.toConsumerConfig("${environment.applicationName}-hash-5", StringDeserializer::class)
 
         kafkaConsumer = KafkaConsumer(consumerProperties)
         simpleLegeerklaringConsumer = KafkaConsumer(hashConsumerProperties)
@@ -119,7 +119,7 @@ class LegeerklaringService(private val environment: Environment, private val app
                         duplicateCounter++
                     } else {
                         hashSet.add(sha256String)
-                        log.info("found missing publishing to rerun topic, received at {}", receiverBlock.mottattDatotid.toGregorianCalendar().toInstant().atZone(
+                        log.info("found missing publishing to rerun topic, received at {}", receiverBlock.mottattDatotid?.toGregorianCalendar()?.toInstant()?.atZone(
                             ZoneOffset.UTC))
                         missingCounter++
                         legeerklaringProducer.send(ProducerRecord(environment.pale2RerunTopic, stringToTopic)).get()
