@@ -35,7 +35,8 @@ data class Environment(
     val mottattSykmeldingTopic: String = "syfo-mottatt-sykmelding",
     val sykmeldingStatusTopic: String = "aapen-syfo-sykmeldingstatus-leesah-v1",
     val sykmeldingStatusBackupTopic: String = "privat-syfo-register-status-backup",
-    val pale2dump: String = "privat-syfo-pale2-dump-v1"
+    val pale2dump: String = "privat-syfo-pale2-dump-v1",
+    val pale2RerunTopic: String = "pale-2-rerun-v1"
 ) : KafkaConfig
 
 data class VaultCredentials(
