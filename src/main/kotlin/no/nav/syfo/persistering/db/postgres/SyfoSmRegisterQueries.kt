@@ -941,6 +941,20 @@ fun DatabasePostgres.updateDiagnose(diagnose: Diagnosekoder.DiagnosekodeType, sy
     }
 }
 
+fun DatabasePostgres.updateSvangerskap(sykmeldingId: String, svangerskap: Boolean) {
+    connection.use { connection ->
+        connection.prepareStatement("""
+            UPDATE sykmeldingsdokument set sykmelding = jsonb_set(sykmelding, '{medisinskVurdering,svangerskap}', ?) where id = ?;
+        """).use {
+            it.setBoolean(1, svangerskap)
+            it.setString(2, sykmeldingId)
+            val updated = it.executeUpdate()
+            log.info("Updated {} sykmeldingsdokument", updated)
+        }
+        connection.commit()
+    }
+}
+
 fun DatabasePostgres.updatePeriode(periodeListe: List<Periode>, sykmeldingId: String) {
     connection.use { connection ->
         connection.prepareStatement("""
