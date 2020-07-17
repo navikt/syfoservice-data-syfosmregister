@@ -28,7 +28,6 @@ import no.nav.syfo.kafka.SykmeldingKafkaProducer
 import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
-import no.nav.syfo.legeerklaring.LegeerklaringService
 import no.nav.syfo.model.Behandlingsutfall
 import no.nav.syfo.model.Eia
 import no.nav.syfo.model.ReceivedSykmelding
@@ -36,6 +35,7 @@ import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.PeriodeService
+import no.nav.syfo.papirsykmelding.SvangerskapService
 import no.nav.syfo.sak.avro.RegisterTask
 import no.nav.syfo.service.BehandlingsutfallFraOppgaveTopicService
 import no.nav.syfo.service.CheckSendtSykmeldinger
@@ -108,7 +108,7 @@ fun main() {
     applicationState.ready = true
 
     GlobalScope.launch {
-        LegeerklaringService(environment, applicationState).start()
+        SvangerskapService(environment, applicationState).start()
     }
 }
 

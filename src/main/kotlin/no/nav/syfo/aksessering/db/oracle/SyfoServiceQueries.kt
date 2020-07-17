@@ -89,8 +89,7 @@ fun DatabaseInterfaceOracle.updateDocument(dokument: HelseOpplysningerArbeidsufo
         ).use {
             it.setString(1, getStringForDokument(dokument))
             it.setString(2, sykmeldingId)
-            val updated = it.executeUpdate()
-            log.info("Updated {} sykmeldingsdokument", updated)
+            it.executeUpdate()
         }
         connection.commit()
     }
