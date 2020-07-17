@@ -107,9 +107,9 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-    GlobalScope.launch {
-        SvangerskapService(environment, applicationState).start()
-    }
+//    GlobalScope.launch {
+//        SvangerskapService(environment, applicationState).start()
+//    }
 }
 
 fun updatePeriode(applicationState: ApplicationState, environment: Environment) {
