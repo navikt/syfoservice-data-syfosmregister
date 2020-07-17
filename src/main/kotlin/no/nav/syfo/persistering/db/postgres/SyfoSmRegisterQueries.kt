@@ -944,9 +944,9 @@ fun DatabasePostgres.updateDiagnose(diagnose: Diagnosekoder.DiagnosekodeType, sy
 fun DatabasePostgres.updateSvangerskap(sykmeldingId: String, svangerskap: Boolean) {
     connection.use { connection ->
         connection.prepareStatement("""
-            UPDATE sykmeldingsdokument set sykmelding = jsonb_set(sykmelding, '{medisinskVurdering,svangerskap}', ?) where id = ?;
+            UPDATE sykmeldingsdokument set sykmelding = jsonb_set(sykmelding, '{medisinskVurdering,svangerskap}', ?::jsonb) where id = ?;
         """).use {
-            it.setBoolean(1, svangerskap)
+            it.setString(1, svangerskap.toString())
             it.setString(2, sykmeldingId)
             val updated = it.executeUpdate()
             log.info("Updated {} sykmeldingsdokument", updated)
