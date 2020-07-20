@@ -16,6 +16,7 @@ import no.nav.syfo.model.ArbeidsgiverStatus
 import no.nav.syfo.model.Behandlingsutfall
 import no.nav.syfo.model.Diagnose
 import no.nav.syfo.model.Eia
+import no.nav.syfo.model.ErIkkeIArbeid
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.ShortName
 import no.nav.syfo.model.Sporsmal
@@ -977,6 +978,20 @@ fun DatabasePostgres.updatePeriode(periodeListe: List<Periode>, sykmeldingId: St
             UPDATE sykmeldingsdokument set sykmelding = jsonb_set(sykmelding, '{perioder}', ?::jsonb) where id = ?;
         """).use {
             it.setString(1, objectMapper.writeValueAsString(periodeListe))
+            it.setString(2, sykmeldingId)
+            val updated = it.executeUpdate()
+            log.info("Updated {} sykmeldingsdokument", updated)
+        }
+        connection.commit()
+    }
+}
+
+fun DatabasePostgres.updateErIkkeIArbeid(sykmeldingId: String, erIkkeIArbeid: ErIkkeIArbeid?) {
+    connection.use { connection ->
+        connection.prepareStatement("""
+            UPDATE sykmeldingsdokument set sykmelding = jsonb_set(sykmelding, '{prognose,erIkkeIArbeid}', ?::jsonb) where id = ?;
+        """).use {
+            it.setString(1, objectMapper.writeValueAsString(erIkkeIArbeid))
             it.setString(2, sykmeldingId)
             val updated = it.executeUpdate()
             log.info("Updated {} sykmeldingsdokument", updated)

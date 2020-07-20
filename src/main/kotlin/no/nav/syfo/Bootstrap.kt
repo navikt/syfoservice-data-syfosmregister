@@ -34,7 +34,7 @@ import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.PeriodeService
-import no.nav.syfo.papirsykmelding.SkjermesForPasientService
+import no.nav.syfo.papirsykmelding.PrognoseService
 import no.nav.syfo.sak.avro.RegisterTask
 import no.nav.syfo.service.BehandlingsutfallFraOppgaveTopicService
 import no.nav.syfo.service.CheckSendtSykmeldinger
@@ -107,9 +107,9 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-//    GlobalScope.launch {
-//        SkjermesForPasientService(environment, applicationState).start()
-//    }
+    GlobalScope.launch {
+        PrognoseService(environment, applicationState).setErIkkeIArbeidToNull()
+    }
 }
 
 fun updatePeriode(applicationState: ApplicationState, environment: Environment) {
