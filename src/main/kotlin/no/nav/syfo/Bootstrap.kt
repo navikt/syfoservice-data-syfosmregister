@@ -7,7 +7,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.ktor.util.KtorExperimentalAPI
-import java.time.LocalDate
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -35,7 +34,7 @@ import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.PeriodeService
-import no.nav.syfo.papirsykmelding.SvangerskapService
+import no.nav.syfo.papirsykmelding.SkjermesForPasientService
 import no.nav.syfo.sak.avro.RegisterTask
 import no.nav.syfo.service.BehandlingsutfallFraOppgaveTopicService
 import no.nav.syfo.service.CheckSendtSykmeldinger
@@ -73,6 +72,7 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 
 val objectMapper: ObjectMapper = ObjectMapper().apply {
     registerKotlinModule()
@@ -107,9 +107,9 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-//    GlobalScope.launch {
-//        SvangerskapService(environment, applicationState).start()
-//    }
+    GlobalScope.launch {
+        SkjermesForPasientService(environment, applicationState).start()
+    }
 }
 
 fun updatePeriode(applicationState: ApplicationState, environment: Environment) {

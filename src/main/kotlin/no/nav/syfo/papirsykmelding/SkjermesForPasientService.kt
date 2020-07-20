@@ -10,15 +10,19 @@ import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.db.VaultCredentialService
 import no.nav.syfo.log
-import no.nav.syfo.persistering.db.postgres.updateSvangerskap
+import no.nav.syfo.persistering.db.postgres.updateSkjermesForPasient
 import no.nav.syfo.utils.getFileAsString
 import no.nav.syfo.vault.RenewVaultService
 
-class SvangerskapService(environment: Environment, applicationState: ApplicationState) {
+class SkjermesForPasientService(private val environment: Environment, private val applicationState: ApplicationState) {
 
-    private val databasePostgres: DatabasePostgres
     private val databaseOracle: DatabaseOracle
-    private val tilOppdatering = emptyList<String>()
+    private val databasePostgres: DatabasePostgres
+    private val sykmeldingIds = listOf(
+        "b1ff3f43-85f2-4c04-874f-443173d6d349",
+        "ce657e35-ec31-4a36-a2b0-a30fa37951bc",
+        "f2196233-8f0a-4748-9b0f-3a7b6b151b6f"
+    )
 
     init {
         val vaultConfig = VaultConfig(
@@ -36,17 +40,17 @@ class SvangerskapService(environment: Environment, applicationState: Application
     }
 
     fun start() {
-        tilOppdatering.forEach { sykmeldingId ->
+        sykmeldingIds.forEach { sykmeldingId ->
             val result = databaseOracle.getSykmeldingsDokument(sykmeldingId)
 
             if (result.rows.isNotEmpty()) {
 
                 val document = result.rows.first()
                 if (document != null) {
-                    document.medisinskVurdering.isSvangerskap = false
+                    document.medisinskVurdering.isSkjermesForPasient = false
                     databaseOracle.updateDocument(document, sykmeldingId)
                 }
-                val updated = databasePostgres.updateSvangerskap(sykmeldingId, false)
+                val updated = databasePostgres.updateSkjermesForPasient(sykmeldingId, false)
                 log.info("updating {} sykmelding dokument with sykmelding id {}", updated, sykmeldingId)
             } else {
                 log.info("Could not find sykmelidng with id {}", sykmeldingId)

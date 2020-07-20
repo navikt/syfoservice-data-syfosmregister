@@ -956,6 +956,21 @@ fun DatabasePostgres.updateSvangerskap(sykmeldingId: String, svangerskap: Boolea
     }
 }
 
+fun DatabasePostgres.updateSkjermesForPasient(sykmeldingId: String, skjermet: Boolean): Int {
+    var updated = 0
+    connection.use { connection ->
+        connection.prepareStatement("""
+            UPDATE sykmeldingsdokument set sykmelding = jsonb_set(sykmelding, '{medisinskVurdering,skjermetForPasient}', ?::jsonb) where id = ?;
+        """).use {
+            it.setString(1, skjermet.toString())
+            it.setString(2, sykmeldingId)
+            updated = it.executeUpdate()
+        }
+        connection.commit()
+        return updated
+    }
+}
+
 fun DatabasePostgres.updatePeriode(periodeListe: List<Periode>, sykmeldingId: String) {
     connection.use { connection ->
         connection.prepareStatement("""
