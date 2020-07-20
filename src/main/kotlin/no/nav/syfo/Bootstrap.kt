@@ -107,9 +107,9 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-    GlobalScope.launch {
-        SkjermesForPasientService(environment, applicationState).start()
-    }
+//    GlobalScope.launch {
+//        SkjermesForPasientService(environment, applicationState).start()
+//    }
 }
 
 fun updatePeriode(applicationState: ApplicationState, environment: Environment) {

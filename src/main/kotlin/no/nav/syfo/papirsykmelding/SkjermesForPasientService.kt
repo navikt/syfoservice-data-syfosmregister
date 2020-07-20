@@ -18,11 +18,7 @@ class SkjermesForPasientService(private val environment: Environment, private va
 
     private val databaseOracle: DatabaseOracle
     private val databasePostgres: DatabasePostgres
-    private val sykmeldingIds = listOf(
-        "b1ff3f43-85f2-4c04-874f-443173d6d349",
-        "ce657e35-ec31-4a36-a2b0-a30fa37951bc",
-        "f2196233-8f0a-4748-9b0f-3a7b6b151b6f"
-    )
+    private val sykmeldingIds = emptyList<String>()
 
     init {
         val vaultConfig = VaultConfig(
