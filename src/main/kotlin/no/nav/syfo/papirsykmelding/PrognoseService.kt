@@ -18,7 +18,7 @@ class PrognoseService(environment: Environment, applicationState: ApplicationSta
 
     private val databasePostgres: DatabasePostgres
     private val databaseOracle: DatabaseOracle
-    private val sykmeldingIds = listOf("f0763775-15ec-44ae-bbc9-732ac2134675")
+    private val sykmeldingIds = emptyList<String>()
     init {
         val vaultConfig = VaultConfig(
             jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
