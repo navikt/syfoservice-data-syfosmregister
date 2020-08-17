@@ -107,9 +107,9 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-//    GlobalScope.launch {
-//        PrognoseService(environment, applicationState).setErIkkeIArbeidToNull()
-//    }
+    GlobalScope.launch {
+        updateDiagnose(applicationState, environment)
+    }
 }
 
 fun updatePeriode(applicationState: ApplicationState, environment: Environment) {
