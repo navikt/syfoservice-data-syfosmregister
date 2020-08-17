@@ -10,8 +10,9 @@ import no.nav.syfo.sm.Diagnosekoder
 
 class DiagnoseService(private val databaseoracle: DatabaseOracle, private val databasePostgres: DatabasePostgres) {
 
-    val sykmeldingId = "empty"
-    val correctSystem = Diagnosekoder.ICPC2_CODE
+    val sykmeldingId = "88e38270-4278-4d3b-8640-793c7b4565e9"
+    val correctSystem = Diagnosekoder.ICD10_CODE
+    val correctDiagnose = "L600"
 
     fun start() {
         val result = databaseoracle.getSykmeldingsDokument(sykmeldingId)
@@ -20,7 +21,8 @@ class DiagnoseService(private val databaseoracle: DatabaseOracle, private val da
             log.info("updating sykmelding dokument with sykmelding id {}", sykmeldingId)
             val document = result.rows.first()
             if (document != null) {
-                val diagnoseKode = document.medisinskVurdering.hovedDiagnose.diagnosekode.v
+                // val diagnoseKode = document.medisinskVurdering.hovedDiagnose.diagnosekode.v
+                val diagnoseKode = correctDiagnose
                 val diagnose = when (correctSystem) {
                     Diagnosekoder.ICD10_CODE -> Diagnosekoder.icd10[diagnoseKode] ?: error("Could not find diagnose")
                     Diagnosekoder.ICPC2_CODE -> Diagnosekoder.icpc2[diagnoseKode] ?: error("Could not find diagnose")
