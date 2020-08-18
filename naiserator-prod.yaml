@@ -58,6 +58,8 @@ spec:
       value: jdbc:postgresql://fsspgdb.adeo.no:5432/syfosmregister
     - name: PALE_2_REGISTER_DB_URL
       value: jdbc:postgresql://A01DBVL011.adeo.no:5432/pale-2-register
+    - name: SPARENAPROXY_DB_URL
+      value: jdbc:postgresql://A01DBVL014.adeo.no:5432/sparenaproxy
     - name: MOUNT_PATH_VAULT
       value: /postgresql/prod-fss
     - name: LAST_INDEX_EIA
@@ -68,3 +70,5 @@ spec:
       value: "2016-01-01"
     - name: LAST_INDEX_BACKUP
       value: "2019-05-01"
+    - name: LAST_INDEX_SPARENAPROXY
+      value: "2020-06-03"

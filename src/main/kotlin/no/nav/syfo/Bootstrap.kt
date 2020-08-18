@@ -17,6 +17,7 @@ import no.nav.syfo.application.createApplicationEngine
 import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.db.DatabasePostgresUtenVault
+import no.nav.syfo.db.DatabaseSparenaproxyPostgres
 import no.nav.syfo.db.VaultCredentialService
 import no.nav.syfo.kafka.BehandlingsutfallKafkaProducer
 import no.nav.syfo.kafka.EiaSykmeldingKafkaProducer
@@ -56,6 +57,7 @@ import no.nav.syfo.service.SkrivTilSyfosmRegisterSyfoService
 import no.nav.syfo.service.UpdateArbeidsgiverWhenSendtService
 import no.nav.syfo.service.UpdateStatusService
 import no.nav.syfo.service.WriteReceivedSykmeldingService
+import no.nav.syfo.sparenaproxy.Arena39UkerService
 import no.nav.syfo.sykmelding.BekreftSykmeldingService
 import no.nav.syfo.sykmelding.EnkelSykmeldingKafkaProducer
 import no.nav.syfo.sykmelding.MottattSykmeldingKafkaProducer
@@ -73,6 +75,8 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.ZoneId
+import java.time.ZoneOffset
 
 val objectMapper: ObjectMapper = ObjectMapper().apply {
     registerKotlinModule()
@@ -107,9 +111,9 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-    // GlobalScope.launch {
-    //     updateDiagnose(applicationState, environment)
-    // }
+    GlobalScope.launch {
+        opprett39ukersmeldinger(applicationState, environment)
+    }
 }
 
 fun updatePeriode(applicationState: ApplicationState, environment: Environment) {
@@ -170,6 +174,21 @@ fun updateDiagnose(applicationState: ApplicationState, environment: Environment)
 
     val diagnoseService = DiagnoseService(databaseOracle, databasePostgres)
     diagnoseService.start()
+}
+
+fun opprett39ukersmeldinger(applicationState: ApplicationState, environment: Environment) {
+    val vaultCredentialService = VaultCredentialService()
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+
+    val databasePostgres = DatabaseSparenaproxyPostgres(environment, vaultCredentialService)
+    val service = Arena39UkerService(
+        applicationState,
+        databasePostgres,
+        LocalDate.parse(environment.lastIndexSparenaproxy).atStartOfDay().atZone(ZoneId.systemDefault()).withZoneSameInstant(
+            ZoneOffset.UTC
+        ).toOffsetDateTime()
+    )
+    service.run()
 }
 
 fun skrivMangledeSykmeldingTilTopic(applicationState: ApplicationState, environment: Environment) {
