@@ -71,4 +71,4 @@ spec:
     - name: LAST_INDEX_BACKUP
       value: "2019-05-01"
     - name: LAST_INDEX_SPARENAPROXY
-      value: "2020-06-03"
+      value: "2020-06-20"
