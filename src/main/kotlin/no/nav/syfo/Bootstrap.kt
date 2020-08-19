@@ -111,9 +111,9 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-    GlobalScope.launch {
-        opprett39ukersmeldinger(applicationState, environment)
-    }
+    // GlobalScope.launch {
+    //     opprett39ukersmeldinger(applicationState, environment)
+    // }
 }
 
 fun updatePeriode(applicationState: ApplicationState, environment: Environment) {
