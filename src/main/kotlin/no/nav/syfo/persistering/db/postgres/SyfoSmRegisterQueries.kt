@@ -141,6 +141,34 @@ fun Connection.getSykmeldingMedSisteStatus(lastMottattTidspunkt: LocalDate): Lis
         }
     }
 
+fun Connection.getSykmeldingMedSisteStatus(sykmeldingId: String): List<EnkelSykmeldingDbModel> =
+    use {
+        this.prepareStatement(
+            """
+                    SELECT opplysninger.id,
+                    pasient_fnr,
+                    mottatt_tidspunkt,
+                    behandlingsutfall,
+                    legekontor_org_nr,
+                    sykmelding,
+                    status.event,
+                    status.event_timestamp,
+                    arbeidsgiver.orgnummer,
+                    arbeidsgiver.juridisk_orgnummer,
+                    arbeidsgiver.navn
+                    FROM sykmeldingsopplysninger AS opplysninger
+                        INNER JOIN sykmeldingsdokument AS dokument ON opplysninger.id = dokument.id
+                        INNER JOIN behandlingsutfall AS utfall ON opplysninger.id = utfall.id
+                        INNER JOIN sykmeldingstatus AS status ON opplysninger.id = status.sykmelding_id AND status.event = 'SENDT'
+                        INNER JOIN arbeidsgiver as arbeidsgiver on arbeidsgiver.sykmelding_id = opplysninger.id
+                     WHERE opplysninger.id = ?                                                        
+                    """
+        ).use {
+            it.setString(1, sykmeldingId)
+            it.executeQuery().toList { toSendtSykmeldingDbModel() }
+        }
+    }
+
 fun Connection.getSykmeldingMedSisteStatusBekreftet(lastMottattTidspunkt: LocalDate): List<EnkelSykmeldingDbModel> =
     use {
         this.prepareStatement(

@@ -22,6 +22,7 @@ import no.nav.syfo.persistering.db.postgres.getSykmeldingMedSisteStatus
 import no.nav.syfo.sykmelding.kafka.model.SykmeldingKafkaMessage
 import no.nav.syfo.sykmelding.kafka.model.toEnkelSykmelding
 import no.nav.syfo.sykmelding.model.EnkelSykmeldingDbModel
+import java.util.UUID
 
 class SendtSykmeldingService(
     private val applicationState: ApplicationState,
@@ -29,6 +30,23 @@ class SendtSykmeldingService(
     private val sendtSykmeldingProducer: EnkelSykmeldingKafkaProducer,
     private val lastMottattDato: LocalDate
 ) {
+
+    fun republishSendtSykmelding() {
+        val sykmeldingsid = "fdf5065c-4fc2-4456-b643-30500e8b6f9e"
+        val dbmodels = databasePostgres.connection.getSykmeldingMedSisteStatus(sykmeldingsid)
+        if (dbmodels.size > 1) {
+            log.error("Fant flere sykmeldinger")
+            throw RuntimeException("Fant mer enn en sykmelding")
+        }
+        try {
+            val mapped = mapSykmelding(dbmodels.first())
+            sendtSykmeldingProducer.sendSykmelding(mapped)
+            log.info("Resendt sykmelding til topic")
+        } catch (ex: Exception) {
+            log.error("noe gikk galt med sykmelding", ex)
+            throw ex
+        }
+    }
 
     fun run() {
         var counterSendtSykmeldinger = 0
