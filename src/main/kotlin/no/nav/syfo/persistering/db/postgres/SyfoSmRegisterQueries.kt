@@ -152,7 +152,7 @@ fun Connection.getSykmeldingMedSisteStatus(sykmeldingId: String): List<EnkelSykm
                     legekontor_org_nr,
                     sykmelding,
                     status.event,
-                    status.event_timestamp,
+                    status.timestamp,
                     arbeidsgiver.orgnummer,
                     arbeidsgiver.juridisk_orgnummer,
                     arbeidsgiver.navn

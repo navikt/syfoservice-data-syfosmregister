@@ -33,7 +33,7 @@ enum class StatusEvent {
 
 private fun ResultSet.getStatus(): StatusDbModel {
     val status = getString("event")
-    val status_timestamp = getTimestamp("event_timestamp").toLocalDateTime()
+    val status_timestamp = getTimestamp("timestamp").toLocalDateTime()
     val arbeidsgiverDbModel = when (status) {
         StatusEvent.SENDT.name -> ArbeidsgiverDbModel(
             orgnummer = getString("orgnummer"),
