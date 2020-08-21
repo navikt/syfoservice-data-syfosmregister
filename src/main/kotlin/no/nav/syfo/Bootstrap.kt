@@ -111,9 +111,9 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-    GlobalScope.launch {
-        sendSendtSykmeldinger(applicationState, environment)
-    }
+    // GlobalScope.launch {
+    //     sendSendtSykmeldinger(applicationState, environment)
+    // }
 }
 
 fun updatePeriode(applicationState: ApplicationState, environment: Environment) {
