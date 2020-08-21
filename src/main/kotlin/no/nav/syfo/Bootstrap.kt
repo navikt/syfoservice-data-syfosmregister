@@ -111,9 +111,9 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-    // GlobalScope.launch {
-    //     opprett39ukersmeldinger(applicationState, environment)
-    // }
+    GlobalScope.launch {
+        sendSendtSykmeldinger(applicationState, environment)
+    }
 }
 
 fun updatePeriode(applicationState: ApplicationState, environment: Environment) {
@@ -296,7 +296,7 @@ fun sendBekreftetSykmeldinger(applicationState: ApplicationState, environment: E
     service.run()
 }
 
-fun sendSendtSykmelidnger(applicationState: ApplicationState, environment: Environment) {
+fun sendSendtSykmeldinger(applicationState: ApplicationState, environment: Environment) {
     val vaultServiceuser = getVaultServiceUser()
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
 
@@ -318,7 +318,7 @@ fun sendSendtSykmelidnger(applicationState: ApplicationState, environment: Envir
         sendSykmeldingKafkaProducer,
         LocalDate.parse(environment.lastIndexSyfosmregister)
     )
-    service.run()
+    service.republishSendtSykmelding()
 }
 
 fun opprettPdf(applicationState: ApplicationState, environment: Environment) {
