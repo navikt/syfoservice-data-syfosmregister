@@ -15,9 +15,9 @@ import no.nav.syfo.model.ShortName
 import no.nav.syfo.model.Sporsmal
 import no.nav.syfo.model.Svartype
 import no.nav.syfo.model.sykmeldingstatus.KafkaMetadataDTO
+import no.nav.syfo.model.sykmeldingstatus.STATUS_BEKREFTET
 import no.nav.syfo.model.sykmeldingstatus.ShortNameDTO
 import no.nav.syfo.model.sykmeldingstatus.SporsmalOgSvarDTO
-import no.nav.syfo.model.sykmeldingstatus.StatusEventDTO
 import no.nav.syfo.model.sykmeldingstatus.SvartypeDTO
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaEventDTO
 import no.nav.syfo.persistering.db.postgres.getSykmeldingMedSisteStatusBekreftet
@@ -102,7 +102,7 @@ class BekreftSykmeldingService(
         val sykmeldingStatusKafkaEventDTO = SykmeldingStatusKafkaEventDTO(
             metadata.sykmeldingId,
             metadata.timestamp,
-            StatusEventDTO.BEKREFTET,
+            STATUS_BEKREFTET,
             null,
             sporsmalDto
         )

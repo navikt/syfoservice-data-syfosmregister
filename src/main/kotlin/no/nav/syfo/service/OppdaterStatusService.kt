@@ -5,7 +5,7 @@ import java.time.ZoneOffset
 import no.nav.syfo.aksessering.db.oracle.settTilNy
 import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.log
-import no.nav.syfo.model.sykmeldingstatus.StatusEventDTO
+import no.nav.syfo.model.sykmeldingstatus.STATUS_APEN
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaEventDTO
 import no.nav.syfo.sykmelding.SykmeldingStatusKafkaProducer
 
@@ -17,7 +17,7 @@ class OppdaterStatusService(private val databaseoracle: DatabaseOracle, private 
         val sykmeldingStatusKafkaEventDTO = SykmeldingStatusKafkaEventDTO(
             sykmeldingId = sykmeldingId,
             timestamp = OffsetDateTime.now(ZoneOffset.UTC),
-            statusEvent = StatusEventDTO.APEN,
+            statusEvent = STATUS_APEN,
             arbeidsgiver = null,
             sporsmals = null
         )

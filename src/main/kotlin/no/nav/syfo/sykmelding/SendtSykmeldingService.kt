@@ -13,16 +13,15 @@ import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.log
 import no.nav.syfo.model.sykmeldingstatus.ArbeidsgiverStatusDTO
 import no.nav.syfo.model.sykmeldingstatus.KafkaMetadataDTO
+import no.nav.syfo.model.sykmeldingstatus.STATUS_SENDT
 import no.nav.syfo.model.sykmeldingstatus.ShortNameDTO
 import no.nav.syfo.model.sykmeldingstatus.SporsmalOgSvarDTO
-import no.nav.syfo.model.sykmeldingstatus.StatusEventDTO
 import no.nav.syfo.model.sykmeldingstatus.SvartypeDTO
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaEventDTO
 import no.nav.syfo.persistering.db.postgres.getSykmeldingMedSisteStatus
 import no.nav.syfo.sykmelding.kafka.model.SykmeldingKafkaMessage
 import no.nav.syfo.sykmelding.kafka.model.toEnkelSykmelding
 import no.nav.syfo.sykmelding.model.EnkelSykmeldingDbModel
-import java.util.UUID
 
 class SendtSykmeldingService(
     private val applicationState: ApplicationState,
@@ -95,7 +94,7 @@ class SendtSykmeldingService(
         val sykmeldingStatusKafkaEventDTO = SykmeldingStatusKafkaEventDTO(
             metadata.sykmeldingId,
             metadata.timestamp,
-            StatusEventDTO.SENDT,
+            STATUS_SENDT,
             ArbeidsgiverStatusDTO(
                 it.status.arbeidsgiver!!.orgnummer,
                 it.status.arbeidsgiver!!.juridiskOrgnummer,

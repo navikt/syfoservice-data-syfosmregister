@@ -1,5 +1,9 @@
 package no.nav.syfo.sparenaproxy
 
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.util.UUID
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
@@ -8,10 +12,6 @@ import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabaseSparenaproxyPostgres
 import no.nav.syfo.log
-import java.time.OffsetDateTime
-import java.time.ZoneId
-import java.time.ZoneOffset
-import java.util.UUID
 
 class Arena39UkerService(
     private val applicationState: ApplicationState,
