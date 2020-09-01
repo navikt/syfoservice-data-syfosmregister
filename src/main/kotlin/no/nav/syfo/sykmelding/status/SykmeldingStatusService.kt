@@ -24,9 +24,14 @@ import no.nav.syfo.model.Svartype
 import no.nav.syfo.model.SykmeldingStatusEvent
 import no.nav.syfo.model.sykmeldingstatus.ArbeidsgiverStatusDTO
 import no.nav.syfo.model.sykmeldingstatus.KafkaMetadataDTO
+import no.nav.syfo.model.sykmeldingstatus.STATUS_APEN
+import no.nav.syfo.model.sykmeldingstatus.STATUS_AVBRUTT
+import no.nav.syfo.model.sykmeldingstatus.STATUS_BEKREFTET
+import no.nav.syfo.model.sykmeldingstatus.STATUS_SENDT
+import no.nav.syfo.model.sykmeldingstatus.STATUS_SLETTET
+import no.nav.syfo.model.sykmeldingstatus.STATUS_UTGATT
 import no.nav.syfo.model.sykmeldingstatus.ShortNameDTO
 import no.nav.syfo.model.sykmeldingstatus.SporsmalOgSvarDTO
-import no.nav.syfo.model.sykmeldingstatus.StatusEventDTO
 import no.nav.syfo.model.sykmeldingstatus.SvartypeDTO
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaEventDTO
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
@@ -280,14 +285,14 @@ private fun ArbeidsgiverStatus.toDto(): ArbeidsgiverStatusDTO? {
     )
 }
 
-private fun StatusEvent.toDto(): StatusEventDTO {
+private fun StatusEvent.toDto(): String {
     return when (this) {
-        StatusEvent.APEN -> StatusEventDTO.APEN
-        StatusEvent.AVBRUTT -> StatusEventDTO.AVBRUTT
-        StatusEvent.UTGATT -> StatusEventDTO.UTGATT
-        StatusEvent.SENDT -> StatusEventDTO.SENDT
-        StatusEvent.BEKREFTET -> StatusEventDTO.BEKREFTET
-
+        StatusEvent.APEN -> STATUS_APEN
+        StatusEvent.AVBRUTT -> STATUS_AVBRUTT
+        StatusEvent.UTGATT -> STATUS_UTGATT
+        StatusEvent.SENDT -> STATUS_SENDT
+        StatusEvent.BEKREFTET -> STATUS_BEKREFTET
+        StatusEvent.SLETTET -> STATUS_SLETTET
         else -> throw IllegalArgumentException("Got Illegal status ${this.name}")
     }
 }

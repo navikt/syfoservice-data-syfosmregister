@@ -24,7 +24,7 @@ val jaxbApiVersion = "2.4.0-b180830.0359"
 val javaxActivationVersion = "1.1.1"
 val ojdbc8Version = "19.3.0.0"
 val mockkVersion = "1.9.3"
-val smCommonVersion = "1.7cb158e"
+val smCommonVersion = "1.c22544d"
 val sykmeldingVersion = "2019.07.29-02-53-86b22e73f7843e422ee500b486dac387a582f2d1"
 val fellesformatVersion = "2019.07.30-12-26-5c924ef4f04022bbb850aaf299eb8e4464c1ca6a"
 val kithHodemeldingVersion = "2019.07.30-12-26-5c924ef4f04022bbb850aaf299eb8e4464c1ca6a"
@@ -36,7 +36,6 @@ val infotrygdForespVersion = "2019.07.29-02-53-86b22e73f7843e422ee500b486dac387a
 val avroVersion = "1.8.2"
 val confluentVersion = "5.0.0"
 val syfoAvroSchemasVersion = "c8be932543e7356a34690ce7979d494c5d8516d8"
-val smCommonDiagnosisCodesVersion = "1.68817ee"
 val legeerklaering = "2019.07.29-02-53-86b22e73f7843e422ee500b486dac387a582f2d1"
 plugins {
     kotlin("jvm") version "1.3.60"
@@ -91,7 +90,7 @@ dependencies {
     implementation("no.nav.helse:syfosm-common-kafka:$smCommonVersion")
     implementation ("no.nav.helse.xml:infotrygd-foresp:$infotrygdForespVersion")
     implementation ("no.nav.helse.xml:kontrollsystemblokk:$kontrollsystemblokk")
-    implementation("no.nav.helse:syfosm-common-diagnosis-codes:$smCommonDiagnosisCodesVersion")
+    implementation("no.nav.helse:syfosm-common-diagnosis-codes:$smCommonVersion")
     implementation("com.migesok:jaxb-java-time-adapters:$javaTimeAdapterVersion")
 
     implementation("javax.xml.ws:jaxws-api:$javaxJaxwsApiVersion")

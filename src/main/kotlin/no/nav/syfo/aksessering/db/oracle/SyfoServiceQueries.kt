@@ -111,6 +111,22 @@ fun DatabaseInterfaceOracle.settTilNy(sykmeldingId: String) {
     }
 }
 
+fun DatabaseInterfaceOracle.settTilSlettet(sykmeldingId: String) {
+    connection.use { connection ->
+        connection.prepareStatement(
+            """
+                update SYKMELDING_DOK set status = 'SLETTET', sendt_til_arbeidsgiver_dato = NULL
+                WHERE MELDING_ID = ?
+                """
+        ).use {
+            it.setString(1, sykmeldingId)
+            val updated = it.executeUpdate()
+            log.info("Updated {} status", updated)
+        }
+        connection.commit()
+    }
+}
+
 fun DatabaseInterfaceOracle.hentSykmeldingFraSyfoService(sykmeldingIds: List<String>): DatabaseResult<MutableMap<String, Any?>> =
     connection.use { connection ->
         connection.prepareStatement(

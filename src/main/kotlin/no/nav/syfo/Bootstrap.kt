@@ -8,6 +8,8 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.ktor.util.KtorExperimentalAPI
 import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZoneOffset
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -36,7 +38,6 @@ import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.PeriodeService
-import no.nav.syfo.papirsykmelding.PrognoseService
 import no.nav.syfo.sak.avro.RegisterTask
 import no.nav.syfo.service.BehandlingsutfallFraOppgaveTopicService
 import no.nav.syfo.service.CheckSendtSykmeldinger
@@ -59,6 +60,7 @@ import no.nav.syfo.service.UpdateStatusService
 import no.nav.syfo.service.WriteReceivedSykmeldingService
 import no.nav.syfo.sparenaproxy.Arena39UkerService
 import no.nav.syfo.sykmelding.BekreftSykmeldingService
+import no.nav.syfo.sykmelding.DeleteSykmeldingService
 import no.nav.syfo.sykmelding.EnkelSykmeldingKafkaProducer
 import no.nav.syfo.sykmelding.MottattSykmeldingKafkaProducer
 import no.nav.syfo.sykmelding.MottattSykmeldingService
@@ -75,8 +77,6 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.time.ZoneId
-import java.time.ZoneOffset
 
 val objectMapper: ObjectMapper = ObjectMapper().apply {
     registerKotlinModule()
@@ -111,9 +111,7 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-    // GlobalScope.launch {
-    //     updateDiagnose(applicationState, environment)
-    // }
+    DeleteSykmeldingService(environment, applicationState).deleteSykmelding()
 }
 
 fun updatePeriode(applicationState: ApplicationState, environment: Environment) {
