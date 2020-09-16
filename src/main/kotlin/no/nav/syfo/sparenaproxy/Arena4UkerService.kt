@@ -13,19 +13,19 @@ import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabaseSparenaproxyPostgres
 import no.nav.syfo.log
 
-class Arena39UkerService(
+class Arena4UkerService(
     private val applicationState: ApplicationState,
     private val databasePostgres: DatabaseSparenaproxyPostgres,
     private val lastOpprettetDato: OffsetDateTime
 ) {
     fun run() {
-        var counter39Ukersmeldinger = 0
+        var counter4Ukersmeldinger = 0
         var lastOpprettetDato = lastOpprettetDato
         val loggingJob = GlobalScope.launch {
             while (applicationState.ready) {
                 log.info(
-                    "Antall 39-ukersmeldinger som er opprettet: {}, lastOpprettetDato {}",
-                    counter39Ukersmeldinger,
+                    "Antall 4-ukersmeldinger som er opprettet: {}, lastOpprettetDato {}",
+                    counter4Ukersmeldinger,
                     lastOpprettetDato
                 )
                 delay(10_000)
@@ -36,15 +36,15 @@ class Arena39UkerService(
 
             dbmodels.forEach {
                 try {
-                    if (!databasePostgres.planlagt39UkersmeldingFinnes(it.fnr, it.startdato)) {
+                    if (!databasePostgres.planlagt4UkersmeldingFinnes(it.fnr, it.startdato)) {
                         databasePostgres.lagrePlanlagtMelding(
                             PlanlagtMeldingDbModel(
                                 id = UUID.randomUUID(),
                                 fnr = it.fnr,
                                 startdato = it.startdato,
-                                type = BREV_39_UKER_TYPE,
+                                type = BREV_4_UKER_TYPE,
                                 opprettet = OffsetDateTime.now(ZoneOffset.UTC),
-                                sendes = it.startdato.plusWeeks(39).atStartOfDay().atZone(ZoneId.systemDefault()).withZoneSameInstant(
+                                sendes = it.startdato.plusWeeks(4).atStartOfDay().atZone(ZoneId.systemDefault()).withZoneSameInstant(
                                     ZoneOffset.UTC
                                 ).toOffsetDateTime()
                             )
@@ -59,13 +59,13 @@ class Arena39UkerService(
                     )
                     throw ex
                 }
-                counter39Ukersmeldinger++
+                counter4Ukersmeldinger++
             }
             lastOpprettetDato = lastOpprettetDato.plusDays(1)
         }
         log.info(
-            "Ferdig med alle 39-ukersmeldingene, totalt {}, siste dato {}",
-            counter39Ukersmeldinger,
+            "Ferdig med alle 4-ukersmeldingene, totalt {}, siste dato {}",
+            counter4Ukersmeldinger,
             lastOpprettetDato
         )
         runBlocking {

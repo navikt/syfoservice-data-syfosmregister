@@ -19,15 +19,16 @@ fun DatabaseSparenaproxyPostgres.getPlanlagte8Ukersmeldinger(lastOpprettetTidspu
         }
     }
 
-fun DatabaseSparenaproxyPostgres.planlagt39UkersmeldingFinnes(fnr: String, startdato: LocalDate): Boolean =
+fun DatabaseSparenaproxyPostgres.planlagt4UkersmeldingFinnes(fnr: String, startdato: LocalDate): Boolean =
     connection.use { connection ->
         connection.prepareStatement(
             """
-            SELECT 1 FROM planlagt_melding WHERE fnr=? AND startdato=? AND type='39UKER';
+            SELECT 1 FROM planlagt_melding WHERE fnr=? AND startdato=? AND type=?;
             """
         ).use {
             it.setString(1, fnr)
             it.setObject(2, startdato)
+            it.setString(3, BREV_4_UKER_TYPE)
             it.executeQuery().next()
         }
     }

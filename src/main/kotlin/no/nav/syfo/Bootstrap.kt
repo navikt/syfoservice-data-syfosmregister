@@ -58,9 +58,8 @@ import no.nav.syfo.service.SkrivTilSyfosmRegisterSyfoService
 import no.nav.syfo.service.UpdateArbeidsgiverWhenSendtService
 import no.nav.syfo.service.UpdateStatusService
 import no.nav.syfo.service.WriteReceivedSykmeldingService
-import no.nav.syfo.sparenaproxy.Arena39UkerService
+import no.nav.syfo.sparenaproxy.Arena4UkerService
 import no.nav.syfo.sykmelding.BekreftSykmeldingService
-import no.nav.syfo.sykmelding.DeleteSykmeldingService
 import no.nav.syfo.sykmelding.EnkelSykmeldingKafkaProducer
 import no.nav.syfo.sykmelding.MottattSykmeldingKafkaProducer
 import no.nav.syfo.sykmelding.MottattSykmeldingService
@@ -110,7 +109,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-
+    opprett4ukersmeldinger(applicationState, environment)
    //DeleteSykmeldingService(environment, applicationState).deleteSykmelding()
 }
 
@@ -174,12 +173,12 @@ fun updateDiagnose(applicationState: ApplicationState, environment: Environment)
     diagnoseService.start()
 }
 
-fun opprett39ukersmeldinger(applicationState: ApplicationState, environment: Environment) {
+fun opprett4ukersmeldinger(applicationState: ApplicationState, environment: Environment) {
     val vaultCredentialService = VaultCredentialService()
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
 
     val databasePostgres = DatabaseSparenaproxyPostgres(environment, vaultCredentialService)
-    val service = Arena39UkerService(
+    val service = Arena4UkerService(
         applicationState,
         databasePostgres,
         LocalDate.parse(environment.lastIndexSparenaproxy).atStartOfDay().atZone(ZoneId.systemDefault()).withZoneSameInstant(
