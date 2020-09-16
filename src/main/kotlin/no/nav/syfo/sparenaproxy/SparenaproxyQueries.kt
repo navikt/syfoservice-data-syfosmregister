@@ -19,15 +19,16 @@ fun DatabaseSparenaproxyPostgres.getPlanlagte8Ukersmeldinger(lastOpprettetTidspu
         }
     }
 
-fun DatabaseSparenaproxyPostgres.planlagt39UkersmeldingFinnes(fnr: String, startdato: LocalDate): Boolean =
+fun DatabaseSparenaproxyPostgres.planlagt4UkersmeldingFinnes(fnr: String, startdato: LocalDate): Boolean =
     connection.use { connection ->
         connection.prepareStatement(
             """
-            SELECT 1 FROM planlagt_melding WHERE fnr=? AND startdato=? AND type='39UKER';
+            SELECT 1 FROM planlagt_melding WHERE fnr=? AND startdato=? AND type=?;
             """
         ).use {
             it.setString(1, fnr)
             it.setObject(2, startdato)
+            it.setString(3, BREV_4_UKER_TYPE)
             it.executeQuery().next()
         }
     }
@@ -42,8 +43,9 @@ fun DatabaseSparenaproxyPostgres.lagrePlanlagtMelding(planlagtMeldingDbModel: Pl
                 startdato,
                 type,
                 opprettet,
-                sendes)
-            VALUES (?, ?, ?, ?, ?, ?)
+                sendes,
+                avbrutt)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
              """
         ).use {
             it.setObject(1, planlagtMeldingDbModel.id)
@@ -52,6 +54,7 @@ fun DatabaseSparenaproxyPostgres.lagrePlanlagtMelding(planlagtMeldingDbModel: Pl
             it.setString(4, planlagtMeldingDbModel.type)
             it.setTimestamp(5, java.sql.Timestamp.from(planlagtMeldingDbModel.opprettet.toInstant()))
             it.setTimestamp(6, java.sql.Timestamp.from(planlagtMeldingDbModel.sendes.toInstant()))
+            it.setTimestamp(7, planlagtMeldingDbModel.avbrutt?.let { java.sql.Timestamp.from(planlagtMeldingDbModel.avbrutt.toInstant())})
             it.execute()
         }
         connection.commit()
