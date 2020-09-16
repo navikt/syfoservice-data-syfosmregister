@@ -109,7 +109,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    opprett4ukersmeldinger(applicationState, environment)
+    //opprett4ukersmeldinger(applicationState, environment)
    //DeleteSykmeldingService(environment, applicationState).deleteSykmelding()
 }
 
