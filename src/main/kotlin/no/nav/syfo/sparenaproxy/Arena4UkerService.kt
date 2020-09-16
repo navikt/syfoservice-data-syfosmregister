@@ -12,6 +12,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabaseSparenaproxyPostgres
 import no.nav.syfo.log
+import java.time.LocalDate
 
 class Arena4UkerService(
     private val applicationState: ApplicationState,
@@ -44,9 +45,11 @@ class Arena4UkerService(
                                 startdato = it.startdato,
                                 type = BREV_4_UKER_TYPE,
                                 opprettet = OffsetDateTime.now(ZoneOffset.UTC),
-                                sendes = it.startdato.plusWeeks(4).atStartOfDay().atZone(ZoneId.systemDefault()).withZoneSameInstant(
-                                    ZoneOffset.UTC
-                                ).toOffsetDateTime()
+                                sendes = it.startdato.plusWeeks(4).atStartOfDay().atZone(ZoneId.systemDefault())
+                                    .withZoneSameInstant(
+                                        ZoneOffset.UTC
+                                    ).toOffsetDateTime(),
+                                avbrutt = setAvbruttTimestamp(it)
                             )
                         )
                     }
@@ -72,4 +75,7 @@ class Arena4UkerService(
             loggingJob.cancelAndJoin()
         }
     }
+
+    private fun setAvbruttTimestamp(it: PlanlagtMeldingDbModel) =
+        if (it.startdato.isAfter(LocalDate.now().minusWeeks(6))) null else OffsetDateTime.now(ZoneOffset.UTC)
 }
