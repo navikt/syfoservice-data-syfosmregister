@@ -52,6 +52,7 @@ class Arena4UkerService(
                                 avbrutt = setAvbruttTimestamp(it)
                             )
                         )
+                        counter4Ukersmeldinger++
                     }
                 } catch (ex: Exception) {
                     log.error(
@@ -62,7 +63,6 @@ class Arena4UkerService(
                     )
                     throw ex
                 }
-                counter4Ukersmeldinger++
             }
             lastOpprettetDato = lastOpprettetDato.plusDays(1)
         }
