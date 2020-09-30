@@ -110,7 +110,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    DeleteSykmeldingService(environment, applicationState).deleteSykmelding()
+    // DeleteSykmeldingService(environment, applicationState).deleteSykmelding()
 }
 
 fun updatePeriode(applicationState: ApplicationState, environment: Environment) {
