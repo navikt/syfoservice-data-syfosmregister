@@ -1043,8 +1043,8 @@ fun Connection.getSykmeldingWithIArbeidIkkeIArbeid(): List<Sykmelding> {
     }
 }
 
-private fun getSykmeldingdocument() : Sykmelding {
-    return objectMapper.readValue("sykmelding")
+private fun ResultSet.getSykmeldingdocument() : Sykmelding {
+    return objectMapper.readValue(getString("sykmelding"))
 }
 
 
