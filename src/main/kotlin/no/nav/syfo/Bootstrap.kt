@@ -111,9 +111,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    val service = UpdateIncorrectPapirsykmeldingService(getDatabaseOracle(), getDatabasePostgres())
-    service.updateIArbeidIkkeIAarbeid()
-    service.updateUtdypendeOpplysninger()
+
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
