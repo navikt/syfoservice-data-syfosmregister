@@ -1,6 +1,7 @@
 package no.nav.syfo.persistering.db.postgres
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.Statement
@@ -21,6 +22,7 @@ import no.nav.syfo.model.Prognose
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.ShortName
 import no.nav.syfo.model.Sporsmal
+import no.nav.syfo.model.SporsmalSvar
 import no.nav.syfo.model.Status
 import no.nav.syfo.model.StatusEvent
 import no.nav.syfo.model.Svar
@@ -1043,6 +1045,18 @@ fun Connection.getSykmeldingWithIArbeidIkkeIArbeid(): List<Sykmelding> {
     }
 }
 
+fun Connection.getSykmeldingWithEmptyUtdypendeOpplysninger(): List<Sykmelding> {
+    use {
+        this.prepareStatement("""
+            select sykmelding from sykmeldingsopplysninger so 
+            inner join sykmeldingsdokument sd on sd.id = so.id
+            where epj_system_navn = 'Papirsykmelding' and mottatt_tidspunkt > '2020-09-28' and sykmelding->>'utdypendeOpplysninger' != '{}' and sykmelding->>'utdypendeOpplysninger' LIKE '%' || '{}' || '%';
+        """).use {
+            return it.executeQuery().toList { getSykmeldingdocument() }
+        }
+    }
+}
+
 private fun ResultSet.getSykmeldingdocument() : Sykmelding {
     return objectMapper.readValue(getString("sykmelding"))
 }
@@ -1061,3 +1075,18 @@ fun DatabasePostgres.updatePrognose(sykmeldingId: String, prognose: Prognose?) {
         connection.commit()
     }
 }
+
+fun DatabasePostgres.updateUtdypendeOpplysninger(sykmeldingId: String, utdypendeOpplysninger: Map<String, Map<String, SporsmalSvar>>) {
+    connection.use { connection ->
+        connection.prepareStatement("""
+            UPDATE sykmeldingsdokument set sykmelding = jsonb_set(sykmelding, '{utdypendeOpplysninger}', ?::jsonb) where id = ?;
+        """).use {
+            it.setString(1, objectMapper.writeValueAsString(utdypendeOpplysninger))
+            it.setString(2, sykmeldingId)
+            val updated = it.executeUpdate()
+            log.info("Updated {} sykmeldingsdokument", updated)
+        }
+        connection.commit()
+    }
+}
+

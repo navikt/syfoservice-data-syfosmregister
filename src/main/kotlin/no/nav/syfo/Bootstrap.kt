@@ -111,7 +111,7 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    UpdateIncorrectPapirsykmeldingService(getDatabaseOracle(), getDatabasePostgres()).updateIArbeidIkkeIAarbeid()
+    UpdateIncorrectPapirsykmeldingService(getDatabaseOracle(), getDatabasePostgres()).updateUtdypendeOpplysninger()
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
