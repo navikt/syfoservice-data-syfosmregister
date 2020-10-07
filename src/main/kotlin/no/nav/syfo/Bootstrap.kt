@@ -38,6 +38,7 @@ import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.PeriodeService
+import no.nav.syfo.papirsykmelding.UpdateIncorrectPapirsykmeldingService
 import no.nav.syfo.sak.avro.RegisterTask
 import no.nav.syfo.service.BehandlingsutfallFraOppgaveTopicService
 import no.nav.syfo.service.CheckSendtSykmeldinger
@@ -110,7 +111,24 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    // DeleteSykmeldingService(environment, applicationState).deleteSykmelding()
+    UpdateIncorrectPapirsykmeldingService(getDatabaseOracle(), getDatabasePostgres()).updateIArbeidIkkeIAarbeid()
+}
+
+fun getDatabasePostgres(): DatabasePostgres {
+    val environment = Environment()
+    val vaultCredentialService = VaultCredentialService()
+    return DatabasePostgres(environment, vaultCredentialService)
+}
+
+fun getDatabaseOracle() : DatabaseOracle {
+    val vaultConfig = VaultConfig(
+        jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
+    )
+    val syfoserviceVaultSecrets = VaultCredentials(
+        databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
+        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
+    )
+    return DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
 }
 
 fun updatePeriode(applicationState: ApplicationState, environment: Environment) {

@@ -17,6 +17,7 @@ import no.nav.syfo.model.Behandlingsutfall
 import no.nav.syfo.model.Diagnose
 import no.nav.syfo.model.Eia
 import no.nav.syfo.model.ErIkkeIArbeid
+import no.nav.syfo.model.Prognose
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.ShortName
 import no.nav.syfo.model.Sporsmal
@@ -24,6 +25,7 @@ import no.nav.syfo.model.Status
 import no.nav.syfo.model.StatusEvent
 import no.nav.syfo.model.Svar
 import no.nav.syfo.model.Svartype
+import no.nav.syfo.model.Sykmelding
 import no.nav.syfo.model.SykmeldingStatusEvent
 import no.nav.syfo.model.Sykmeldingsdokument
 import no.nav.syfo.model.Sykmeldingsopplysninger
@@ -1020,6 +1022,38 @@ fun DatabasePostgres.updateErIkkeIArbeid(sykmeldingId: String, erIkkeIArbeid: Er
             UPDATE sykmeldingsdokument set sykmelding = jsonb_set(sykmelding, '{prognose,erIkkeIArbeid}', ?::jsonb) where id = ?;
         """).use {
             it.setString(1, objectMapper.writeValueAsString(erIkkeIArbeid))
+            it.setString(2, sykmeldingId)
+            val updated = it.executeUpdate()
+            log.info("Updated {} sykmeldingsdokument", updated)
+        }
+        connection.commit()
+    }
+}
+
+
+fun Connection.getSykmeldingWithIArbeidIkkeIArbeid(): List<Sykmelding> {
+    use {
+        this.prepareStatement("""
+            select sykmelding from sykmeldingsopplysninger so
+                inner join sykmeldingsdokument sd on sd.id = so.id
+            where epj_system_navn = 'Papirsykmelding' and mottatt_tidspunkt > '2020-09-28' and sykmelding->'prognose'->>'erIArbeid' is not null and sykmelding->'prognose'->>'erIkkeIArbeid' is not null;
+        """).use {
+            return it.executeQuery().toList { getSykmeldingdocument() }
+        }
+    }
+}
+
+private fun getSykmeldingdocument() : Sykmelding {
+    return objectMapper.readValue("sykmelding")
+}
+
+
+fun DatabasePostgres.updatePrognose(sykmeldingId: String, prognose: Prognose?) {
+    connection.use { connection ->
+        connection.prepareStatement("""
+            UPDATE sykmeldingsdokument set sykmelding = jsonb_set(sykmelding, '{prognose}', ?::jsonb) where id = ?;
+        """).use {
+            it.setString(1, objectMapper.writeValueAsString(prognose))
             it.setString(2, sykmeldingId)
             val updated = it.executeUpdate()
             log.info("Updated {} sykmeldingsdokument", updated)
