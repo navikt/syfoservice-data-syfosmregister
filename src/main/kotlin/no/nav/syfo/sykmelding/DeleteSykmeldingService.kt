@@ -53,7 +53,7 @@ class DeleteSykmeldingService(
         databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
         kafkaProducer = KafkaProducer(producerProperties)
     }
-    private val sykmeldingIDs = listOf("")
+    private val sykmeldingIDs = listOf("f7ca9776-e6f9-41c6-83f9-4007b6f2250e")
 
     fun deleteSykmelding() {
         try {
