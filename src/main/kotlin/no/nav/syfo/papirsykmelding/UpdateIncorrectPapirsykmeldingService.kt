@@ -13,8 +13,9 @@ import no.nav.syfo.persistering.db.postgres.updateUtdypendeOpplysninger
 
 class UpdateIncorrectPapirsykmeldingService(private val databaseOracle: DatabaseOracle, private val databasePostgres: DatabasePostgres) {
 
-    private val sykmeldingID = "779abc94-75ef-415c-936a-748c4ad2db56"
+    private val sykmeldingID = ""
 
+    // OBS: Denne må kun kjøres på sykmeldinger med EN spørsmålsgruppe (6.2). Hvis ikke vil den slette alle bortsett fra første spørsmålsgruppe!!
     fun updateUtdypendeOpplysningerSpmGruppeText() {
         val sykmeldingSyfoService = getSyfoserviceSykmelding(sykmeldingID)
         val newUtdypendOpplysningSyfoService = HelseOpplysningerArbeidsuforhet.UtdypendeOpplysninger()

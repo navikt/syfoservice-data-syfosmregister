@@ -113,8 +113,6 @@ fun main() {
     applicationState.ready = true
 
     // DeleteSykmeldingService(environment, applicationState).deleteSykmelding()
-    val service = UpdateIncorrectPapirsykmeldingService(getDatabaseOracle(), getDatabasePostgres())
-    service.updateUtdypendeOpplysningerSpmGruppeText()
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
