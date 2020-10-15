@@ -13,6 +13,23 @@ import no.nav.syfo.persistering.db.postgres.updateUtdypendeOpplysninger
 
 class UpdateIncorrectPapirsykmeldingService(private val databaseOracle: DatabaseOracle, private val databasePostgres: DatabasePostgres) {
 
+    private val sykmeldingID = "e9479579-5946-46d1-ab69-eb7b75787ede"// kun test
+
+    fun updateUtdypendeOpplysningerSpmGruppeText() {
+        val sykmeldingSyfoService = getSyfoserviceSykmelding(sykmeldingID)
+        val newUtdypendOpplysningSyfoService = HelseOpplysningerArbeidsuforhet.UtdypendeOpplysninger()
+        val oppdatertSpmGruppe = HelseOpplysningerArbeidsuforhet.UtdypendeOpplysninger.SpmGruppe()
+        oppdatertSpmGruppe.spmGruppeId = sykmeldingSyfoService.utdypendeOpplysninger.spmGruppe.first().spmGruppeId
+        oppdatertSpmGruppe.spmSvar.addAll(sykmeldingSyfoService.utdypendeOpplysninger.spmGruppe.first().spmSvar)
+        oppdatertSpmGruppe.spmGruppeTekst = "Utdypende opplysninger ved 7/8,17 og 39 uker"
+        newUtdypendOpplysningSyfoService.spmGruppe.add(oppdatertSpmGruppe)
+
+        sykmeldingSyfoService.utdypendeOpplysninger = newUtdypendOpplysningSyfoService
+        databaseOracle.updateDocument(sykmeldingSyfoService, sykmeldingID)
+
+        log.info("Updated updypende opplysninger for sykmelding $sykmeldingID")
+    }
+
     fun updateUtdypendeOpplysninger() {
         val sickleavesToUpdate = databasePostgres.connection.getSykmeldingWithEmptyUtdypendeOpplysninger()
         log.info("got ${sickleavesToUpdate.size} to check")
