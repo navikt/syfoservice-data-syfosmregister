@@ -13,7 +13,7 @@ import no.nav.syfo.persistering.db.postgres.updateUtdypendeOpplysninger
 
 class UpdateIncorrectPapirsykmeldingService(private val databaseOracle: DatabaseOracle, private val databasePostgres: DatabasePostgres) {
 
-    private val sykmeldingID = "e9479579-5946-46d1-ab69-eb7b75787ede"// kun test
+    private val sykmeldingID = "779abc94-75ef-415c-936a-748c4ad2db56"
 
     fun updateUtdypendeOpplysningerSpmGruppeText() {
         val sykmeldingSyfoService = getSyfoserviceSykmelding(sykmeldingID)
