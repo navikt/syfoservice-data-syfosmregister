@@ -111,8 +111,6 @@ fun main() {
     applicationState.ready = true
 
 //    DeleteSykmeldingService(environment, applicationState).deleteSykmelding()
-
-    updatePeriode(applicationState, environment)
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
