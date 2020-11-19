@@ -38,7 +38,6 @@ import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.PeriodeService
-import no.nav.syfo.papirsykmelding.UpdateIncorrectPapirsykmeldingService
 import no.nav.syfo.sak.avro.RegisterTask
 import no.nav.syfo.service.BehandlingsutfallFraOppgaveTopicService
 import no.nav.syfo.service.CheckSendtSykmeldinger
@@ -61,7 +60,6 @@ import no.nav.syfo.service.UpdateStatusService
 import no.nav.syfo.service.WriteReceivedSykmeldingService
 import no.nav.syfo.sparenaproxy.Arena4UkerService
 import no.nav.syfo.sykmelding.BekreftSykmeldingService
-import no.nav.syfo.sykmelding.DeleteSykmeldingService
 import no.nav.syfo.sykmelding.EnkelSykmeldingKafkaProducer
 import no.nav.syfo.sykmelding.MottattSykmeldingKafkaProducer
 import no.nav.syfo.sykmelding.MottattSykmeldingService
@@ -113,6 +111,8 @@ fun main() {
     applicationState.ready = true
 
 //    DeleteSykmeldingService(environment, applicationState).deleteSykmelding()
+
+    updatePeriode(applicationState, environment)
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
@@ -121,7 +121,7 @@ fun getDatabasePostgres(): DatabasePostgres {
     return DatabasePostgres(environment, vaultCredentialService)
 }
 
-fun getDatabaseOracle() : DatabaseOracle {
+fun getDatabaseOracle(): DatabaseOracle {
     val vaultConfig = VaultConfig(
         jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
     )

@@ -43,7 +43,6 @@ class UpdateIncorrectPapirsykmeldingService(private val databaseOracle: Database
             sykmeldingSyfoService.utdypendeOpplysninger = newUtdypendOpplysningSyfoService
             databaseOracle.updateDocument(sykmeldingSyfoService, it.id)
 
-
             val newUtdypendeOpplysninger = it.utdypendeOpplysninger.filter { !it.value.isEmpty() }
             databasePostgres.updateUtdypendeOpplysninger(it.id, newUtdypendeOpplysninger)
             log.info("Updated updypende opplysninger for sykmelding ${it.id}")
@@ -54,12 +53,12 @@ class UpdateIncorrectPapirsykmeldingService(private val databaseOracle: Database
         val sickleavesToUpdate = databasePostgres.connection.getSykmeldingWithIArbeidIkkeIArbeid()
         log.info("got ${sickleavesToUpdate.size} to check")
         sickleavesToUpdate.forEach {
-            if(it.prognose?.erIArbeid != null && it.prognose.erIkkeIArbeid != null) {
+            if (it.prognose?.erIArbeid != null && it.prognose.erIkkeIArbeid != null) {
                 log.info("updating sykmelding ${it.id}")
                 val arbeidFOM = it.prognose.erIArbeid.arbeidFOM != null
                 val ikkeArbeidFom = it.prognose.erIkkeIArbeid.arbeidsforFOM != null
                 val sykmeldingSyfoService = getSyfoserviceSykmelding(it.id)
-                if(arbeidFOM && ikkeArbeidFom) {
+                if (arbeidFOM && ikkeArbeidFom) {
                     log.info("Sykmelding har både erIArbeid.arbeidFom og erIkkeIArbeid.arbeidsforFom ${it.id}")
                 } else {
                     var prognose = it.prognose
@@ -88,8 +87,7 @@ class UpdateIncorrectPapirsykmeldingService(private val databaseOracle: Database
         }
     }
 
-    private fun getSyfoserviceSykmelding(id: String) : HelseOpplysningerArbeidsuforhet {
+    private fun getSyfoserviceSykmelding(id: String): HelseOpplysningerArbeidsuforhet {
         return databaseOracle.getSykmeldingsDokument(id).rows.first()!!
     }
 }
-

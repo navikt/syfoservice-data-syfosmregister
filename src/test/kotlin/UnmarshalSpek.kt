@@ -8,10 +8,10 @@ import no.nav.syfo.utils.getFileAsString
 import org.amshove.kluent.shouldEqual
 import org.amshove.kluent.shouldNotBe
 import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
+import org.spekframework.spek2.style.specification.xdescribe
 
 object UnmarshalSpek : Spek({
-    describe("Testing unmarshaller") {
+    xdescribe("Testing unmarshaller") {
 
         it("Test unmarshal dates testsett 1") {
             val healthInformation =

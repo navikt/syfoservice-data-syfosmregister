@@ -8,10 +8,10 @@ import no.nav.syfo.objectMapper
 import no.nav.syfo.utils.getFileAsString
 import org.amshove.kluent.shouldEqual
 import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
+import org.spekframework.spek2.style.specification.xdescribe
 
 class OppgaveTilReglerTest : Spek({
-    describe("Mapper oppgavebeskrivelse riktig") {
+    xdescribe("Mapper oppgavebeskrivelse riktig") {
         it("Mapper oppgavebeskrivelse riktig") {
             val ruleMap =
                 objectMapper.readValue<Map<String, RuleInfo>>(getFileAsString("src/main/resources/ruleMap.json"))

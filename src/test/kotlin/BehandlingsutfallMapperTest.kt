@@ -4,12 +4,12 @@ import no.nav.syfo.model.ValidationResult
 import no.nav.syfo.objectMapper
 import org.amshove.kluent.shouldEqual
 import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
+import org.spekframework.spek2.style.specification.xdescribe
 
 object BehandlingsutfallMapperTest : Spek({
     val behandlingsutfallJson = "{\"status\": \"INVALID\", \"ruleHits\": [{\"ruleName\": \"TILBAKEDATERT_MER_ENN_8_DAGER_FORSTE_SYKMELDING\", \"messageForUser\": \"Sykmeldingen er tilbakedatert uten at det er begrunnet.\", \"messageForSender\": \"Første sykmelding er tilbakedatert mer enn det som er tillatt.\"}]}"
 
-    describe("Tester mapping av rulestatus i behandlingsutfall") {
+    xdescribe("Tester mapping av rulestatus i behandlingsutfall") {
         it("Skal ikke feile hvis ruleStatus mangler") {
 
             val validationResult: ValidationResult = objectMapper.readValue(behandlingsutfallJson)

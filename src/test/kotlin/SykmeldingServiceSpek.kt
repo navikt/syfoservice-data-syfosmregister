@@ -3,7 +3,7 @@ import io.mockk.mockkClass
 import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.kafka.SykmeldingKafkaProducer
 import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
+import org.spekframework.spek2.style.specification.xdescribe
 
 object SykmeldingServiceSpek : Spek({
 
@@ -14,7 +14,7 @@ object SykmeldingServiceSpek : Spek({
         clearAllMocks()
     }
 
-    describe("Tester SykmeldingServiceSpek") {
+    xdescribe("Tester SykmeldingServiceSpek") {
 
 //        it("Skal hente ut alle sykmeldinger", timeout = 1000000000L) {
 //
