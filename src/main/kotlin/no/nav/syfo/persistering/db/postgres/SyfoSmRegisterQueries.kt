@@ -1,7 +1,6 @@
 package no.nav.syfo.persistering.db.postgres
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.Statement
@@ -1032,7 +1031,6 @@ fun DatabasePostgres.updateErIkkeIArbeid(sykmeldingId: String, erIkkeIArbeid: Er
     }
 }
 
-
 fun Connection.getSykmeldingWithIArbeidIkkeIArbeid(): List<Sykmelding> {
     use {
         this.prepareStatement("""
@@ -1057,10 +1055,9 @@ fun Connection.getSykmeldingWithEmptyUtdypendeOpplysninger(): List<Sykmelding> {
     }
 }
 
-private fun ResultSet.getSykmeldingdocument() : Sykmelding {
+private fun ResultSet.getSykmeldingdocument(): Sykmelding {
     return objectMapper.readValue(getString("sykmelding"))
 }
-
 
 fun DatabasePostgres.updatePrognose(sykmeldingId: String, prognose: Prognose?) {
     connection.use { connection ->
@@ -1089,4 +1086,3 @@ fun DatabasePostgres.updateUtdypendeOpplysninger(sykmeldingId: String, utdypende
         connection.commit()
     }
 }
-

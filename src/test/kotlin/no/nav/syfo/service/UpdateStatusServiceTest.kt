@@ -24,7 +24,7 @@ import no.nav.syfo.persistering.db.postgres.lagreSporsmalOgSvarOgArbeidsgiver
 import no.nav.syfo.persistering.db.postgres.oppdaterSykmeldingStatus
 import no.nav.syfo.persistering.db.postgres.svarFinnesFraFor
 import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
+import org.spekframework.spek2.style.specification.xdescribe
 
 class UpdateStatusServiceTest : Spek({
 
@@ -41,7 +41,7 @@ class UpdateStatusServiceTest : Spek({
         every { database.lagreSporsmalOgSvarOgArbeidsgiver(any(), any()) } returns Unit
     }
 
-    describe("Update SykmeldingStatus") {
+    xdescribe("Update SykmeldingStatus") {
 
         it("Test SLETTET status") {
             every { database.getStatusesForSykmelding(any()) } returns emptyList()

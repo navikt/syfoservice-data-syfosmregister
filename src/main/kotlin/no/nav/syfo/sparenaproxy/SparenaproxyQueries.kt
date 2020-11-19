@@ -54,7 +54,7 @@ fun DatabaseSparenaproxyPostgres.lagrePlanlagtMelding(planlagtMeldingDbModel: Pl
             it.setString(4, planlagtMeldingDbModel.type)
             it.setTimestamp(5, java.sql.Timestamp.from(planlagtMeldingDbModel.opprettet.toInstant()))
             it.setTimestamp(6, java.sql.Timestamp.from(planlagtMeldingDbModel.sendes.toInstant()))
-            it.setTimestamp(7, planlagtMeldingDbModel.avbrutt?.let { java.sql.Timestamp.from(planlagtMeldingDbModel.avbrutt.toInstant())})
+            it.setTimestamp(7, planlagtMeldingDbModel.avbrutt?.let { java.sql.Timestamp.from(planlagtMeldingDbModel.avbrutt.toInstant()) })
             it.execute()
         }
         connection.commit()
