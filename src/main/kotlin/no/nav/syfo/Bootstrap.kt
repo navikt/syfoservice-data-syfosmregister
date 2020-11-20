@@ -111,6 +111,7 @@ fun main() {
     applicationState.ready = true
 
 //    DeleteSykmeldingService(environment, applicationState).deleteSykmelding()
+    oppdaterStatus(applicationState, environment)
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
@@ -158,18 +159,21 @@ fun oppdaterStatus(applicationState: ApplicationState, environment: Environment)
         databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
         databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
     )
+    val vaultCredentialService = VaultCredentialService()
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+
+    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
     val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
     val producerProperties =
         kafkaBaseConfig.toProducerConfig(
             environment.applicationName,
             valueSerializer = JacksonKafkaSerializer::class
         )
-    // val vaultSecrets = VaultSecrets()
     val kafkaProducer = KafkaProducer<String, SykmeldingStatusKafkaMessageDTO>(producerProperties)
     val statusKafkaProducer = SykmeldingStatusKafkaProducer(kafkaProducer, environment.sykmeldingStatusTopic)
-    val oppdaterStatusService = OppdaterStatusService(databaseOracle, statusKafkaProducer)
+    val oppdaterStatusService = OppdaterStatusService(databaseOracle, statusKafkaProducer, databasePostgres)
 
-    // oppdaterStatusService.start(vaultSecrets.fnr)
+    oppdaterStatusService.start()
 }
 
 fun updateDiagnose(applicationState: ApplicationState, environment: Environment) {
