@@ -110,8 +110,7 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-//    DeleteSykmeldingService(environment, applicationState).deleteSykmelding()
-    updatePeriode(applicationState, environment)
+//    updatePeriode(applicationState, environment)
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
