@@ -17,7 +17,7 @@ class OppdaterStatusService(
     private val databasePostgres: DatabasePostgres
 ) {
 
-    val sykmeldingId = "121f00ee-f30f-4f19-9a67-38c6b1a97bd2"
+    val sykmeldingId = ""
 
     fun start() {
         val sykmelding = databasePostgres.connection.hentSykmeldingMedId(sykmeldingId)

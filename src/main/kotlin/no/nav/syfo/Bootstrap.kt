@@ -111,7 +111,6 @@ fun main() {
     applicationState.ready = true
 
 //    DeleteSykmeldingService(environment, applicationState).deleteSykmelding()
-    oppdaterStatus(applicationState, environment)
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
