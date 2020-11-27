@@ -110,7 +110,7 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-    // updatePeriode(applicationState, environment)
+    updatePeriode(applicationState, environment)
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
