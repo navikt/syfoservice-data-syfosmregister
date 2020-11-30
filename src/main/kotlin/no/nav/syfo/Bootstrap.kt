@@ -38,6 +38,9 @@ import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.PeriodeService
+import no.nav.syfo.papirsykmelding.tilsyfoservice.SendTilSyfoserviceService
+import no.nav.syfo.papirsykmelding.tilsyfoservice.kafka.SykmeldingSyfoserviceKafkaProducer
+import no.nav.syfo.papirsykmelding.tilsyfoservice.kafka.model.SykmeldingSyfoserviceKafkaMessage
 import no.nav.syfo.sak.avro.RegisterTask
 import no.nav.syfo.service.BehandlingsutfallFraOppgaveTopicService
 import no.nav.syfo.service.CheckSendtSykmeldinger
@@ -110,7 +113,7 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-    // updatePeriode(applicationState, environment)
+    sendTilSyfoservice(applicationState, environment)
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
@@ -146,6 +149,25 @@ fun updatePeriode(applicationState: ApplicationState, environment: Environment) 
 
     val periodeService = PeriodeService(databaseOracle, databasePostgres)
     periodeService.start()
+}
+
+fun sendTilSyfoservice(applicationState: ApplicationState, environment: Environment) {
+    val vaultServiceuser = getVaultServiceUser()
+    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+    val vaultCredentialService = VaultCredentialService()
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+
+    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
+
+    val producerProperties =
+        kafkaBaseConfig.toProducerConfig(
+            environment.applicationName,
+            valueSerializer = JacksonKafkaSerializer::class
+        )
+    val syfoserviceKafkaProducer = SykmeldingSyfoserviceKafkaProducer(KafkaProducer<String, SykmeldingSyfoserviceKafkaMessage>(producerProperties), environment.syfoserviceKafkaTopic)
+
+    val sendTilSyfoServiceService = SendTilSyfoserviceService(syfoserviceKafkaProducer, databasePostgres)
+    sendTilSyfoServiceService.start()
 }
 
 fun oppdaterStatus(applicationState: ApplicationState, environment: Environment) {
