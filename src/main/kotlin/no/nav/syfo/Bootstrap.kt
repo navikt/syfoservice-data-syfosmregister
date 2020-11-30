@@ -113,7 +113,7 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-    sendTilSyfoservice(applicationState, environment)
+    // sendTilSyfoservice(applicationState, environment)
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
