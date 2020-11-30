@@ -17,7 +17,7 @@ class SendTilSyfoserviceService(
     private val databasePostgres: DatabasePostgres
 ) {
 
-    val mottakId = "89849858402"
+    val mottakId = "ba0aa2b1-bd9f-4637-a314-7dedca3a0eb9"
 
     fun start() {
         val sykmelding = databasePostgres.connection.hentSykmelding(mottakId)
