@@ -31,8 +31,8 @@ class SendTilSyfoserviceService(
             val syfoserviceKafkaMessage = SykmeldingSyfoserviceKafkaMessage(
                 metadata = KafkaMessageMetadata(sykmeldingId = sykmeldingId, source = "smregistrering-backend"),
                 tilleggsdata = Tilleggsdata(
-                    ediLoggId = sykmeldingId,
-                    msgId = sykmeldingId,
+                    ediLoggId = mottakId,
+                    msgId = sykmelding.sykmeldingsdokument!!.sykmelding.msgId,
                     syketilfelleStartDato = extractSyketilfelleStartDato(healthInformation),
                     sykmeldingId = sykmeldingId
                 ),
