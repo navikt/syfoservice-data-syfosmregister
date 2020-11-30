@@ -4,10 +4,13 @@ import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.log
 import no.nav.syfo.papirsykmelding.tilsyfoservice.kafka.SykmeldingSyfoserviceKafkaProducer
+import no.nav.syfo.papirsykmelding.tilsyfoservice.kafka.model.KafkaMessageMetadata
+import no.nav.syfo.papirsykmelding.tilsyfoservice.kafka.model.SykmeldingSyfoserviceKafkaMessage
+import no.nav.syfo.papirsykmelding.tilsyfoservice.kafka.model.Tilleggsdata
 import no.nav.syfo.persistering.db.postgres.hentSykmelding
-import no.nav.syfo.sykmelding.model.AktivitetIkkeMulig
-import no.nav.syfo.sykmelding.model.Periode
 import no.nav.syfo.utils.extractHelseOpplysningerArbeidsuforhet
+import java.time.LocalDateTime
+import java.time.LocalTime
 
 class SendTilSyfoserviceService(
     private val sykmeldingSyfoserviceKafkaProducer: SykmeldingSyfoserviceKafkaProducer,
@@ -21,26 +24,27 @@ class SendTilSyfoserviceService(
         if (sykmelding != null) {
             log.info("sender sykmelding med mottaksid {} til syfoservice", mottakId)
 
+            val sykmeldingId = sykmelding.sykmeldingsopplysninger.id
             val fellesformat = mapSykmeldingDbModelTilFellesformat(sykmelding)
             val healthInformation = extractHelseOpplysningerArbeidsuforhet(fellesformat)
 
-            sykmeldingSyfoserviceKafkaProducer.publishSykmeldingToKafka(sykmelding.sykmeldingsopplysninger.id, healthInformation)
+            val syfoserviceKafkaMessage = SykmeldingSyfoserviceKafkaMessage(
+                metadata = KafkaMessageMetadata(sykmeldingId = sykmeldingId, source = "smregistrering-backend"),
+                tilleggsdata = Tilleggsdata(
+                    ediLoggId = sykmeldingId,
+                    msgId = sykmeldingId,
+                    syketilfelleStartDato = extractSyketilfelleStartDato(healthInformation),
+                    sykmeldingId = sykmeldingId
+                ),
+                helseopplysninger = healthInformation
+            )
+
+            sykmeldingSyfoserviceKafkaProducer.publishSykmeldingToKafka(sykmeldingId, syfoserviceKafkaMessage)
         } else {
             log.info("could not find sykmelding with mottakid {}", mottakId)
         }
     }
 
-    fun HelseOpplysningerArbeidsuforhet.Aktivitet.Periode.tilSmregPeriode(): Periode {
-        return Periode(
-            fom = periodeFOMDato,
-            tom = periodeTOMDato,
-            aktivitetIkkeMulig = AktivitetIkkeMulig(
-                medisinskArsak = null,
-                arbeidsrelatertArsak = null),
-            avventendeInnspillTilArbeidsgiver = null,
-            behandlingsdager = null,
-            gradert = null,
-            reisetilskudd = false
-        )
-    }
+    private fun extractSyketilfelleStartDato(helseOpplysningerArbeidsuforhet: HelseOpplysningerArbeidsuforhet): LocalDateTime =
+        LocalDateTime.of(helseOpplysningerArbeidsuforhet.syketilfelleStartDato, LocalTime.NOON)
 }
