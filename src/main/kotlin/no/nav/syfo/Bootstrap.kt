@@ -114,7 +114,7 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-    updateGrad(applicationState, environment)
+    // updateGrad(applicationState, environment)
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
