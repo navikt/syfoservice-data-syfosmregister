@@ -13,7 +13,7 @@ import no.nav.syfo.sykmelding.model.Periode
 
 class PeriodeService(private val databaseoracle: DatabaseOracle, private val databasePostgres: DatabasePostgres) {
 
-    val sykmeldingId = "a5ac7ded-0190-4715-b001-42d214f14005"
+    val sykmeldingId = "ed321eb3-973c-4ac9-b005-c2f301fb581f"
 
     fun start() {
         val result = databaseoracle.getSykmeldingsDokument(sykmeldingId)
@@ -26,8 +26,8 @@ class PeriodeService(private val databaseoracle: DatabaseOracle, private val dat
                     log.error("Sykmeldingen har mer enn en periode!")
                     throw IllegalStateException("Sykmeldingen har mer enn en periode!")
                 }
-                document.aktivitet.periode.first().periodeFOMDato = LocalDate.of(2020, 12, 7)
-                document.aktivitet.periode.first().periodeTOMDato = LocalDate.of(2020, 12, 11)
+                document.aktivitet.periode.first().periodeFOMDato = LocalDate.of(2020, 12, 1)
+                document.aktivitet.periode.first().periodeTOMDato = LocalDate.of(2021, 1, 3)
 
                 val periode = document.aktivitet.periode.first().tilSmregPeriode()
 
