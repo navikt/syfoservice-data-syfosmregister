@@ -1,5 +1,7 @@
 package no.nav.syfo.papirsykmelding.tilsyfoservice
 
+import java.time.LocalDateTime
+import java.time.LocalTime
 import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.log
@@ -9,8 +11,6 @@ import no.nav.syfo.papirsykmelding.tilsyfoservice.kafka.model.SykmeldingSyfoserv
 import no.nav.syfo.papirsykmelding.tilsyfoservice.kafka.model.Tilleggsdata
 import no.nav.syfo.persistering.db.postgres.hentSykmelding
 import no.nav.syfo.utils.extractHelseOpplysningerArbeidsuforhet
-import java.time.LocalDateTime
-import java.time.LocalTime
 
 class SendTilSyfoserviceService(
     private val sykmeldingSyfoserviceKafkaProducer: SykmeldingSyfoserviceKafkaProducer,
