@@ -10,7 +10,7 @@ import no.nav.syfo.persistering.db.postgres.updateUtdypendeOpplysninger
 
 class SlettInformasjonService(private val databaseoracle: DatabaseOracle, private val databasePostgres: DatabasePostgres) {
 
-    val sykmeldingId = "c6c256da-4564-495b-8a55-d9ce10192ede"
+    val sykmeldingId = ""
     val nySvartekst = "Tekst slettet pga feil tekst fra lege. Se sykmelding som erstatter denne for korrekt informasjon"
 
     fun start() {

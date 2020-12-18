@@ -115,7 +115,7 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-    slettInfo(applicationState, environment)
+    // slettInfo(applicationState, environment)
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
