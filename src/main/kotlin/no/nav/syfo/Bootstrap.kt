@@ -39,6 +39,7 @@ import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.GradService
 import no.nav.syfo.papirsykmelding.PeriodeService
+import no.nav.syfo.papirsykmelding.SlettInformasjonService
 import no.nav.syfo.papirsykmelding.tilsyfoservice.SendTilSyfoserviceService
 import no.nav.syfo.papirsykmelding.tilsyfoservice.kafka.SykmeldingSyfoserviceKafkaProducer
 import no.nav.syfo.papirsykmelding.tilsyfoservice.kafka.model.SykmeldingSyfoserviceKafkaMessage
@@ -114,7 +115,7 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-    // updatePeriode(applicationState, environment)
+    slettInfo(applicationState, environment)
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
@@ -150,6 +151,24 @@ fun updatePeriode(applicationState: ApplicationState, environment: Environment) 
 
     val periodeService = PeriodeService(databaseOracle, databasePostgres)
     periodeService.start()
+}
+
+fun slettInfo(applicationState: ApplicationState, environment: Environment) {
+    val vaultConfig = VaultConfig(
+        jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
+    )
+    val syfoserviceVaultSecrets = VaultCredentials(
+        databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
+        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
+    )
+    val vaultCredentialService = VaultCredentialService()
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+
+    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
+    val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
+
+    val slettInformasjonService = SlettInformasjonService(databaseOracle, databasePostgres)
+    slettInformasjonService.start()
 }
 
 fun updateGrad(applicationState: ApplicationState, environment: Environment) {
