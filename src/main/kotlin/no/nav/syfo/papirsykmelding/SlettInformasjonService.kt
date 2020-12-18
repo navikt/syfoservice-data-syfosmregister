@@ -10,7 +10,7 @@ import no.nav.syfo.persistering.db.postgres.updateUtdypendeOpplysninger
 
 class SlettInformasjonService(private val databaseoracle: DatabaseOracle, private val databasePostgres: DatabasePostgres) {
 
-    val sykmeldingId = "fc7a3549-58d2-4816-ada9-50996f0dc1b6"
+    val sykmeldingId = "c6c256da-4564-495b-8a55-d9ce10192ede"
     val nySvartekst = "Tekst slettet pga feil tekst fra lege. Se sykmelding som erstatter denne for korrekt informasjon"
 
     fun start() {
@@ -20,12 +20,12 @@ class SlettInformasjonService(private val databaseoracle: DatabaseOracle, privat
             log.info("updating sykmelding dokument with sykmelding id {}", sykmeldingId)
             val document = result.rows.first()
             if (document != null) {
-                val utdypendeOpplysning64 = document.utdypendeOpplysninger.spmGruppe.find { it.spmGruppeId == "6.2" }
+                val utdypendeOpplysning64 = document.utdypendeOpplysninger.spmGruppe.find { it.spmGruppeId == "6.4" }
                 if (utdypendeOpplysning64 == null) {
                     log.error("Fant ikke utdypende opplysning 6.4!")
                     throw IllegalStateException("Fant ikke utdypende opplysning 6.4!")
                 } else {
-                    val utdypendeOpplysning641 = utdypendeOpplysning64.spmSvar.find { it.spmId == "6.2.1" }
+                    val utdypendeOpplysning641 = utdypendeOpplysning64.spmSvar.find { it.spmId == "6.4.1" }
                     if (utdypendeOpplysning641 == null) {
                         log.error("Fant ikke utdypende opplysning 6.4.1!")
                         throw IllegalStateException("Fant ikke utdypende opplysning 6.4.1!")
