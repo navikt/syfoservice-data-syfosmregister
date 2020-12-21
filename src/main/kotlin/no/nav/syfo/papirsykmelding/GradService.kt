@@ -12,7 +12,7 @@ import no.nav.syfo.sykmelding.model.Periode
 
 class GradService(private val databaseoracle: DatabaseOracle, private val databasePostgres: DatabasePostgres) {
 
-    val sykmeldingId = "0f2c5260-082d-48f9-8fac-660846981bb4"
+    val sykmeldingId = ""
 
     fun start() {
         val result = databaseoracle.getSykmeldingsDokument(sykmeldingId)
