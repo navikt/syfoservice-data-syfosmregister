@@ -72,6 +72,7 @@ import no.nav.syfo.sykmelding.SendtSykmeldingService
 import no.nav.syfo.sykmelding.SykmeldingStatusKafkaProducer
 import no.nav.syfo.sykmelding.kafka.model.MottattSykmeldingKafkaMessage
 import no.nav.syfo.sykmelding.kafka.model.SykmeldingKafkaMessage
+import no.nav.syfo.sykmelding.status.SykmeldingStatusKafkaConsumerService
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
 import no.nav.syfo.vault.RenewVaultService
@@ -114,6 +115,9 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
+    GlobalScope.launch {
+        SykmeldingStatusKafkaConsumerService(environment, getVaultServiceUser()).start()
+    }
 
     // updatePeriode(applicationState, environment)
 }
