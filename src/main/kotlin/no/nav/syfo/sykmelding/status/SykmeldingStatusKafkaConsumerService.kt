@@ -53,7 +53,7 @@ class SykmeldingStatusKafkaConsumerService(private val env: Environment, credent
         kafkaConsumer.subscribe(
             listOf(env.sykmeldingStatusTopic), object : ConsumerRebalanceListener {
                 override fun onPartitionsRevoked(partitions: MutableCollection<TopicPartition>?) {
-                    TODO("Not yet implemented")
+
                 }
 
                 override fun onPartitionsAssigned(partitions: MutableCollection<TopicPartition>?) {
