@@ -30,6 +30,7 @@ class SykmeldingStatusKafkaConsumerService(private val env: Environment, credent
             valueDeserializer = StringDeserializer::class
         )
         consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
+        consumerProperties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
         kafkaConsumer = KafkaConsumer(consumerProperties)
     }
 
@@ -51,6 +52,7 @@ class SykmeldingStatusKafkaConsumerService(private val env: Environment, credent
             listOf(env.sykmeldingStatusTopic)
         )
         kafkaConsumer.poll(Duration.ofMillis(0))
+        log.info("assignments {}", kafkaConsumer.assignment().size)
         kafkaConsumer.seekToBeginning(kafkaConsumer.assignment())
         while (!done) {
             kafkaConsumer.poll(Duration.ofMillis(100)).forEach {
