@@ -1,27 +1,23 @@
 package no.nav.syfo.sykmelding.status
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import kafka.Kafka
+import java.time.Duration
+import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import no.nav.syfo.Environment
-import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.kafka.KafkaCredentials
 import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.log
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.objectMapper
-import no.nav.syfo.utils.JacksonKafkaSerializer
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.serialization.StringDeserializer
-import java.time.Duration
-import java.time.Instant
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 
 class SykmeldingStatusKafkaConsumerService(private val env: Environment, credentials: KafkaCredentials) {
     val kafkaConsumer: KafkaConsumer<String, String>
@@ -45,7 +41,6 @@ class SykmeldingStatusKafkaConsumerService(private val env: Environment, credent
         var counter = 0
         var done = false
 
-
         val logger = GlobalScope.launch {
             while (logging) {
                 log.info("Lest: $counter events, timestamp $lastDate")
@@ -55,14 +50,17 @@ class SykmeldingStatusKafkaConsumerService(private val env: Environment, credent
         kafkaConsumer.subscribe(
             listOf(env.sykmeldingStatusTopic)
         )
+        kafkaConsumer.poll(Duration.ofMillis(0))
+        kafkaConsumer.seekToBeginning(kafkaConsumer.assignment())
         while (!done) {
             kafkaConsumer.poll(Duration.ofMillis(100)).forEach {
                 val status = objectMapper.readValue<SykmeldingStatusKafkaMessageDTO>(it.value())
                 lastDate = OffsetDateTime.ofInstant(Instant.ofEpochMilli(it.timestamp()), ZoneOffset.UTC)
-                if(it.key() == sykmelidngId) {
+                counter++
+                if (it.key() == sykmelidngId) {
                     statuser.add(status)
                 }
-                if(statuser.size > 1) {
+                if (statuser.size > 1) {
                     done = true
                 }
             }
@@ -73,6 +71,5 @@ class SykmeldingStatusKafkaConsumerService(private val env: Environment, credent
         }
         logging = false
         logger.join()
-
     }
 }
