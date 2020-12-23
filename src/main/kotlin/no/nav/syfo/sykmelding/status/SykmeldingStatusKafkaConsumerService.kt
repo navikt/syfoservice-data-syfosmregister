@@ -16,7 +16,9 @@ import no.nav.syfo.log
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.objectMapper
 import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.consumer.ConsumerRebalanceListener
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.StringDeserializer
 
 class SykmeldingStatusKafkaConsumerService(private val env: Environment, credentials: KafkaCredentials) {
@@ -49,11 +51,17 @@ class SykmeldingStatusKafkaConsumerService(private val env: Environment, credent
             }
         }
         kafkaConsumer.subscribe(
-            listOf(env.sykmeldingStatusTopic)
+            listOf(env.sykmeldingStatusTopic), object : ConsumerRebalanceListener {
+                override fun onPartitionsRevoked(partitions: MutableCollection<TopicPartition>?) {
+                    TODO("Not yet implemented")
+                }
+
+                override fun onPartitionsAssigned(partitions: MutableCollection<TopicPartition>?) {
+                    kafkaConsumer.seekToBeginning(partitions)
+                }
+            }
         )
-        kafkaConsumer.poll(Duration.ofMillis(0))
-        log.info("assignments {}", kafkaConsumer.assignment().size)
-        kafkaConsumer.seekToBeginning(kafkaConsumer.assignment())
+
         while (!done) {
             kafkaConsumer.poll(Duration.ofMillis(100)).forEach {
                 val status = objectMapper.readValue<SykmeldingStatusKafkaMessageDTO>(it.value())
