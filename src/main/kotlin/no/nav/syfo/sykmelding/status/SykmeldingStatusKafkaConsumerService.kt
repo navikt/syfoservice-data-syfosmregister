@@ -2,9 +2,7 @@ package no.nav.syfo.sykmelding.status
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.time.Duration
-import java.time.Instant
 import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -53,7 +51,6 @@ class SykmeldingStatusKafkaConsumerService(private val env: Environment, credent
         kafkaConsumer.subscribe(
             listOf(env.sykmeldingStatusTopic), object : ConsumerRebalanceListener {
                 override fun onPartitionsRevoked(partitions: MutableCollection<TopicPartition>?) {
-
                 }
 
                 override fun onPartitionsAssigned(partitions: MutableCollection<TopicPartition>?) {
@@ -65,10 +62,11 @@ class SykmeldingStatusKafkaConsumerService(private val env: Environment, credent
         while (!done) {
             kafkaConsumer.poll(Duration.ofMillis(100)).forEach {
                 val status = objectMapper.readValue<SykmeldingStatusKafkaMessageDTO>(it.value())
-                lastDate = OffsetDateTime.ofInstant(Instant.ofEpochMilli(it.timestamp()), ZoneOffset.UTC)
+                lastDate = status.event.timestamp
                 counter++
                 if (it.key() == sykmelidngId) {
                     statuser.add(status)
+                    log.info("found sykmelidng id $sykmelidngId")
                 }
                 if (statuser.size > 1) {
                     done = true
