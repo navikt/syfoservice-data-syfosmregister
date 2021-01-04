@@ -119,7 +119,7 @@ fun main() {
         SykmeldingStatusKafkaConsumerService(environment, getVaultServiceUser()).start()
     }*/
 
-    updateGrad(applicationState, environment)
+    // updateGrad(applicationState, environment)
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
