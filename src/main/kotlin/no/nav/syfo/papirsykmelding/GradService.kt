@@ -13,7 +13,7 @@ import java.time.LocalDate
 
 class GradService(private val databaseoracle: DatabaseOracle, private val databasePostgres: DatabasePostgres) {
 
-    val sykmeldingId = "3b467c81-26d6-4bf2-adc7-2be0ba16a77b"
+    val sykmeldingId = "75117ea2-be5f-40af-9c06-a517db2188a7"
 
     fun start() {
         val result = databaseoracle.getSykmeldingsDokument(sykmeldingId)
