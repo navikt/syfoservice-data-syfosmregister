@@ -13,7 +13,7 @@ import java.time.LocalDate
 
 class GradService(private val databaseoracle: DatabaseOracle, private val databasePostgres: DatabasePostgres) {
 
-    val sykmeldingId = "75117ea2-be5f-40af-9c06-a517db2188a7"
+    val sykmeldingId = "54a67989-98e9-42b4-a0ec-1054f8bdb727"
 
     fun start() {
         val result = databaseoracle.getSykmeldingsDokument(sykmeldingId)
@@ -53,13 +53,16 @@ class GradService(private val databaseoracle: DatabaseOracle, private val databa
                     log.error("Sykmeldingen har mer enn en periode!")
                     throw IllegalStateException("Sykmeldingen har mer enn en periode!")
                 }
+
+                document.aktivitet.periode.first().periodeTOMDato = LocalDate.of(2020, 12, 31)
+
                 val gradertSykmelding = HelseOpplysningerArbeidsuforhet.Aktivitet.Periode.GradertSykmelding()
                 gradertSykmelding.isReisetilskudd = false
-                gradertSykmelding.sykmeldingsgrad = 60
+                gradertSykmelding.sykmeldingsgrad = 40
 
                 val nyPeriode = HelseOpplysningerArbeidsuforhet.Aktivitet.Periode()
-                nyPeriode.periodeFOMDato = LocalDate.of(2020, 12, 5)
-                nyPeriode.periodeTOMDato = LocalDate.of(2020, 12, 18)
+                nyPeriode.periodeFOMDato = LocalDate.of(2021, 1, 1)
+                nyPeriode.periodeTOMDato = LocalDate.of(2021, 1, 22)
                 nyPeriode.isReisetilskudd = false
                 nyPeriode.gradertSykmelding = gradertSykmelding
                 nyPeriode.aktivitetIkkeMulig = null
