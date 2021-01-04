@@ -15,7 +15,7 @@ import no.nav.syfo.sykmelding.model.Periode
 
 class PeriodeService(private val databaseoracle: DatabaseOracle, private val databasePostgres: DatabasePostgres) {
 
-    val sykmeldingId = "c4821da0-0d1b-4c1b-b5b9-62a02a74ce9f"
+    val sykmeldingId = ""
 
     fun start() {
         val result = databaseoracle.getSykmeldingsDokument(sykmeldingId)
@@ -46,7 +46,7 @@ class PeriodeService(private val databaseoracle: DatabaseOracle, private val dat
             fom = periodeFOMDato,
             tom = periodeTOMDato,
             aktivitetIkkeMulig = AktivitetIkkeMulig(
-                medisinskArsak = MedisinskArsak(beskrivelse = null, arsak = listOf(MedisinskArsakType.TILSTAND_HINDRER_AKTIVITET)),
+                medisinskArsak = null,
                 arbeidsrelatertArsak = null),
             avventendeInnspillTilArbeidsgiver = null,
             behandlingsdager = null,
