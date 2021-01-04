@@ -9,10 +9,11 @@ import no.nav.syfo.log
 import no.nav.syfo.persistering.db.postgres.updatePeriode
 import no.nav.syfo.sykmelding.model.Gradert
 import no.nav.syfo.sykmelding.model.Periode
+import java.time.LocalDate
 
 class GradService(private val databaseoracle: DatabaseOracle, private val databasePostgres: DatabasePostgres) {
 
-    val sykmeldingId = ""
+    val sykmeldingId = "3b467c81-26d6-4bf2-adc7-2be0ba16a77b"
 
     fun start() {
         val result = databaseoracle.getSykmeldingsDokument(sykmeldingId)
@@ -41,6 +42,42 @@ class GradService(private val databaseoracle: DatabaseOracle, private val databa
         }
     }
 
+    fun addPeriode() {
+        val result = databaseoracle.getSykmeldingsDokument(sykmeldingId)
+
+        if (result.rows.isNotEmpty()) {
+            log.info("legger til periode for sykmelding dokument with sykmelding id {}", sykmeldingId)
+            val document = result.rows.first()
+            if (document != null) {
+                if (document.aktivitet.periode.size != 1) {
+                    log.error("Sykmeldingen har mer enn en periode!")
+                    throw IllegalStateException("Sykmeldingen har mer enn en periode!")
+                }
+                val gradertSykmelding = HelseOpplysningerArbeidsuforhet.Aktivitet.Periode.GradertSykmelding()
+                gradertSykmelding.isReisetilskudd = false
+                gradertSykmelding.sykmeldingsgrad = 60
+
+                val nyPeriode = HelseOpplysningerArbeidsuforhet.Aktivitet.Periode()
+                nyPeriode.periodeFOMDato = LocalDate.of(2020, 12, 5)
+                nyPeriode.periodeTOMDato = LocalDate.of(2020, 12, 18)
+                nyPeriode.isReisetilskudd = false
+                nyPeriode.gradertSykmelding = gradertSykmelding
+                nyPeriode.aktivitetIkkeMulig = null
+                nyPeriode.avventendeSykmelding = null
+                nyPeriode.behandlingsdager = null
+
+                document.aktivitet.periode.add(nyPeriode)
+
+                val perioder = document.aktivitet.periode.map { it.tilSmregPeriodeGradert() }
+
+                databaseoracle.updateDocument(document, sykmeldingId)
+                databasePostgres.updatePeriode(perioder, sykmeldingId)
+            }
+        } else {
+            log.info("could not find sykmelding with id {}", sykmeldingId)
+        }
+    }
+
     private fun HelseOpplysningerArbeidsuforhet.Aktivitet.Periode.tilSmregPeriodeGradert(): Periode {
         return Periode(
             fom = periodeFOMDato,
@@ -50,7 +87,7 @@ class GradService(private val databaseoracle: DatabaseOracle, private val databa
             behandlingsdager = null,
             gradert = Gradert(
                 reisetilskudd = false,
-                grad = 50
+                grad = gradertSykmelding.sykmeldingsgrad
             ),
             reisetilskudd = false
         )

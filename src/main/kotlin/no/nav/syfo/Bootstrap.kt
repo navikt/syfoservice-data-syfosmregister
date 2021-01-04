@@ -119,7 +119,7 @@ fun main() {
         SykmeldingStatusKafkaConsumerService(environment, getVaultServiceUser()).start()
     }*/
 
-    // updatePeriode(applicationState, environment)
+    updateGrad(applicationState, environment)
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
@@ -190,7 +190,8 @@ fun updateGrad(applicationState: ApplicationState, environment: Environment) {
     val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
 
     val gradService = GradService(databaseOracle, databasePostgres)
-    gradService.start()
+    // gradService.start()
+    gradService.addPeriode()
 }
 
 fun sendTilSyfoservice(applicationState: ApplicationState, environment: Environment) {
