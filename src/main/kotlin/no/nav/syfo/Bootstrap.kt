@@ -115,11 +115,11 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
-    GlobalScope.launch {
+    /*GlobalScope.launch {
         SykmeldingStatusKafkaConsumerService(environment, getVaultServiceUser()).start()
-    }
+    }*/
 
-    // updatePeriode(applicationState, environment)
+    updatePeriode(applicationState, environment)
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
