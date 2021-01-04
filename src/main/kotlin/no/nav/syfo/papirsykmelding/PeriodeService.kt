@@ -9,11 +9,13 @@ import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.log
 import no.nav.syfo.persistering.db.postgres.updatePeriode
 import no.nav.syfo.sykmelding.model.AktivitetIkkeMulig
+import no.nav.syfo.sykmelding.model.MedisinskArsak
+import no.nav.syfo.sykmelding.model.MedisinskArsakType
 import no.nav.syfo.sykmelding.model.Periode
 
 class PeriodeService(private val databaseoracle: DatabaseOracle, private val databasePostgres: DatabasePostgres) {
 
-    val sykmeldingId = ""
+    val sykmeldingId = "c4821da0-0d1b-4c1b-b5b9-62a02a74ce9f"
 
     fun start() {
         val result = databaseoracle.getSykmeldingsDokument(sykmeldingId)
@@ -27,7 +29,7 @@ class PeriodeService(private val databaseoracle: DatabaseOracle, private val dat
                     throw IllegalStateException("Sykmeldingen har mer enn en periode!")
                 }
                 // document.aktivitet.periode.first().periodeFOMDato = LocalDate.of(2020, 12, 8)
-                document.aktivitet.periode.first().periodeTOMDato = LocalDate.of(2020, 12, 6)
+                document.aktivitet.periode.first().periodeTOMDato = LocalDate.of(2021, 1, 16)
 
                 val periode = document.aktivitet.periode.first().tilSmregPeriode()
 
@@ -44,7 +46,7 @@ class PeriodeService(private val databaseoracle: DatabaseOracle, private val dat
             fom = periodeFOMDato,
             tom = periodeTOMDato,
             aktivitetIkkeMulig = AktivitetIkkeMulig(
-                medisinskArsak = null,
+                medisinskArsak = MedisinskArsak(beskrivelse = null, arsak = listOf(MedisinskArsakType.TILSTAND_HINDRER_AKTIVITET)),
                 arbeidsrelatertArsak = null),
             avventendeInnspillTilArbeidsgiver = null,
             behandlingsdager = null,
