@@ -2,6 +2,7 @@ package no.nav.syfo
 
 import no.nav.syfo.kafka.KafkaConfig
 import no.nav.syfo.kafka.KafkaCredentials
+import no.nav.syfo.utils.getFileAsString
 
 data class Environment(
     val applicationPort: Int = getEnvVar("APPLICATION_PORT", "8080").toInt(),
@@ -63,7 +64,7 @@ data class VaultServiceUser(
 
 data class JwtVaultSecrets(
     val internalJwtWellKnownUri: String = getEnvVar("JWT_WELLKNOWN_URI"),
-    val clientId: String = getEnvVar("AZURE_APP_CLIENT_ID"),
+    val clientId: String = getFileAsString("/secrets/azuread/syfoservice-data-syfosmregister/client_id"),
     val jwtIssuer: String = getEnvVar("JWT_ISSUER")
 )
 

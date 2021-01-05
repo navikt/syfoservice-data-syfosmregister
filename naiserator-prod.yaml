@@ -46,11 +46,10 @@ spec:
         mountPath: /secrets/eia/credentials
       - kvPath: oracle/data/prod/config/eia_p
         mountPath: /secrets/eia/config
+      - kvPath: /azuread/data/prod/creds/syfoservice-data-syfosmregister
+        mountPath: /secrets/azuread/syfoservice-data-syfosmregister
       - kvPath: /kv/prod/fss/syfoservice-data-syfosmregister/teamsykmelding
         mountPath: /var/run/secrets/nais.io/vault
-  azure:
-    application:
-      enabled: true
   webproxy: true
   ingresses:
     - "https://syfoservice-data-syfosmregister.nais.adeo.no"
