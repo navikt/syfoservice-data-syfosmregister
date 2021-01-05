@@ -62,7 +62,7 @@ class SykmeldingStatusKafkaConsumerService(private val env: Environment, credent
         while (!done) {
             kafkaConsumer.poll(Duration.ofMillis(100)).forEach {
                 val status = objectMapper.readValue<SykmeldingStatusKafkaMessageDTO>(it.value())
-                if(lastDate == null) {
+                if (lastDate == null) {
                     log.info("first timestamp ${status.event.timestamp}")
                 }
                 lastDate = status.event.timestamp

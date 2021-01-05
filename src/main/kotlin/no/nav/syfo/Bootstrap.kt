@@ -1,5 +1,6 @@
 package no.nav.syfo
 
+import com.auth0.jwk.JwkProviderBuilder
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -7,9 +8,11 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.ktor.util.KtorExperimentalAPI
+import java.net.URL
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -40,6 +43,7 @@ import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.GradService
 import no.nav.syfo.papirsykmelding.PeriodeService
 import no.nav.syfo.papirsykmelding.SlettInformasjonService
+import no.nav.syfo.papirsykmelding.api.UpdatePeriodeService
 import no.nav.syfo.papirsykmelding.tilsyfoservice.SendTilSyfoserviceService
 import no.nav.syfo.papirsykmelding.tilsyfoservice.kafka.SykmeldingSyfoserviceKafkaProducer
 import no.nav.syfo.papirsykmelding.tilsyfoservice.kafka.model.SykmeldingSyfoserviceKafkaMessage
@@ -72,7 +76,6 @@ import no.nav.syfo.sykmelding.SendtSykmeldingService
 import no.nav.syfo.sykmelding.SykmeldingStatusKafkaProducer
 import no.nav.syfo.sykmelding.kafka.model.MottattSykmeldingKafkaMessage
 import no.nav.syfo.sykmelding.kafka.model.SykmeldingKafkaMessage
-import no.nav.syfo.sykmelding.status.SykmeldingStatusKafkaConsumerService
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
 import no.nav.syfo.vault.RenewVaultService
@@ -110,7 +113,38 @@ fun main() {
     }*/
     val environment = Environment()
     val applicationState = ApplicationState()
-    val applicationEngine = createApplicationEngine(environment, applicationState)
+
+    val jwtVaultSecrets = JwtVaultSecrets()
+    val jwkProviderInternal = JwkProviderBuilder(URL(jwtVaultSecrets.internalJwtWellKnownUri))
+        .cached(10, 24, TimeUnit.HOURS)
+        .rateLimited(10, 1, TimeUnit.MINUTES)
+        .build()
+
+    val vaultConfig = VaultConfig(
+        jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
+    )
+
+    val syfoserviceVaultSecrets = VaultCredentials(
+        databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
+        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
+    )
+    val vaultCredentialService = VaultCredentialService()
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+
+    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
+    val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
+
+    val updatePeriodeService = UpdatePeriodeService(databaseOracle, databasePostgres)
+
+    val applicationEngine = createApplicationEngine(
+        env = environment,
+        applicationState = applicationState,
+        updatePeriodeService = updatePeriodeService,
+        jwkProviderInternal = jwkProviderInternal,
+        issuerServiceuser = jwtVaultSecrets.jwtIssuer,
+        clientId = jwtVaultSecrets.clientId,
+        appIds = listOf(jwtVaultSecrets.clientId)
+    )
     val applicationServer = ApplicationServer(applicationEngine, applicationState)
 
     applicationServer.start()

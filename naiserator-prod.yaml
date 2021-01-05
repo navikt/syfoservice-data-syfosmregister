@@ -2,7 +2,7 @@ apiVersion: "nais.io/v1alpha1"
 kind: "Application"
 metadata:
   name: syfoservice-data-syfosmregister
-  namespace: default
+  namespace: teamsykmelding
   labels:
     team: teamsykefravr
 spec:
@@ -46,11 +46,15 @@ spec:
         mountPath: /secrets/eia/credentials
       - kvPath: oracle/data/prod/config/eia_p
         mountPath: /secrets/eia/config
-      - kvPath: /kv/prod/fss/syfoservice-data-syfosmregister/default
+      - kvPath: /kv/prod/fss/syfoservice-data-syfosmregister/teamsykmelding
         mountPath: /var/run/secrets/nais.io/vault
+  azure:
+    application:
+      enabled: true
   webproxy: true
   ingresses:
     - "https://syfoservice-data-syfosmregister.nais.adeo.no"
+    - "https://macgyver.nais.adeo.no"
   env:
     - name: KAFKA_BOOTSTRAP_SERVERS_URL
       value: SASL_SSL://a01apvl00145.adeo.no:8443,SASL_SSL://a01apvl00146.adeo.no:8443,SASL_SSL://a01apvl00147.adeo.no:8443,SASL_SSL://a01apvl00149.adeo.no:8443

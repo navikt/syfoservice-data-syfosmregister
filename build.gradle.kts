@@ -37,11 +37,13 @@ val avroVersion = "1.8.2"
 val confluentVersion = "5.0.0"
 val syfoAvroSchemasVersion = "c8be932543e7356a34690ce7979d494c5d8516d8"
 val legeerklaering = "2019.07.29-02-53-86b22e73f7843e422ee500b486dac387a582f2d1"
+val swaggerUiVersion = "3.10.0"
 plugins {
     kotlin("jvm") version "1.3.60"
     id("org.jmailen.kotlinter") version "2.1.1"
     id("com.diffplug.gradle.spotless") version "3.24.0"
     id("com.github.johnrengelman.shadow") version "5.1.0"
+    id("org.hidetake.swagger.generator") version "2.18.1" apply true
 }
 
 val githubUser: String by project
@@ -111,6 +113,8 @@ dependencies {
     implementation("org.apache.avro:avro:$avroVersion")
     implementation("no.nav.syfo.schemas:syfosmoppgave-avro:$syfoAvroSchemasVersion")
 
+    swaggerUI( "org.webjars:swagger-ui:$swaggerUiVersion")
+
     testImplementation ("io.mockk:mockk:$mockkVersion")
     testImplementation ("org.amshove.kluent:kluent:$kluentVersion")
     testImplementation ("org.spekframework.spek2:spek-dsl-jvm:$spekVersion")
@@ -126,6 +130,12 @@ dependencies {
     testRuntimeOnly ("org.jetbrains.spek:spek-junit-platform-engine:$spekjunitVersion")
 }
 
+swaggerSources {
+    create("macgyver").apply {
+        setInputFile(file("api/oas3/macgyver-api.yaml"))
+    }
+}
+
 
 tasks {
     withType<Jar> {
@@ -133,13 +143,16 @@ tasks {
     }
 
     create("printVersion") {
-
         doLast {
             println(project.version)
         }
     }
     withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "12"
+    }
+
+    withType<org.hidetake.gradle.swagger.generator.GenerateSwaggerUI> {
+        outputDir = File(buildDir.path + "/resources/main/api")
     }
 
     withType<Test> {

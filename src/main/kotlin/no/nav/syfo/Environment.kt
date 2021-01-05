@@ -61,6 +61,12 @@ data class VaultServiceUser(
     override val kafkaPassword: String = serviceuserPassword
 }
 
+data class JwtVaultSecrets(
+    val internalJwtWellKnownUri: String = getEnvVar("JWT_WELLKNOWN_URI"),
+    val clientId: String = getEnvVar("AZURE_APP_CLIENT_ID"),
+    val jwtIssuer: String = getEnvVar("JWT_ISSUER")
+)
+
 data class VaultConfig(
     val jdbcUrl: String
 )
