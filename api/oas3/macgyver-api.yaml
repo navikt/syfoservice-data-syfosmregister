@@ -5,8 +5,8 @@ info:
   description: API for syfo-MacGyver.
   version: 1.0.0
 servers:
-  - url: 'https://macgyver.nais.dev.intern.nav.no'
-  - url: 'https://macgyver.nais.intern.nav.no'
+  - url: 'https://macgyver.dev.intern.nav.no'
+  - url: 'https://macgyver.intern.nav.no'
 paths:
   /api/papirsykmelding/{sykmeldingId}/periode:
     post:
