@@ -4,7 +4,7 @@ metadata:
   name: syfoservice-data-syfosmregister
   namespace: teamsykmelding
   labels:
-    team: teamsykefravr
+    team: teamsykmelding
 spec:
   image: {{ image }}
   replicas:
