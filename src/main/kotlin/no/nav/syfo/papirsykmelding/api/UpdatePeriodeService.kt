@@ -7,6 +7,7 @@ import no.nav.syfo.aksessering.db.oracle.updateDocument
 import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.log
+import no.nav.syfo.objectMapper
 import no.nav.syfo.persistering.db.postgres.updatePeriode
 import no.nav.syfo.sykmelding.model.AktivitetIkkeMulig
 import no.nav.syfo.sykmelding.model.Periode
@@ -26,6 +27,7 @@ class UpdatePeriodeService(
                     log.error("Sykmeldingen har mer enn en periode!")
                     throw IllegalStateException("Sykmeldingen har mer enn en periode!")
                 }
+                log.info("Endrer periode fra fom: ${objectMapper.writeValueAsString(document.aktivitet.periode.first().periodeFOMDato)}, tom: ${objectMapper.writeValueAsString(document.aktivitet.periode.first().periodeTOMDato)} for id $sykmeldingId")
                 document.aktivitet.periode.first().periodeFOMDato = fom
                 document.aktivitet.periode.first().periodeTOMDato = tom
 
