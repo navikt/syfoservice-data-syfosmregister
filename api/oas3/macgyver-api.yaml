@@ -1,0 +1,72 @@
+openapi: 3.0.0
+
+info:
+  title: Syfo-MacGyver
+  description: API for syfo-MacGyver. Husk å velge riktig url :)
+  version: 1.0.0
+servers:
+  - url: 'https://macgyver.dev.intern.nav.no'
+  - url: 'https://macgyver.intern.nav.no'
+paths:
+  /api/papirsykmelding/{sykmeldingId}/periode:
+    post:
+      operationId: updatePeriode
+      tags:
+        - Papirsykmelding
+      security:
+        - bearerAuth: []
+      summary: Endre periode (fom og tom) for mottatt sykmelding som har maks en periode.
+      description: OBS! Denne vil overskrive annen informasjon, f.eks. medisinsk årsak, på perioden! Må kun brukes for helt enkle tilfeller.
+      parameters:
+        - $ref: '#/components/parameters/sykmeldingId'
+      requestBody:
+        $ref: '#/components/requestBodies/PeriodeDTORequest'
+      responses:
+        '200':
+          description: Ok
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
+components:
+  requestBodies:
+    PeriodeDTORequest:
+      description: "Riktig periode for sykmeldingen"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PeriodeDTO'
+  parameters:
+    sykmeldingId:
+      description: Id for sykmelding som skal rettes
+      name: sykmeldingId
+      in: path
+      required: true
+      schema:
+        type: string
+      example: '123'
+  schemas:
+    Date:
+      type: string
+      format: date
+      example: '2020-12-15'
+    PeriodeDTO:
+      type: object
+      required:
+        - fom
+        - tom
+      properties:
+        fom:
+          $ref: '#/components/schemas/Date'
+        tom:
+          $ref: '#/components/schemas/Date'
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
