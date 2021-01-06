@@ -165,6 +165,6 @@ tasks {
     }
 
     "check" {
-        dependsOn("formatKotlin")
+        dependsOn("formatKotlin", "generateSwaggerUI")
     }
 }
