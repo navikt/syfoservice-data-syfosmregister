@@ -6,7 +6,6 @@ info:
   version: 1.0.0
 servers:
   - url: 'https://macgyver.dev.intern.nav.no'
-  - url: 'https://macgyver.intern.nav.no'
 paths:
   /api/papirsykmelding/{sykmeldingId}/periode:
     post:
