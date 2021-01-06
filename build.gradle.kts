@@ -42,7 +42,7 @@ plugins {
     kotlin("jvm") version "1.3.60"
     id("org.jmailen.kotlinter") version "2.1.1"
     id("com.diffplug.gradle.spotless") version "3.24.0"
-    id("com.github.johnrengelman.shadow") version "5.1.0"
+    id("com.github.johnrengelman.shadow") version "5.2.0"
     id("org.hidetake.swagger.generator") version "2.18.1" apply true
 }
 
@@ -153,6 +153,14 @@ tasks {
 
     withType<org.hidetake.gradle.swagger.generator.GenerateSwaggerUI> {
         outputDir = File(buildDir.path + "/resources/main/api")
+    }
+
+    withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
+        transform(com.github.jengelman.gradle.plugins.shadow.transformers.ServiceFileTransformer::class.java) {
+            setPath("META-INF/cxf")
+            include("bus-extensions.txt")
+        }
+        dependsOn("generateSwaggerUI")
     }
 
     withType<Test> {

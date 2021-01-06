@@ -27,7 +27,8 @@ class UpdatePeriodeService(
                     log.error("Sykmeldingen har mer enn en periode!")
                     throw IllegalStateException("Sykmeldingen har mer enn en periode!")
                 }
-                log.info("Endrer periode fra fom: ${objectMapper.writeValueAsString(document.aktivitet.periode.first().periodeFOMDato)}, tom: ${objectMapper.writeValueAsString(document.aktivitet.periode.first().periodeTOMDato)} for id $sykmeldingId")
+                log.info("Endrer periode fra (fom: ${objectMapper.writeValueAsString(document.aktivitet.periode.first().periodeFOMDato)}, tom: ${objectMapper.writeValueAsString(document.aktivitet.periode.first().periodeTOMDato)})" +
+                        " til (fom: ${objectMapper.writeValueAsString(fom)}, tom ${objectMapper.writeValueAsString(tom)}) for id $sykmeldingId")
                 document.aktivitet.periode.first().periodeFOMDato = fom
                 document.aktivitet.periode.first().periodeTOMDato = tom
 

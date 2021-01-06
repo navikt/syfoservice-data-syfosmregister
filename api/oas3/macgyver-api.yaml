@@ -15,7 +15,7 @@ paths:
         - Papirsykmelding
       security:
         - bearerAuth: []
-      summary: Endre periode (fom og tom for mottatt papirsykmelding som har maks en periode)
+      summary: Endre periode (fom og tom for mottatt papirsykmelding som har maks en periode). OBS! Overskriver annen informasjon på perioden, f.eks. medisinsk årsak!
       parameters:
         - $ref: '#/components/parameters/sykmeldingId'
       requestBody:
