@@ -13,7 +13,7 @@ import no.nav.syfo.sykmelding.model.Periode
 
 class PeriodeService(private val databaseoracle: DatabaseOracle, private val databasePostgres: DatabasePostgres) {
 
-    val sykmeldingId = ""
+    val sykmeldingId = "d40d615e-e01a-49fb-a5b1-5668d761315d"
 
     fun start() {
         val result = databaseoracle.getSykmeldingsDokument(sykmeldingId)
@@ -27,7 +27,8 @@ class PeriodeService(private val databaseoracle: DatabaseOracle, private val dat
                     throw IllegalStateException("Sykmeldingen har mer enn en periode!")
                 }
                 // document.aktivitet.periode.first().periodeFOMDato = LocalDate.of(2020, 12, 8)
-                document.aktivitet.periode.first().periodeTOMDato = LocalDate.of(2021, 1, 16)
+                // document.aktivitet.periode.first().periodeTOMDato = LocalDate.of(2021, 1, 16)
+                document.aktivitet.periode.first().aktivitetIkkeMulig = null
 
                 val periode = document.aktivitet.periode.first().tilSmregPeriode()
 
@@ -39,17 +40,15 @@ class PeriodeService(private val databaseoracle: DatabaseOracle, private val dat
         }
     }
 
-    fun HelseOpplysningerArbeidsuforhet.Aktivitet.Periode.tilSmregPeriode(): Periode {
+    private fun HelseOpplysningerArbeidsuforhet.Aktivitet.Periode.tilSmregPeriode(): Periode {
         return Periode(
             fom = periodeFOMDato,
             tom = periodeTOMDato,
-            aktivitetIkkeMulig = AktivitetIkkeMulig(
-                medisinskArsak = null,
-                arbeidsrelatertArsak = null),
+            aktivitetIkkeMulig = null,
             avventendeInnspillTilArbeidsgiver = null,
             behandlingsdager = null,
             gradert = null,
-            reisetilskudd = false
+            reisetilskudd = true
         )
     }
 }

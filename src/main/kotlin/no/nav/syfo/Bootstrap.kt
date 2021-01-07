@@ -153,7 +153,7 @@ fun main() {
         SykmeldingStatusKafkaConsumerService(environment, getVaultServiceUser()).start()
     }*/
 
-    // updateGrad(applicationState, environment)
+    updatePeriode(databaseOracle, databasePostgres)
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
@@ -173,20 +173,7 @@ fun getDatabaseOracle(): DatabaseOracle {
     return DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
 }
 
-fun updatePeriode(applicationState: ApplicationState, environment: Environment) {
-    val vaultConfig = VaultConfig(
-        jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
-    )
-    val syfoserviceVaultSecrets = VaultCredentials(
-        databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
-        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
-    )
-    val vaultCredentialService = VaultCredentialService()
-    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
-
-    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
-    val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
-
+fun updatePeriode(databaseOracle: DatabaseOracle, databasePostgres: DatabasePostgres) {
     val periodeService = PeriodeService(databaseOracle, databasePostgres)
     periodeService.start()
 }
