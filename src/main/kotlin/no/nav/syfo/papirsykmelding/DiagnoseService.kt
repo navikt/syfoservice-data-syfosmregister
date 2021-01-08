@@ -12,7 +12,7 @@ class DiagnoseService(private val databaseoracle: DatabaseOracle, private val da
 
     val sykmeldingId = "d40d615e-e01a-49fb-a5b1-5668d761315d"
     val correctSystem = Diagnosekoder.ICD10_CODE
-    val correctDiagnose = "S86"
+    val correctDiagnose = "S860"
 
     fun start() {
         val result = databaseoracle.getSykmeldingsDokument(sykmeldingId)
