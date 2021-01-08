@@ -153,7 +153,7 @@ fun main() {
         SykmeldingStatusKafkaConsumerService(environment, getVaultServiceUser()).start()
     }*/
 
-    updateDiagnose(databaseOracle, databasePostgres)
+    // updateDiagnose(databaseOracle, databasePostgres)
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
