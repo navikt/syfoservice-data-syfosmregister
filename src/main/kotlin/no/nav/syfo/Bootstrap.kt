@@ -153,7 +153,7 @@ fun main() {
         SykmeldingStatusKafkaConsumerService(environment, getVaultServiceUser()).start()
     }*/
 
-    updatePeriode(databaseOracle, databasePostgres)
+    updateDiagnose(databaseOracle, databasePostgres)
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
@@ -261,20 +261,7 @@ fun oppdaterStatus(applicationState: ApplicationState, environment: Environment)
     oppdaterStatusService.start()
 }
 
-fun updateDiagnose(applicationState: ApplicationState, environment: Environment) {
-    val vaultConfig = VaultConfig(
-        jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
-    )
-    val syfoserviceVaultSecrets = VaultCredentials(
-        databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
-        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
-    )
-    val vaultCredentialService = VaultCredentialService()
-    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
-
-    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
-    val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
-
+fun updateDiagnose(databaseOracle: DatabaseOracle, databasePostgres: DatabasePostgres) {
     val diagnoseService = DiagnoseService(databaseOracle, databasePostgres)
     diagnoseService.start()
 }
