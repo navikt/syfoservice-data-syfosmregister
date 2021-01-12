@@ -6,7 +6,7 @@ import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.post
-import java.time.LocalDate
+import no.nav.syfo.sykmelding.model.Periode
 
 fun Route.registrerPeriodeApi(updatePeriodeService: UpdatePeriodeService) {
     post("/api/papirsykmelding/{sykmeldingId}/periode") {
@@ -15,17 +15,21 @@ fun Route.registrerPeriodeApi(updatePeriodeService: UpdatePeriodeService) {
             call.respond(HttpStatusCode.BadRequest, "Sykmeldingid må være satt")
         }
 
-        val periodeDTO = call.receive<PeriodeDTO>()
-        if (periodeDTO.tom.isBefore(periodeDTO.fom)) {
-            call.respond(HttpStatusCode.BadRequest, "FOM må være før TOM")
+        val periodeListeDTO = call.receive<PeriodeListeDTO>()
+        if (periodeListeDTO.periodeliste.isEmpty()) {
+            call.respond(HttpStatusCode.BadRequest, "Periodelisten kan ikke være tom")
+        }
+        periodeListeDTO.periodeliste.forEach {
+            if (it.tom.isBefore(it.fom)) {
+                call.respond(HttpStatusCode.BadRequest, "FOM må være før TOM")
+            }
         }
 
-        updatePeriodeService.updatePeriode(sykmeldingId = sykmeldingId, fom = periodeDTO.fom, tom = periodeDTO.tom)
+        updatePeriodeService.updatePeriode(sykmeldingId = sykmeldingId, periodeliste = periodeListeDTO.periodeliste)
         call.respond(HttpStatusCode.OK)
     }
 }
 
-data class PeriodeDTO(
-    val fom: LocalDate,
-    val tom: LocalDate
+data class PeriodeListeDTO(
+    val periodeliste: List<Periode>
 )
