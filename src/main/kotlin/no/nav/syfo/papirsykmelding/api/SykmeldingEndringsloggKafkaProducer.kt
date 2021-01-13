@@ -1,5 +1,6 @@
 package no.nav.syfo.papirsykmelding.api
 
+import no.nav.syfo.log
 import no.nav.syfo.model.Sykmeldingsdokument
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -10,6 +11,11 @@ class SykmeldingEndringsloggKafkaProducer(
 ) {
 
     fun publishToKafka(sykmelding: Sykmeldingsdokument) {
-        kafkaproducerEndringsloggSykmelding.send(ProducerRecord(endringsloggTopic, sykmelding))
+        try {
+            kafkaproducerEndringsloggSykmelding.send(ProducerRecord(endringsloggTopic, sykmelding)).get()
+        } catch (e: Exception) {
+            log.error("Noe gikk galt ved skriving til endringslogg-topic: {}", e.cause)
+            throw e
+        }
     }
 }
