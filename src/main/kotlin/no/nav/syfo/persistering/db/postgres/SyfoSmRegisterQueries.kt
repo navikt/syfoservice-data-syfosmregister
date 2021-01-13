@@ -510,7 +510,7 @@ fun Connection.hentSykmeldingsdokument(sykmeldingid: String): Sykmeldingsdokumen
             """
         ).use {
             it.setString(1, sykmeldingid)
-            it.executeQuery().getNullsafeSykmeldingsdokument(sykmeldingid)
+            it.executeQuery().toSykmeldingsdokument()
         }
     }
 
@@ -754,6 +754,14 @@ fun ResultSet.toSykmelding(mottakId: String): SykmeldingDbModel? {
             tssid = getString("tss_id")
         )
         return SykmeldingDbModel(sykmeldingsopplysninger, sykmeldingsdokument)
+    }
+    return null
+}
+
+fun ResultSet.toSykmeldingsdokument(): Sykmeldingsdokument? {
+    if (next()) {
+        val sykmeldingId = getString("id")
+        return getNullsafeSykmeldingsdokument(sykmeldingId)
     }
     return null
 }
