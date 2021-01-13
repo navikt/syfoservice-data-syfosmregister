@@ -10,7 +10,6 @@ import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.log
 import no.nav.syfo.objectMapper
 import no.nav.syfo.persistering.db.postgres.updatePeriode
-import no.nav.syfo.sykmelding.model.AktivitetIkkeMulig
 import no.nav.syfo.sykmelding.model.Periode
 
 class UpdatePeriodeService(
@@ -24,8 +23,10 @@ class UpdatePeriodeService(
             log.info("Oppdaterer sykmeldingsperiode for id {}", sykmeldingId)
             val document = result.rows.first()
             if (document != null) {
-                log.info("Endrer perioder fra ${objectMapper.writeValueAsString(document.aktivitet.periode)}" +
-                        " til ${objectMapper.writeValueAsString(periodeliste)} for id $sykmeldingId")
+                log.info(
+                    "Endrer perioder fra ${objectMapper.writeValueAsString(document.aktivitet.periode)}" +
+                            " til ${objectMapper.writeValueAsString(periodeliste)} for id $sykmeldingId"
+                )
 
                 document.aktivitet.periode.clear()
                 document.aktivitet.periode.addAll(periodeliste.map { tilSyfoservicePeriode(it) })
@@ -48,7 +49,12 @@ class UpdatePeriodeService(
                     medisinskeArsaker = if (periode.aktivitetIkkeMulig.medisinskArsak != null) {
                         ArsakType().apply {
                             beskriv = periode.aktivitetIkkeMulig.medisinskArsak.beskrivelse
-                            arsakskode.add(CS())
+                            arsakskode.addAll(periode.aktivitetIkkeMulig.medisinskArsak.arsak.map {
+                                CS().apply {
+                                    v = it.codeValue
+                                    dn = it.name
+                                }
+                            })
                         }
                     } else {
                         null
@@ -56,7 +62,12 @@ class UpdatePeriodeService(
                     arbeidsplassen = if (periode.aktivitetIkkeMulig.arbeidsrelatertArsak != null) {
                         ArsakType().apply {
                             beskriv = periode.aktivitetIkkeMulig.arbeidsrelatertArsak.beskrivelse
-                            arsakskode.add(CS())
+                            arsakskode.addAll(periode.aktivitetIkkeMulig.arbeidsrelatertArsak.arsak.map {
+                                CS().apply {
+                                    v = it.codeValue
+                                    dn = it.name
+                                }
+                            })
                         }
                     } else {
                         null
@@ -65,7 +76,7 @@ class UpdatePeriodeService(
                 avventendeSykmelding = null
                 gradertSykmelding = null
                 behandlingsdager = null
-                isReisetilskudd = false
+                isReisetilskudd = null
             }
         }
 
@@ -80,7 +91,7 @@ class UpdatePeriodeService(
                     sykmeldingsgrad = Integer.valueOf(periode.gradert.grad)
                 }
                 behandlingsdager = null
-                isReisetilskudd = false
+                isReisetilskudd = null
             }
         }
         if (!periode.avventendeInnspillTilArbeidsgiver.isNullOrEmpty()) {
@@ -93,7 +104,7 @@ class UpdatePeriodeService(
                 }
                 gradertSykmelding = null
                 behandlingsdager = null
-                isReisetilskudd = false
+                isReisetilskudd = null
             }
         }
         if (periode.behandlingsdager != null) {
@@ -106,7 +117,7 @@ class UpdatePeriodeService(
                 behandlingsdager = HelseOpplysningerArbeidsuforhet.Aktivitet.Periode.Behandlingsdager().apply {
                     antallBehandlingsdagerUke = periode.behandlingsdager
                 }
-                isReisetilskudd = false
+                isReisetilskudd = null
             }
         }
         if (periode.reisetilskudd) {
@@ -121,20 +132,5 @@ class UpdatePeriodeService(
             }
         }
         throw IllegalStateException("Har mottatt periode som ikke er av kjent type")
-    }
-
-    private fun HelseOpplysningerArbeidsuforhet.Aktivitet.Periode.tilSmregPeriode(): Periode {
-        return Periode(
-            fom = periodeFOMDato,
-            tom = periodeTOMDato,
-            aktivitetIkkeMulig = AktivitetIkkeMulig(
-                medisinskArsak = null,
-                arbeidsrelatertArsak = null
-            ),
-            avventendeInnspillTilArbeidsgiver = null,
-            behandlingsdager = null,
-            gradert = null,
-            reisetilskudd = false
-        )
     }
 }
