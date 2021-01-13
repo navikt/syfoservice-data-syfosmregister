@@ -14,13 +14,13 @@ paths:
       tags:
         - Papirsykmelding
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       summary: Endre periode (fom og tom) for mottatt sykmelding som har maks en periode.
       description: OBS! Denne vil overskrive annen informasjon, f.eks. medisinsk årsak, på perioden! Må kun brukes for helt enkle tilfeller.
       parameters:
         - $ref: '#/components/parameters/sykmeldingId'
       requestBody:
-        $ref: '#/components/requestBodies/PeriodeDTORequest'
+        $ref: '#/components/requestBodies/PeriodelisteDTORequest'
       responses:
         '200':
           description: Ok
@@ -31,12 +31,12 @@ paths:
 
 components:
   requestBodies:
-    PeriodeDTORequest:
-      description: "Riktig periode for sykmeldingen"
+    PeriodelisteDTORequest:
+      description: "Riktig periodeliste for sykmeldingen"
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/PeriodeDTO'
+            $ref: '#/components/schemas/PeriodelisteDTO'
   parameters:
     sykmeldingId:
       description: Id for sykmelding som skal rettes
@@ -51,16 +51,76 @@ components:
       type: string
       format: date
       example: '2020-12-15'
-    PeriodeDTO:
+    PeriodelisteDTO:
+      type: object
+      required:
+        - periodeliste
+      properties:
+        periodeliste:
+          type: array
+          items:
+            $ref: '#/components/schemas/Periode'
+    Periode:
       type: object
       required:
         - fom
         - tom
+        - reisetilskudd
       properties:
         fom:
           $ref: '#/components/schemas/Date'
         tom:
           $ref: '#/components/schemas/Date'
+        aktivitetIkkeMulig:
+          $ref: '#/components/schemas/AktivitetIkkeMulig'
+        avventendeInnspillTilArbeidsgiver:
+          type: string
+        behandlingsdager:
+          type: integer
+        gradert:
+          $ref: '#/components/schemas/Gradert'
+        reisetilskudd:
+          type: boolean
+    AktivitetIkkeMulig:
+      type: object
+      properties:
+        medisinskArsak:
+          $ref: '#/components/schemas/MedisinskArsak'
+        arbeidsrelatertArsak:
+          $ref: '#/components/schemas/ArbeidsrelatertArsak'
+    MedisinskArsak:
+      type: object
+      properties:
+        beskrivelse:
+          type: string
+        arsak:
+          type: array
+          items:
+            $ref: '#/components/schemas/MedisinskArsakType'
+    MedisinskArsakType:
+      type: string
+      enum: [ TILSTAND_HINDRER_AKTIVITET, AKTIVITET_FORVERRER_TILSTAND, AKTIVITET_FORHINDRER_BEDRING, ANNET ]
+    ArbeidsrelatertArsak:
+      type: object
+      properties:
+        beskrivelse:
+          type: string
+        arsak:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArbeidsrelatertArsakType'
+    ArbeidsrelatertArsakType:
+      type: string
+      enum: [ MANGLENDE_TILRETTELEGGING, ANNET ]
+    Gradert:
+      type: object
+      properties:
+        grad:
+          type: integer
+          minimum: 0
+          maximum: 100
+        reisetilskudd:
+          type: boolean
 
   securitySchemes:
     bearerAuth:
@@ -69,4 +129,4 @@ components:
       bearerFormat: JWT
 
 security:
-  - bearerAuth: []
+  - bearerAuth: [ ]
