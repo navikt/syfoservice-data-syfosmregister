@@ -502,6 +502,18 @@ fun Connection.hentSykmelding(mottakId: String): SykmeldingDbModel? =
         }
     }
 
+fun Connection.hentSykmeldingsdokument(sykmeldingid: String): Sykmeldingsdokument? =
+    use { connection ->
+        connection.prepareStatement(
+            """
+                select * from sykmeldingsdokument where id = ?
+            """
+        ).use {
+            it.setString(1, sykmeldingid)
+            it.executeQuery().toSykmeldingsdokument()
+        }
+    }
+
 fun Connection.getBehandlingsutfall(sykmeldingId: String): Behandlingsutfall? {
     return use { connection ->
         connection.prepareStatement(
@@ -742,6 +754,14 @@ fun ResultSet.toSykmelding(mottakId: String): SykmeldingDbModel? {
             tssid = getString("tss_id")
         )
         return SykmeldingDbModel(sykmeldingsopplysninger, sykmeldingsdokument)
+    }
+    return null
+}
+
+fun ResultSet.toSykmeldingsdokument(): Sykmeldingsdokument? {
+    if (next()) {
+        val sykmeldingId = getString("id")
+        return getNullsafeSykmeldingsdokument(sykmeldingId)
     }
     return null
 }

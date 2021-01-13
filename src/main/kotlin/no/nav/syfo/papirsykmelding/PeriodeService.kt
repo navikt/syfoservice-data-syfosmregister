@@ -1,6 +1,5 @@
 package no.nav.syfo.papirsykmelding
 
-import java.time.LocalDate
 import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.syfo.aksessering.db.oracle.getSykmeldingsDokument
 import no.nav.syfo.aksessering.db.oracle.updateDocument
@@ -8,7 +7,6 @@ import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.log
 import no.nav.syfo.persistering.db.postgres.updatePeriode
-import no.nav.syfo.sykmelding.model.AktivitetIkkeMulig
 import no.nav.syfo.sykmelding.model.Periode
 
 class PeriodeService(private val databaseoracle: DatabaseOracle, private val databasePostgres: DatabasePostgres) {

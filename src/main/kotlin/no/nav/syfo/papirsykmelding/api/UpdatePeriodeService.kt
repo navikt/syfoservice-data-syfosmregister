@@ -1,6 +1,7 @@
 package no.nav.syfo.papirsykmelding.api
 
-import java.time.LocalDate
+import no.nav.helse.sm2013.ArsakType
+import no.nav.helse.sm2013.CS
 import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.syfo.aksessering.db.oracle.getSykmeldingsDokument
 import no.nav.syfo.aksessering.db.oracle.updateDocument
@@ -8,34 +9,34 @@ import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.log
 import no.nav.syfo.objectMapper
+import no.nav.syfo.persistering.db.postgres.hentSykmeldingsdokument
 import no.nav.syfo.persistering.db.postgres.updatePeriode
-import no.nav.syfo.sykmelding.model.AktivitetIkkeMulig
 import no.nav.syfo.sykmelding.model.Periode
 
 class UpdatePeriodeService(
     private val databaseoracle: DatabaseOracle,
-    private val databasePostgres: DatabasePostgres
+    private val databasePostgres: DatabasePostgres,
+    private val sykmeldingEndringsloggKafkaProducer: SykmeldingEndringsloggKafkaProducer
 ) {
-    fun updatePeriode(sykmeldingId: String, fom: LocalDate, tom: LocalDate) {
+    fun updatePeriode(sykmeldingId: String, periodeliste: List<Periode>) {
         val result = databaseoracle.getSykmeldingsDokument(sykmeldingId)
+        val sykmeldingsdokument = databasePostgres.connection.hentSykmeldingsdokument(sykmeldingId)
 
-        if (result.rows.isNotEmpty()) {
-            log.info("Oppdaterer sykmeldingsperiode for id {}", sykmeldingId)
+        if (result.rows.isNotEmpty() && sykmeldingsdokument != null) {
+            log.info("Oppdaterer sykmeldingsperioder for id {}", sykmeldingId)
             val document = result.rows.first()
             if (document != null) {
-                if (document.aktivitet.periode.size != 1) {
-                    log.error("Sykmeldingen har mer enn en periode!")
-                    throw IllegalStateException("Sykmeldingen har mer enn en periode!")
-                }
-                log.info("Endrer periode fra (fom: ${objectMapper.writeValueAsString(document.aktivitet.periode.first().periodeFOMDato)}, tom: ${objectMapper.writeValueAsString(document.aktivitet.periode.first().periodeTOMDato)})" +
-                        " til (fom: ${objectMapper.writeValueAsString(fom)}, tom ${objectMapper.writeValueAsString(tom)}) for id $sykmeldingId")
-                document.aktivitet.periode.first().periodeFOMDato = fom
-                document.aktivitet.periode.first().periodeTOMDato = tom
+                log.info(
+                    "Endrer perioder fra ${objectMapper.writeValueAsString(sykmeldingsdokument.sykmelding.perioder)}" +
+                            " til ${objectMapper.writeValueAsString(periodeliste)} for id $sykmeldingId"
+                )
+                sykmeldingEndringsloggKafkaProducer.publishToKafka(sykmeldingsdokument)
 
-                val periode = document.aktivitet.periode.first().tilSmregPeriode()
+                document.aktivitet.periode.clear()
+                document.aktivitet.periode.addAll(periodeliste.map { tilSyfoservicePeriode(it) })
 
                 databaseoracle.updateDocument(document, sykmeldingId)
-                databasePostgres.updatePeriode(listOf(periode), sykmeldingId)
+                databasePostgres.updatePeriode(periodeliste, sykmeldingId)
             }
         } else {
             log.info("Fant ikke sykmelding med id {}", sykmeldingId)
@@ -43,18 +44,97 @@ class UpdatePeriodeService(
         }
     }
 
-    private fun HelseOpplysningerArbeidsuforhet.Aktivitet.Periode.tilSmregPeriode(): Periode {
-        return Periode(
-            fom = periodeFOMDato,
-            tom = periodeTOMDato,
-            aktivitetIkkeMulig = AktivitetIkkeMulig(
-                medisinskArsak = null,
-                arbeidsrelatertArsak = null
-            ),
-            avventendeInnspillTilArbeidsgiver = null,
-            behandlingsdager = null,
-            gradert = null,
-            reisetilskudd = false
-        )
+    private fun tilSyfoservicePeriode(periode: Periode): HelseOpplysningerArbeidsuforhet.Aktivitet.Periode {
+        if (periode.aktivitetIkkeMulig != null) {
+            return HelseOpplysningerArbeidsuforhet.Aktivitet.Periode().apply {
+                periodeFOMDato = periode.fom
+                periodeTOMDato = periode.tom
+                aktivitetIkkeMulig = HelseOpplysningerArbeidsuforhet.Aktivitet.Periode.AktivitetIkkeMulig().apply {
+                    medisinskeArsaker = if (periode.aktivitetIkkeMulig.medisinskArsak != null) {
+                        ArsakType().apply {
+                            beskriv = periode.aktivitetIkkeMulig.medisinskArsak.beskrivelse
+                            arsakskode.addAll(periode.aktivitetIkkeMulig.medisinskArsak.arsak.map {
+                                CS().apply {
+                                    v = it.codeValue
+                                    dn = it.name
+                                }
+                            })
+                        }
+                    } else {
+                        null
+                    }
+                    arbeidsplassen = if (periode.aktivitetIkkeMulig.arbeidsrelatertArsak != null) {
+                        ArsakType().apply {
+                            beskriv = periode.aktivitetIkkeMulig.arbeidsrelatertArsak.beskrivelse
+                            arsakskode.addAll(periode.aktivitetIkkeMulig.arbeidsrelatertArsak.arsak.map {
+                                CS().apply {
+                                    v = it.codeValue
+                                    dn = it.name
+                                }
+                            })
+                        }
+                    } else {
+                        null
+                    }
+                }
+                avventendeSykmelding = null
+                gradertSykmelding = null
+                behandlingsdager = null
+                isReisetilskudd = null
+            }
+        }
+
+        if (periode.gradert != null) {
+            return HelseOpplysningerArbeidsuforhet.Aktivitet.Periode().apply {
+                periodeFOMDato = periode.fom
+                periodeTOMDato = periode.tom
+                aktivitetIkkeMulig = null
+                avventendeSykmelding = null
+                gradertSykmelding = HelseOpplysningerArbeidsuforhet.Aktivitet.Periode.GradertSykmelding().apply {
+                    isReisetilskudd = periode.gradert.reisetilskudd
+                    sykmeldingsgrad = Integer.valueOf(periode.gradert.grad)
+                }
+                behandlingsdager = null
+                isReisetilskudd = null
+            }
+        }
+        if (!periode.avventendeInnspillTilArbeidsgiver.isNullOrEmpty()) {
+            return HelseOpplysningerArbeidsuforhet.Aktivitet.Periode().apply {
+                periodeFOMDato = periode.fom
+                periodeTOMDato = periode.tom
+                aktivitetIkkeMulig = null
+                avventendeSykmelding = HelseOpplysningerArbeidsuforhet.Aktivitet.Periode.AvventendeSykmelding().apply {
+                    innspillTilArbeidsgiver = periode.avventendeInnspillTilArbeidsgiver
+                }
+                gradertSykmelding = null
+                behandlingsdager = null
+                isReisetilskudd = null
+            }
+        }
+        if (periode.behandlingsdager != null) {
+            return HelseOpplysningerArbeidsuforhet.Aktivitet.Periode().apply {
+                periodeFOMDato = periode.fom
+                periodeTOMDato = periode.tom
+                aktivitetIkkeMulig = null
+                avventendeSykmelding = null
+                gradertSykmelding = null
+                behandlingsdager = HelseOpplysningerArbeidsuforhet.Aktivitet.Periode.Behandlingsdager().apply {
+                    antallBehandlingsdagerUke = periode.behandlingsdager
+                }
+                isReisetilskudd = null
+            }
+        }
+        if (periode.reisetilskudd) {
+            return HelseOpplysningerArbeidsuforhet.Aktivitet.Periode().apply {
+                periodeFOMDato = periode.fom
+                periodeTOMDato = periode.tom
+                aktivitetIkkeMulig = null
+                avventendeSykmelding = null
+                gradertSykmelding = null
+                behandlingsdager = null
+                isReisetilskudd = true
+            }
+        }
+        throw IllegalStateException("Har mottatt periode som ikke er av kjent type")
     }
 }

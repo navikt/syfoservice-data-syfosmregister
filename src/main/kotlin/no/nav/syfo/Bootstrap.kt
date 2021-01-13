@@ -38,11 +38,13 @@ import no.nav.syfo.model.Behandlingsutfall
 import no.nav.syfo.model.Eia
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.RuleInfo
+import no.nav.syfo.model.Sykmeldingsdokument
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.GradService
 import no.nav.syfo.papirsykmelding.PeriodeService
 import no.nav.syfo.papirsykmelding.SlettInformasjonService
+import no.nav.syfo.papirsykmelding.api.SykmeldingEndringsloggKafkaProducer
 import no.nav.syfo.papirsykmelding.api.UpdatePeriodeService
 import no.nav.syfo.papirsykmelding.tilsyfoservice.SendTilSyfoserviceService
 import no.nav.syfo.papirsykmelding.tilsyfoservice.kafka.SykmeldingSyfoserviceKafkaProducer
@@ -134,7 +136,16 @@ fun main() {
     val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
     val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
 
-    val updatePeriodeService = UpdatePeriodeService(databaseOracle, databasePostgres)
+    val vaultServiceuser = getVaultServiceUser()
+    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+    val producerProperties =
+        kafkaBaseConfig.toProducerConfig(
+            environment.applicationName,
+            valueSerializer = JacksonKafkaSerializer::class
+        )
+    val sykmeldingEndringsloggKafkaProducer = SykmeldingEndringsloggKafkaProducer(environment.endringsloggTopic, KafkaProducer<String, Sykmeldingsdokument>(producerProperties))
+
+    val updatePeriodeService = UpdatePeriodeService(databaseOracle, databasePostgres, sykmeldingEndringsloggKafkaProducer)
 
     val applicationEngine = createApplicationEngine(
         env = environment,
