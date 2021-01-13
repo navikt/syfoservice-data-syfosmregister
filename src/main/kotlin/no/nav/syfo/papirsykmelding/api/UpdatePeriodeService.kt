@@ -9,24 +9,28 @@ import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.log
 import no.nav.syfo.objectMapper
+import no.nav.syfo.persistering.db.postgres.hentSykmeldingsdokument
 import no.nav.syfo.persistering.db.postgres.updatePeriode
 import no.nav.syfo.sykmelding.model.Periode
 
 class UpdatePeriodeService(
     private val databaseoracle: DatabaseOracle,
-    private val databasePostgres: DatabasePostgres
+    private val databasePostgres: DatabasePostgres,
+    private val sykmeldingEndringsloggKafkaProducer: SykmeldingEndringsloggKafkaProducer
 ) {
     fun updatePeriode(sykmeldingId: String, periodeliste: List<Periode>) {
         val result = databaseoracle.getSykmeldingsDokument(sykmeldingId)
+        val sykmeldingsdokument = databasePostgres.connection.hentSykmeldingsdokument(sykmeldingId)
 
-        if (result.rows.isNotEmpty()) {
-            log.info("Oppdaterer sykmeldingsperiode for id {}", sykmeldingId)
+        if (result.rows.isNotEmpty() && sykmeldingsdokument != null) {
+            log.info("Oppdaterer sykmeldingsperioder for id {}", sykmeldingId)
             val document = result.rows.first()
             if (document != null) {
                 log.info(
-                    "Endrer perioder fra ${objectMapper.writeValueAsString(document.aktivitet.periode)}" +
+                    "Endrer perioder fra ${objectMapper.writeValueAsString(sykmeldingsdokument.sykmelding.perioder)}" +
                             " til ${objectMapper.writeValueAsString(periodeliste)} for id $sykmeldingId"
                 )
+                sykmeldingEndringsloggKafkaProducer.publishToKafka(sykmeldingsdokument)
 
                 document.aktivitet.periode.clear()
                 document.aktivitet.periode.addAll(periodeliste.map { tilSyfoservicePeriode(it) })

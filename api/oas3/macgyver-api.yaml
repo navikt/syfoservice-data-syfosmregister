@@ -2,7 +2,7 @@ openapi: 3.0.0
 
 info:
   title: Syfo-MacGyver
-  description: API for syfo-MacGyver. Husk å velge riktig url :)
+  description: API for syfo-MacGyver. Husk å velge riktig url! :)
   version: 1.0.0
 servers:
   - url: 'https://macgyver.dev.intern.nav.no'
@@ -15,8 +15,8 @@ paths:
         - Papirsykmelding
       security:
         - bearerAuth: [ ]
-      summary: Endre periode (fom og tom) for mottatt sykmelding som har maks en periode.
-      description: OBS! Denne vil overskrive annen informasjon, f.eks. medisinsk årsak, på perioden! Må kun brukes for helt enkle tilfeller.
+      summary: Endre periodelisten for en gitt sykmelding
+      description: OBS! Denne vil overskrive alle eksisterende sykmeldingsperioder for denne sykmeldingen!!
       parameters:
         - $ref: '#/components/parameters/sykmeldingId'
       requestBody:

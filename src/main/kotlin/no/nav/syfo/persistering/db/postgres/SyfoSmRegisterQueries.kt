@@ -502,6 +502,18 @@ fun Connection.hentSykmelding(mottakId: String): SykmeldingDbModel? =
         }
     }
 
+fun Connection.hentSykmeldingsdokument(sykmeldingid: String): Sykmeldingsdokument? =
+    use { connection ->
+        connection.prepareStatement(
+            """
+                select * from sykmeldingsdokument where id = ?
+            """
+        ).use {
+            it.setString(1, sykmeldingid)
+            it.executeQuery().getNullsafeSykmeldingsdokument(sykmeldingid)
+        }
+    }
+
 fun Connection.getBehandlingsutfall(sykmeldingId: String): Behandlingsutfall? {
     return use { connection ->
         connection.prepareStatement(
