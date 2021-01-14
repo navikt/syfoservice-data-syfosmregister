@@ -87,6 +87,7 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.util.Properties
 
 val objectMapper: ObjectMapper = ObjectMapper().apply {
     registerKotlinModule()
@@ -164,7 +165,7 @@ fun main() {
         SykmeldingStatusKafkaConsumerService(environment, getVaultServiceUser()).start()
     }*/
 
-    // updateDiagnose(databaseOracle, databasePostgres)
+    sendTilSyfoservice(environment, databasePostgres, producerProperties)
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
@@ -226,19 +227,7 @@ fun updateGrad(applicationState: ApplicationState, environment: Environment) {
     gradService.addPeriode()
 }
 
-fun sendTilSyfoservice(applicationState: ApplicationState, environment: Environment) {
-    val vaultServiceuser = getVaultServiceUser()
-    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
-    val vaultCredentialService = VaultCredentialService()
-    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
-
-    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
-
-    val producerProperties =
-        kafkaBaseConfig.toProducerConfig(
-            environment.applicationName,
-            valueSerializer = JacksonKafkaSerializer::class
-        )
+fun sendTilSyfoservice(environment: Environment, databasePostgres: DatabasePostgres, producerProperties: Properties) {
     val syfoserviceKafkaProducer = SykmeldingSyfoserviceKafkaProducer(KafkaProducer<String, SykmeldingSyfoserviceKafkaMessage>(producerProperties), environment.syfoserviceKafkaTopic)
 
     val sendTilSyfoServiceService = SendTilSyfoserviceService(syfoserviceKafkaProducer, databasePostgres)
