@@ -165,7 +165,7 @@ fun main() {
         SykmeldingStatusKafkaConsumerService(environment, getVaultServiceUser()).start()
     }*/
 
-    sendTilSyfoservice(environment, databasePostgres, producerProperties)
+    // sendTilSyfoservice(environment, databasePostgres, producerProperties)
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
