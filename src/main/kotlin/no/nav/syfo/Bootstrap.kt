@@ -132,7 +132,6 @@ fun main() {
         databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
     )
     val vaultCredentialService = VaultCredentialService()
-    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
 
     val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
     val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
@@ -161,6 +160,9 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
+
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+
     /*GlobalScope.launch {
         SykmeldingStatusKafkaConsumerService(environment, getVaultServiceUser()).start()
     }*/
