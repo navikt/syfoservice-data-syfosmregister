@@ -114,6 +114,27 @@ fun Connection.getMottattSykmelding(lastMottattTidspunkt: LocalDate): List<Motta
         }
     }
 
+fun Connection.getMottattSykmelding(sykmeldingId: String): MottattSykmeldingDbModel? =
+    use {
+        this.prepareStatement(
+            """
+                    SELECT opplysninger.id,
+                    pasient_fnr,
+                    mottatt_tidspunkt,
+                    behandlingsutfall,
+                    legekontor_org_nr,
+                    sykmelding
+                    FROM sykmeldingsopplysninger AS opplysninger
+                        INNER JOIN sykmeldingsdokument AS dokument ON opplysninger.id = dokument.id
+                        INNER JOIN behandlingsutfall AS utfall ON opplysninger.id = utfall.id
+                     WHERE opplysninger.id = ?
+                    """
+        ).use {
+            it.setString(1, sykmeldingId)
+            it.executeQuery().toList { toMotattSykmeldingDbModel() }.firstOrNull()
+        }
+    }
+
 fun Connection.getSykmeldingMedSisteStatus(lastMottattTidspunkt: LocalDate): List<EnkelSykmeldingDbModel> =
     use {
         this.prepareStatement(
