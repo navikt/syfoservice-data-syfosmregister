@@ -183,7 +183,7 @@ fun Connection.getSykmeldingMedSisteStatus(sykmeldingId: String): List<EnkelSykm
                     FROM sykmeldingsopplysninger AS opplysninger
                         INNER JOIN sykmeldingsdokument AS dokument ON opplysninger.id = dokument.id
                         INNER JOIN behandlingsutfall AS utfall ON opplysninger.id = utfall.id
-                        INNER JOIN sykmeldingstatus AS status ON opplysninger.id = status.sykmelding_id AND status.event = 'SENDT'
+                        INNER JOIN sykmeldingstatus AS status ON opplysninger.id = status.sykmelding_id
                         INNER JOIN arbeidsgiver as arbeidsgiver on arbeidsgiver.sykmelding_id = opplysninger.id
                      WHERE opplysninger.id = ?                                                        
                     """
