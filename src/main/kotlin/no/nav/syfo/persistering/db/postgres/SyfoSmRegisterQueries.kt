@@ -147,7 +147,7 @@ fun Connection.getEnkelSykmelding(sykmeldingId: String): EnkelSykmeldingDbModel?
                     legekontor_org_nr,
                     sykmelding,
                     status.event,
-                    status.event_timestamp,
+                    status.timestamp
                     FROM sykmeldingsopplysninger AS opplysninger
                         INNER JOIN sykmeldingsdokument AS dokument ON opplysninger.id = dokument.id
                         INNER JOIN behandlingsutfall AS utfall ON opplysninger.id = utfall.id
@@ -261,7 +261,7 @@ fun Connection.getSykmeldingMedSisteStatusBekreftet(sykmeldingId: String): Enkel
                     legekontor_org_nr,
                     sykmelding,
                     status.event,
-                    status.event_timestamp
+                    status.timestamp
                     FROM sykmeldingsopplysninger AS opplysninger
                         INNER JOIN sykmeldingsdokument AS dokument ON opplysninger.id = dokument.id
                         INNER JOIN behandlingsutfall AS utfall ON opplysninger.id = utfall.id
