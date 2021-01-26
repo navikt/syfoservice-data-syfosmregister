@@ -22,7 +22,9 @@ import no.nav.syfo.model.sykmeldingstatus.SporsmalOgSvarDTO
 import no.nav.syfo.model.sykmeldingstatus.SvartypeDTO
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaEventDTO
 import no.nav.syfo.objectMapper
-import no.nav.syfo.persistering.db.postgres.getSykmeldingMedSisteStatus
+import no.nav.syfo.persistering.db.postgres.getEnkelSykmelding
+import no.nav.syfo.persistering.db.postgres.getSendtSykmeldingMedSisteStatus
+import no.nav.syfo.persistering.db.postgres.getSykmeldingMedSisteStatusBekreftet
 import no.nav.syfo.persistering.db.postgres.hentSporsmalOgSvar
 import no.nav.syfo.persistering.db.postgres.hentSykmeldingsdokument
 import no.nav.syfo.persistering.db.postgres.updatePeriode
@@ -62,7 +64,7 @@ class UpdatePeriodeService(
                 databaseoracle.updateDocument(document, sykmeldingId)
                 databasePostgres.updatePeriode(periodeliste, sykmeldingId)
 
-                val sykmelding = databasePostgres.connection.getSykmeldingMedSisteStatus(sykmeldingId).firstOrNull()
+                val sykmelding = databasePostgres.connection.getEnkelSykmelding(sykmeldingId)
                 if (sykmelding == null) {
                     log.error("Fant ikke sykmeldingen vi nettopp endret..")
                     throw RuntimeException("Fant ikke sykmeldingen vi nettopp endret")
@@ -71,10 +73,16 @@ class UpdatePeriodeService(
                 mottattSykmeldingProudcer.sendSykmelding(mapTilMottattSykmelding(sykmelding))
 
                 if (sykmelding.status.statusEvent == "SENDT") {
-                    sendtSykmeldingProducer.sendSykmelding(mapTilSendtSykmelding(sykmelding))
+                    log.info("Sykmelding er sendt")
+                    val sendtSykmelding = databasePostgres.connection.getSendtSykmeldingMedSisteStatus(sykmeldingId).firstOrNull()
+                    sendtSykmeldingProducer.sendSykmelding(mapTilSendtSykmelding(sendtSykmelding!!))
+                    log.info("Sendt sykmelding til SENDT-topic")
                 } else if (sykmelding.status.statusEvent == "BEKREFTET") {
+                    log.info("Sykmelding er bekreftet")
+                    val bekreftetSykmelding = databasePostgres.connection.getSykmeldingMedSisteStatusBekreftet(sykmeldingId)
                     val sporsmals = databasePostgres.connection.hentSporsmalOgSvar(sykmeldingId)
-                    bekreftetSykmeldingKafkaProducer.sendSykmelding(mapTilBekreftetSykmelding(sykmelding, sporsmals))
+                    bekreftetSykmeldingKafkaProducer.sendSykmelding(mapTilBekreftetSykmelding(bekreftetSykmelding!!, sporsmals))
+                    log.info("Sendt sykmelding til BEKREFTET-topic")
                 }
             }
         } else {
