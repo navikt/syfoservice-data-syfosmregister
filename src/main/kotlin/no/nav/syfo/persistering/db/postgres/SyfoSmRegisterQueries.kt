@@ -151,7 +151,12 @@ fun Connection.getEnkelSykmelding(sykmeldingId: String): EnkelSykmeldingDbModel?
                     FROM sykmeldingsopplysninger AS opplysninger
                         INNER JOIN sykmeldingsdokument AS dokument ON opplysninger.id = dokument.id
                         INNER JOIN behandlingsutfall AS utfall ON opplysninger.id = utfall.id
-                        INNER JOIN sykmeldingstatus AS status ON opplysninger.id = status.sykmelding_id
+                        INNER JOIN sykmeldingstatus AS status ON opplysninger.id = status.sykmelding_id AND
+                                                status.timestamp = (SELECT timestamp
+                                                                          FROM sykmeldingstatus
+                                                                          WHERE sykmelding_id = opplysninger.id
+                                                                          ORDER BY timestamp DESC
+                                                                          LIMIT 1) 
                      WHERE opplysninger.id = ?
                     """
         ).use {
@@ -266,10 +271,10 @@ fun Connection.getSykmeldingMedSisteStatusBekreftet(sykmeldingId: String): Enkel
                         INNER JOIN sykmeldingsdokument AS dokument ON opplysninger.id = dokument.id
                         INNER JOIN behandlingsutfall AS utfall ON opplysninger.id = utfall.id
                           INNER JOIN sykmeldingstatus AS status ON opplysninger.id = status.sykmelding_id AND
-                                                status.event_timestamp = (SELECT event_timestamp
+                                                status.timestamp = (SELECT timestamp
                                                                           FROM sykmeldingstatus
                                                                           WHERE sykmelding_id = opplysninger.id
-                                                                          ORDER BY event_timestamp DESC
+                                                                          ORDER BY timestamp DESC
                                                                           LIMIT 1) AND
                                                                 status.event = 'BEKREFTET'
                      WHERE opplysninger.id = ?
