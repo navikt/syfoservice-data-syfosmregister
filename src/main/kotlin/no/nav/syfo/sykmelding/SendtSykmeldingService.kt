@@ -18,6 +18,7 @@ import no.nav.syfo.model.sykmeldingstatus.ShortNameDTO
 import no.nav.syfo.model.sykmeldingstatus.SporsmalOgSvarDTO
 import no.nav.syfo.model.sykmeldingstatus.SvartypeDTO
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaEventDTO
+import no.nav.syfo.persistering.db.postgres.getSendtSykmeldingMedSisteStatus
 import no.nav.syfo.persistering.db.postgres.getSykmeldingMedSisteStatus
 import no.nav.syfo.sykmelding.kafka.model.SykmeldingKafkaMessage
 import no.nav.syfo.sykmelding.kafka.model.toEnkelSykmelding
@@ -32,7 +33,7 @@ class SendtSykmeldingService(
 
     fun republishSendtSykmelding() {
         val sykmeldingsid = "fdf5065c-4fc2-4456-b643-30500e8b6f9e"
-        val dbmodels = databasePostgres.connection.getSykmeldingMedSisteStatus(sykmeldingsid)
+        val dbmodels = databasePostgres.connection.getSendtSykmeldingMedSisteStatus(sykmeldingsid)
         if (dbmodels.size > 1) {
             log.error("Fant flere sykmeldinger")
             throw RuntimeException("Fant mer enn en sykmelding")

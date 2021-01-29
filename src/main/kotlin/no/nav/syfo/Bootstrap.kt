@@ -12,6 +12,7 @@ import java.net.URL
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
+import java.util.Properties
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -87,7 +88,6 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.Properties
 
 val objectMapper: ObjectMapper = ObjectMapper().apply {
     registerKotlinModule()
@@ -144,8 +144,18 @@ fun main() {
             valueSerializer = JacksonKafkaSerializer::class
         )
     val sykmeldingEndringsloggKafkaProducer = SykmeldingEndringsloggKafkaProducer(environment.endringsloggTopic, KafkaProducer<String, Sykmeldingsdokument>(producerProperties))
+    val mottattSykmeldingKafkaProducer = MottattSykmeldingKafkaProducer(KafkaProducer<String, MottattSykmeldingKafkaMessage>(producerProperties), environment.mottattSykmeldingTopic)
+    val sendtSykmeldingKafkaProducer = EnkelSykmeldingKafkaProducer(KafkaProducer<String, SykmeldingKafkaMessage>(producerProperties), environment.sendSykmeldingTopic)
+    val bekreftetSykmeldingKafkaProducer = EnkelSykmeldingKafkaProducer(KafkaProducer<String, SykmeldingKafkaMessage>(producerProperties), environment.bekreftSykmeldingKafkaTopic)
 
-    val updatePeriodeService = UpdatePeriodeService(databaseOracle, databasePostgres, sykmeldingEndringsloggKafkaProducer)
+    val updatePeriodeService = UpdatePeriodeService(
+        databaseoracle = databaseOracle,
+        databasePostgres = databasePostgres,
+        sykmeldingEndringsloggKafkaProducer = sykmeldingEndringsloggKafkaProducer,
+        mottattSykmeldingProudcer = mottattSykmeldingKafkaProducer,
+        sendtSykmeldingProducer = sendtSykmeldingKafkaProducer,
+        bekreftetSykmeldingKafkaProducer = bekreftetSykmeldingKafkaProducer
+    )
 
     val applicationEngine = createApplicationEngine(
         env = environment,

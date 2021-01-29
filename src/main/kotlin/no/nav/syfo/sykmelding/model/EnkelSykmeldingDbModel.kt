@@ -17,6 +17,17 @@ fun ResultSet.toSendtSykmeldingDbModel(): EnkelSykmeldingDbModel {
     )
 }
 
+fun ResultSet.toEnkelSykmeldingDbModel(): EnkelSykmeldingDbModel {
+    return EnkelSykmeldingDbModel(sykmeldingsDokument = objectMapper.readValue(getString("sykmelding"), Sykmelding::class.java),
+        id = getString("id"),
+        mottattTidspunkt = getTimestamp("mottatt_tidspunkt").toLocalDateTime(),
+        legekontorOrgNr = getString("legekontor_org_nr"),
+        behandlingsutfall = objectMapper.readValue(getString("behandlingsutfall"), ValidationResult::class.java),
+        status = getSimpleStatus(),
+        fnr = getString("pasient_fnr")
+    )
+}
+
 fun ResultSet.toMotattSykmeldingDbModel(): MottattSykmeldingDbModel {
     return MottattSykmeldingDbModel(
         sykmeldingsDokument = objectMapper.readValue(getString("sykmelding"), Sykmelding::class.java),
@@ -44,6 +55,15 @@ private fun ResultSet.getStatus(): StatusDbModel {
     }
     return StatusDbModel(status, status_timestamp, arbeidsgiverDbModel)
 }
+
+private fun ResultSet.getSimpleStatus(): StatusDbModel {
+    val status = getString("event")
+    val status_timestamp = getTimestamp("timestamp").toLocalDateTime()
+    val arbeidsgiverDbModel = null
+
+    return StatusDbModel(status, status_timestamp, arbeidsgiverDbModel)
+}
+
 data class ArbeidsgiverDbModel(
     val orgnummer: String,
     val juridiskOrgnummer: String?,

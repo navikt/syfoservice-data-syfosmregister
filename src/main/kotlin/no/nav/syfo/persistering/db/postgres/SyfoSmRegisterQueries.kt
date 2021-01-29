@@ -40,6 +40,7 @@ import no.nav.syfo.sykmelding.model.EnkelSykmeldingDbModel
 import no.nav.syfo.sykmelding.model.MottattSykmeldingDbModel
 import no.nav.syfo.sykmelding.model.Periode
 import no.nav.syfo.sykmelding.model.SykmeldingIdAndFnr
+import no.nav.syfo.sykmelding.model.toEnkelSykmeldingDbModel
 import no.nav.syfo.sykmelding.model.toMotattSykmeldingDbModel
 import no.nav.syfo.sykmelding.model.toSendtSykmeldingDbModel
 
@@ -114,6 +115,56 @@ fun Connection.getMottattSykmelding(lastMottattTidspunkt: LocalDate): List<Motta
         }
     }
 
+fun Connection.getMottattSykmelding(sykmeldingId: String): MottattSykmeldingDbModel? =
+    use {
+        this.prepareStatement(
+            """
+                    SELECT opplysninger.id,
+                    pasient_fnr,
+                    mottatt_tidspunkt,
+                    behandlingsutfall,
+                    legekontor_org_nr,
+                    sykmelding
+                    FROM sykmeldingsopplysninger AS opplysninger
+                        INNER JOIN sykmeldingsdokument AS dokument ON opplysninger.id = dokument.id
+                        INNER JOIN behandlingsutfall AS utfall ON opplysninger.id = utfall.id
+                     WHERE opplysninger.id = ?
+                    """
+        ).use {
+            it.setString(1, sykmeldingId)
+            it.executeQuery().toList { toMotattSykmeldingDbModel() }.firstOrNull()
+        }
+    }
+
+fun Connection.getEnkelSykmelding(sykmeldingId: String): EnkelSykmeldingDbModel? =
+    use {
+        this.prepareStatement(
+            """
+                    SELECT opplysninger.id,
+                    pasient_fnr,
+                    mottatt_tidspunkt,
+                    behandlingsutfall,
+                    legekontor_org_nr,
+                    sykmelding,
+                    status.event,
+                    status.timestamp
+                    FROM sykmeldingsopplysninger AS opplysninger
+                        INNER JOIN sykmeldingsdokument AS dokument ON opplysninger.id = dokument.id
+                        INNER JOIN behandlingsutfall AS utfall ON opplysninger.id = utfall.id
+                        INNER JOIN sykmeldingstatus AS status ON opplysninger.id = status.sykmelding_id AND
+                                                status.timestamp = (SELECT timestamp
+                                                                          FROM sykmeldingstatus
+                                                                          WHERE sykmelding_id = opplysninger.id
+                                                                          ORDER BY timestamp DESC
+                                                                          LIMIT 1) 
+                     WHERE opplysninger.id = ?
+                    """
+        ).use {
+            it.setString(1, sykmeldingId)
+            it.executeQuery().toList { toEnkelSykmeldingDbModel() }.firstOrNull()
+        }
+    }
+
 fun Connection.getSykmeldingMedSisteStatus(lastMottattTidspunkt: LocalDate): List<EnkelSykmeldingDbModel> =
     use {
         this.prepareStatement(
@@ -144,7 +195,7 @@ fun Connection.getSykmeldingMedSisteStatus(lastMottattTidspunkt: LocalDate): Lis
         }
     }
 
-fun Connection.getSykmeldingMedSisteStatus(sykmeldingId: String): List<EnkelSykmeldingDbModel> =
+fun Connection.getSendtSykmeldingMedSisteStatus(sykmeldingId: String): List<EnkelSykmeldingDbModel> =
     use {
         this.prepareStatement(
             """
@@ -201,6 +252,36 @@ fun Connection.getSykmeldingMedSisteStatusBekreftet(lastMottattTidspunkt: LocalD
             it.setTimestamp(1, Timestamp.valueOf(lastMottattTidspunkt.atStartOfDay()))
             it.setTimestamp(2, Timestamp.valueOf(lastMottattTidspunkt.plusDays(1).atStartOfDay()))
             it.executeQuery().toList { toSendtSykmeldingDbModel() }
+        }
+    }
+
+fun Connection.getSykmeldingMedSisteStatusBekreftet(sykmeldingId: String): EnkelSykmeldingDbModel? =
+    use {
+        this.prepareStatement(
+            """
+                    SELECT opplysninger.id,
+                    pasient_fnr,
+                    mottatt_tidspunkt,
+                    behandlingsutfall,
+                    legekontor_org_nr,
+                    sykmelding,
+                    status.event,
+                    status.timestamp
+                    FROM sykmeldingsopplysninger AS opplysninger
+                        INNER JOIN sykmeldingsdokument AS dokument ON opplysninger.id = dokument.id
+                        INNER JOIN behandlingsutfall AS utfall ON opplysninger.id = utfall.id
+                          INNER JOIN sykmeldingstatus AS status ON opplysninger.id = status.sykmelding_id AND
+                                                status.timestamp = (SELECT timestamp
+                                                                          FROM sykmeldingstatus
+                                                                          WHERE sykmelding_id = opplysninger.id
+                                                                          ORDER BY timestamp DESC
+                                                                          LIMIT 1) AND
+                                                                status.event = 'BEKREFTET'
+                     WHERE opplysninger.id = ?
+                    """
+        ).use {
+            it.setString(1, sykmeldingId)
+            it.executeQuery().toList { toSendtSykmeldingDbModel() }.firstOrNull()
         }
     }
 
