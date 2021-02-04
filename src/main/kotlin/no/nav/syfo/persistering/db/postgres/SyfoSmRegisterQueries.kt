@@ -1089,6 +1089,20 @@ fun DatabasePostgres.updateSvangerskap(sykmeldingId: String, svangerskap: Boolea
     }
 }
 
+fun DatabasePostgres.updateBehandletTidspunkt(sykmeldingId: String, behandletTidspunkt: LocalDateTime) {
+    connection.use { connection ->
+        connection.prepareStatement("""
+            UPDATE sykmeldingsdokument set sykmelding = jsonb_set(sykmelding, '{behandletTidspunkt}', ?::jsonb) where id = ?;
+        """).use {
+            it.setTimestamp(1, Timestamp.valueOf(behandletTidspunkt))
+            it.setString(2, sykmeldingId)
+            val updated = it.executeUpdate()
+            log.info("Updated {} sykmeldingsdokument", updated)
+        }
+        connection.commit()
+    }
+}
+
 fun DatabasePostgres.updateSkjermesForPasient(sykmeldingId: String, skjermet: Boolean): Int {
     var updated = 0
     connection.use { connection ->
