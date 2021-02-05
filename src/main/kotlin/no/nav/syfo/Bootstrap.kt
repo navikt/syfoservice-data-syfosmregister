@@ -46,6 +46,7 @@ import no.nav.syfo.papirsykmelding.GradService
 import no.nav.syfo.papirsykmelding.PeriodeService
 import no.nav.syfo.papirsykmelding.SlettInformasjonService
 import no.nav.syfo.papirsykmelding.api.SykmeldingEndringsloggKafkaProducer
+import no.nav.syfo.papirsykmelding.api.UpdateBehandletDatoService
 import no.nav.syfo.papirsykmelding.api.UpdatePeriodeService
 import no.nav.syfo.papirsykmelding.tilsyfoservice.SendTilSyfoserviceService
 import no.nav.syfo.papirsykmelding.tilsyfoservice.kafka.SykmeldingSyfoserviceKafkaProducer
@@ -156,11 +157,17 @@ fun main() {
         sendtSykmeldingProducer = sendtSykmeldingKafkaProducer,
         bekreftetSykmeldingKafkaProducer = bekreftetSykmeldingKafkaProducer
     )
+    val updateBehandletDatoService = UpdateBehandletDatoService(
+        databaseoracle = databaseOracle,
+        databasePostgres = databasePostgres,
+        sykmeldingEndringsloggKafkaProducer = sykmeldingEndringsloggKafkaProducer
+    )
 
     val applicationEngine = createApplicationEngine(
         env = environment,
         applicationState = applicationState,
         updatePeriodeService = updatePeriodeService,
+        updateBehandletDatoService = updateBehandletDatoService,
         jwkProviderInternal = jwkProviderInternal,
         issuerServiceuser = jwtVaultSecrets.jwtIssuer,
         clientId = jwtVaultSecrets.clientId,

@@ -16,13 +16,16 @@ import io.ktor.server.netty.Netty
 import no.nav.syfo.Environment
 import no.nav.syfo.application.api.registerNaisApi
 import no.nav.syfo.application.api.setupSwaggerDocApi
+import no.nav.syfo.papirsykmelding.api.UpdateBehandletDatoService
 import no.nav.syfo.papirsykmelding.api.UpdatePeriodeService
+import no.nav.syfo.papirsykmelding.api.registrerBehandletDatoApi
 import no.nav.syfo.papirsykmelding.api.registrerPeriodeApi
 
 fun createApplicationEngine(
     env: Environment,
     applicationState: ApplicationState,
     updatePeriodeService: UpdatePeriodeService,
+    updateBehandletDatoService: UpdateBehandletDatoService,
     jwkProviderInternal: JwkProvider,
     issuerServiceuser: String,
     clientId: String,
@@ -49,6 +52,7 @@ fun createApplicationEngine(
 
                 authenticate("jwtserviceuser") {
                     registrerPeriodeApi(updatePeriodeService)
+                    registrerBehandletDatoApi(updateBehandletDatoService)
                 }
             }
         }
