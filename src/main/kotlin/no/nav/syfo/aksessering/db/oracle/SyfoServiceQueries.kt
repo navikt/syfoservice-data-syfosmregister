@@ -14,6 +14,8 @@ import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.db.toList
 import no.nav.syfo.log
+import java.sql.Date
+import java.time.LocalDate
 
 data class DatabaseResult<T>(
     val lastIndex: Int,
@@ -89,6 +91,23 @@ fun DatabaseInterfaceOracle.updateDocument(dokument: HelseOpplysningerArbeidsufo
         ).use {
             it.setString(1, getStringForDokument(dokument))
             it.setString(2, sykmeldingId)
+            it.executeUpdate()
+        }
+        connection.commit()
+    }
+}
+
+fun DatabaseInterfaceOracle.updateDocumentAndBehandletDato(dokument: HelseOpplysningerArbeidsuforhet, behandletDato: LocalDate, sykmeldingId: String) {
+    connection.use { connection ->
+        connection.prepareStatement(
+            """
+                update SYFOSERVICE.SYKMELDING_DOK set dokument = ?, behandlet_dato = ?
+                WHERE MELDING_ID = ?
+                """
+        ).use {
+            it.setString(1, getStringForDokument(dokument))
+            it.setDate(2, Date.valueOf(behandletDato))
+            it.setString(3, sykmeldingId)
             it.executeUpdate()
         }
         connection.commit()
