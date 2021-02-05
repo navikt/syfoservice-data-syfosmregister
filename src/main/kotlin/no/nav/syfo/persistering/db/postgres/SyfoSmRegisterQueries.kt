@@ -1094,7 +1094,7 @@ fun DatabasePostgres.updateBehandletTidspunkt(sykmeldingId: String, behandletTid
         connection.prepareStatement("""
             UPDATE sykmeldingsdokument set sykmelding = jsonb_set(sykmelding, '{behandletTidspunkt}', ?::jsonb) where id = ?;
         """).use {
-            it.setTimestamp(1, Timestamp.valueOf(behandletTidspunkt))
+            it.setString(1, objectMapper.writeValueAsString(behandletTidspunkt))
             it.setString(2, sykmeldingId)
             val updated = it.executeUpdate()
             log.info("Updated {} sykmeldingsdokument", updated)
