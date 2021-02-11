@@ -20,12 +20,15 @@ import no.nav.syfo.papirsykmelding.api.UpdateBehandletDatoService
 import no.nav.syfo.papirsykmelding.api.UpdatePeriodeService
 import no.nav.syfo.papirsykmelding.api.registrerBehandletDatoApi
 import no.nav.syfo.papirsykmelding.api.registrerPeriodeApi
+import no.nav.syfo.sykmelding.UpdateFnrService
+import no.nav.syfo.sykmelding.api.registerFnrApi
 
 fun createApplicationEngine(
     env: Environment,
     applicationState: ApplicationState,
     updatePeriodeService: UpdatePeriodeService,
     updateBehandletDatoService: UpdateBehandletDatoService,
+    updateFnrService: UpdateFnrService,
     jwkProviderInternal: JwkProvider,
     issuerServiceuser: String,
     clientId: String,
@@ -53,6 +56,7 @@ fun createApplicationEngine(
                 authenticate("jwtserviceuser") {
                     registrerPeriodeApi(updatePeriodeService)
                     registrerBehandletDatoApi(updateBehandletDatoService)
+                    registerFnrApi(updateFnrService)
                 }
             }
         }

@@ -8,6 +8,26 @@ servers:
   - url: 'https://macgyver.dev.intern.nav.no'
   - url: 'https://macgyver.intern.nav.no'
 paths:
+  /api/sykmelding/{sykmeldingId}:
+    patch:
+      operationId: patchSykmelding
+      tags:
+        - Sykmelding
+      security:
+        - bearerAuth: [ ]
+      summary: Endre fnr for en gitt sykmelding
+      description: Oppdaterer sykemeldts fnr for en gitt sykmelding i SyfoSmRegister og SyfoService
+      parameters:
+        - $ref: '#/components/parameters/sykmeldingId'
+      requestBody:
+        $ref: '#/components/requestBodies/PeriodelisteDTORequest'
+      responses:
+        '200':
+          description: Ok
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
   /api/papirsykmelding/{sykmeldingId}/periode:
     post:
       operationId: updatePeriode
@@ -51,6 +71,12 @@ paths:
 
 components:
   requestBodies:
+    SykmeldingMap:
+      description: "Sykmelding representert som et Map"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PeriodelisteDTO'
     PeriodelisteDTORequest:
       description: "Riktig periodeliste for sykmeldingen"
       content:
@@ -73,6 +99,15 @@ components:
         type: string
       example: '123'
   schemas:
+    SykmeldingMap:
+      type: object
+      required:
+        - fnr
+      properties:
+        fnr:
+          type: string
+          minLength: 11
+          maxLength: 11
     Date:
       type: string
       format: date

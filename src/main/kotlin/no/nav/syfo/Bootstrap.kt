@@ -78,6 +78,7 @@ import no.nav.syfo.sykmelding.MottattSykmeldingKafkaProducer
 import no.nav.syfo.sykmelding.MottattSykmeldingService
 import no.nav.syfo.sykmelding.SendtSykmeldingService
 import no.nav.syfo.sykmelding.SykmeldingStatusKafkaProducer
+import no.nav.syfo.sykmelding.UpdateFnrService
 import no.nav.syfo.sykmelding.kafka.model.MottattSykmeldingKafkaMessage
 import no.nav.syfo.sykmelding.kafka.model.SykmeldingKafkaMessage
 import no.nav.syfo.utils.JacksonKafkaSerializer
@@ -163,11 +164,17 @@ fun main() {
         sykmeldingEndringsloggKafkaProducer = sykmeldingEndringsloggKafkaProducer
     )
 
+    val updateFnrService = UpdateFnrService(
+            syfoSmRegisterDb = databasePostgres,
+            syfoServiceDb = databaseOracle
+    )
+
     val applicationEngine = createApplicationEngine(
         env = environment,
         applicationState = applicationState,
         updatePeriodeService = updatePeriodeService,
         updateBehandletDatoService = updateBehandletDatoService,
+        updateFnrService = updateFnrService,
         jwkProviderInternal = jwkProviderInternal,
         issuerServiceuser = jwtVaultSecrets.jwtIssuer,
         clientId = jwtVaultSecrets.clientId,
