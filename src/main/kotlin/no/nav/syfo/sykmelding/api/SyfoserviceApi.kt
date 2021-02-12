@@ -17,11 +17,10 @@ fun Route.registerSendToSyfoserviceApi(sendTilSyfoserviceService: SendTilSyfoser
 
         try {
             sendTilSyfoserviceService.sendTilSyfoservice(sykmeldingId)
+            call.respond(HttpStatusCode.OK)
         } catch (e: Exception) {
             log.error("Kastet exception ved sending av sykmelding med id {} til syfoservice: {}", sykmeldingId, e)
             call.respond(HttpStatusCode.InternalServerError, "Noe gikk galt ved sending til syfoservice")
         }
-
-        call.respond(HttpStatusCode.OK)
     }
 }
