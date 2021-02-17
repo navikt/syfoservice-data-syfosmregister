@@ -8,6 +8,25 @@ servers:
   - url: 'https://macgyver.dev.intern.nav.no'
   - url: 'https://macgyver.intern.nav.no'
 paths:
+  /api/sykmelding/{sykmeldingId}/syfoservice:
+    post:
+      operationId: sendToSyfoservice
+      tags:
+        - Sykmelding
+        - Syfoservice
+      security:
+        - bearerAuth: [ ]
+      summary: Send sykmelding til syfoservice
+      description: Send sykmelding med gitt sykmeldingId til syfoservice
+      parameters:
+        - $ref: '#/components/parameters/sykmeldingId'
+      responses:
+        '200':
+          description: Ok
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
   /api/papirsykmelding/{sykmeldingId}/periode:
     post:
       operationId: updatePeriode

@@ -20,16 +20,19 @@ import no.nav.syfo.papirsykmelding.api.UpdateBehandletDatoService
 import no.nav.syfo.papirsykmelding.api.UpdatePeriodeService
 import no.nav.syfo.papirsykmelding.api.registrerBehandletDatoApi
 import no.nav.syfo.papirsykmelding.api.registrerPeriodeApi
+import no.nav.syfo.papirsykmelding.tilsyfoservice.SendTilSyfoserviceService
+import no.nav.syfo.sykmelding.api.registerSendToSyfoserviceApi
 
 fun createApplicationEngine(
-    env: Environment,
-    applicationState: ApplicationState,
-    updatePeriodeService: UpdatePeriodeService,
-    updateBehandletDatoService: UpdateBehandletDatoService,
-    jwkProviderInternal: JwkProvider,
-    issuerServiceuser: String,
-    clientId: String,
-    appIds: List<String>
+        env: Environment,
+        applicationState: ApplicationState,
+        updatePeriodeService: UpdatePeriodeService,
+        updateBehandletDatoService: UpdateBehandletDatoService,
+        sendTilSyfoserviceService: SendTilSyfoserviceService,
+        jwkProviderInternal: JwkProvider,
+        issuerServiceuser: String,
+        clientId: String,
+        appIds: List<String>
 ): ApplicationEngine =
         embeddedServer(Netty, env.applicationPort) {
             install(ContentNegotiation) {
@@ -53,6 +56,7 @@ fun createApplicationEngine(
                 authenticate("jwtserviceuser") {
                     registrerPeriodeApi(updatePeriodeService)
                     registrerBehandletDatoApi(updateBehandletDatoService)
+                    registerSendToSyfoserviceApi(sendTilSyfoserviceService)
                 }
             }
         }
