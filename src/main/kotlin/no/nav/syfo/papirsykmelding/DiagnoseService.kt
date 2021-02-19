@@ -18,17 +18,15 @@ class DiagnoseService(private val syfoserviceDb: DatabaseOracle, private val syf
             val document = result.rows.first()
             if (document != null) {
 
-                val sanitisertSystem = system.replace(".", "")
-                        .replace(" ", "")
-                        .replace("-", "")
-                        .toUpperCase()
+                val sanitisertSystem = formater(system)
+                val santitisertDiagnoseKode = formater(diagnoseKode)
 
                 val diagnose = when (sanitisertSystem) {
                     "ICD10" -> {
-                        Diagnosekoder.icd10[diagnoseKode] ?: error("Could not find diagnose")
+                        Diagnosekoder.icd10[santitisertDiagnoseKode] ?: error("Fant ikke diagnose $santitisertDiagnoseKode i ICD10-kodeverk")
                     }
                     "ICPC2" -> {
-                        Diagnosekoder.icpc2[diagnoseKode] ?: error("Could not find diagnose")
+                        Diagnosekoder.icpc2[santitisertDiagnoseKode] ?: error("Fant ikke diagnose $santitisertDiagnoseKode i ICPC2-kodeverk")
                     }
                     else -> throw RuntimeException("Could not find correct diagnose when updating sykmeldingId $sykmeldingId, diagnosekode $diagnoseKode, system $sanitisertSystem")
                 }
@@ -45,5 +43,10 @@ class DiagnoseService(private val syfoserviceDb: DatabaseOracle, private val syf
         }
     }
 
-
+    private fun formater(string: String): String {
+        return string.replace(".", "")
+                .replace(" ", "")
+                .replace("-", "")
+                .toUpperCase()
+    }
 }
