@@ -42,7 +42,7 @@ fun Route.registerUpdateDiagnosisApi(diagnoseService: DiagnoseService) {
             call.respond(HttpStatusCode.OK)
         } catch (e: Exception) {
             log.error("Kastet exception ved endring av diagnose for sykmelding med id {}, {}", sykmeldingId, e)
-            call.respond(HttpStatusCode.InternalServerError, "Noe gikk galt ved sending til syfoservice")
+            call.respond(HttpStatusCode.InternalServerError, "Noe gikk galt ved oppdatering av diagnose")
         }
     }
 }
