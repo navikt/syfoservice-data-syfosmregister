@@ -38,7 +38,6 @@ class SendTilSyfoserviceService(
             )
 
             sykmeldingSyfoserviceKafkaProducer.publishSykmeldingToKafka(sykmeldingId, syfoserviceKafkaMessage)
-
         } else {
             log.info("could not find sykmelding with sykmeldingId {}", sykmeldingId)
         }

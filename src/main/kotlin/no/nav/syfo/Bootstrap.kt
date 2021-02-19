@@ -169,6 +169,7 @@ fun main() {
         updatePeriodeService = updatePeriodeService,
         updateBehandletDatoService = updateBehandletDatoService,
         sendTilSyfoserviceService = createSendTilSyfoservice(environment, databasePostgres, producerProperties),
+        diagnoseService = DiagnoseService(databaseOracle, databasePostgres),
         jwkProviderInternal = jwkProviderInternal,
         issuerServiceuser = jwtVaultSecrets.jwtIssuer,
         clientId = jwtVaultSecrets.clientId,
@@ -275,11 +276,6 @@ fun oppdaterStatus(applicationState: ApplicationState, environment: Environment)
     val oppdaterStatusService = OppdaterStatusService(databaseOracle, statusKafkaProducer, databasePostgres)
 
     oppdaterStatusService.start()
-}
-
-fun updateDiagnose(databaseOracle: DatabaseOracle, databasePostgres: DatabasePostgres) {
-    val diagnoseService = DiagnoseService(databaseOracle, databasePostgres)
-    diagnoseService.start()
 }
 
 fun opprett4ukersmeldinger(applicationState: ApplicationState, environment: Environment) {
