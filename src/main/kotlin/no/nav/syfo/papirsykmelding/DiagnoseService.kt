@@ -30,7 +30,7 @@ class DiagnoseService(private val syfoserviceDb: DatabaseOracle, private val syf
                     "ICPC2" -> {
                         Diagnosekoder.icpc2[diagnoseKode] ?: error("Could not find diagnose")
                     }
-                    else -> throw RuntimeException("Could not find correct diagnose")
+                    else -> throw RuntimeException("Could not find correct diagnose when updating sykmeldingId $sykmeldingId, diagnosekode $diagnoseKode, system $sanitisertSystem")
                 }
 
                 document.medisinskVurdering.hovedDiagnose.diagnosekode.s = diagnose.oid
