@@ -3,7 +3,9 @@ package no.nav.syfo.aksessering.db.oracle
 import java.io.StringReader
 import java.io.StringWriter
 import java.lang.Boolean.TRUE
+import java.sql.Date
 import java.sql.ResultSet
+import java.time.LocalDate
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.JAXBException
 import javax.xml.bind.Marshaller.JAXB_ENCODING
@@ -14,8 +16,6 @@ import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.db.toList
 import no.nav.syfo.log
-import java.sql.Date
-import java.time.LocalDate
 
 data class DatabaseResult<T>(
     val lastIndex: Int,

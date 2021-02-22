@@ -1,5 +1,6 @@
 package no.nav.syfo.papirsykmelding.api
 
+import java.time.LocalDate
 import no.nav.syfo.aksessering.db.oracle.getSykmeldingsDokument
 import no.nav.syfo.aksessering.db.oracle.updateDocumentAndBehandletDato
 import no.nav.syfo.db.DatabaseOracle
@@ -8,7 +9,6 @@ import no.nav.syfo.log
 import no.nav.syfo.objectMapper
 import no.nav.syfo.persistering.db.postgres.hentSykmeldingsdokument
 import no.nav.syfo.persistering.db.postgres.updateBehandletTidspunkt
-import java.time.LocalDate
 
 class UpdateBehandletDatoService(
     private val databaseoracle: DatabaseOracle,

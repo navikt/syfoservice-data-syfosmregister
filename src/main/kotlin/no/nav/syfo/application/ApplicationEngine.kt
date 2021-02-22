@@ -16,23 +16,26 @@ import io.ktor.server.netty.Netty
 import no.nav.syfo.Environment
 import no.nav.syfo.application.api.registerNaisApi
 import no.nav.syfo.application.api.setupSwaggerDocApi
+import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.api.UpdateBehandletDatoService
 import no.nav.syfo.papirsykmelding.api.UpdatePeriodeService
 import no.nav.syfo.papirsykmelding.api.registrerBehandletDatoApi
 import no.nav.syfo.papirsykmelding.api.registrerPeriodeApi
 import no.nav.syfo.papirsykmelding.tilsyfoservice.SendTilSyfoserviceService
 import no.nav.syfo.sykmelding.api.registerSendToSyfoserviceApi
+import no.nav.syfo.sykmelding.api.registerUpdateDiagnosisApi
 
 fun createApplicationEngine(
-        env: Environment,
-        applicationState: ApplicationState,
-        updatePeriodeService: UpdatePeriodeService,
-        updateBehandletDatoService: UpdateBehandletDatoService,
-        sendTilSyfoserviceService: SendTilSyfoserviceService,
-        jwkProviderInternal: JwkProvider,
-        issuerServiceuser: String,
-        clientId: String,
-        appIds: List<String>
+    env: Environment,
+    applicationState: ApplicationState,
+    updatePeriodeService: UpdatePeriodeService,
+    updateBehandletDatoService: UpdateBehandletDatoService,
+    sendTilSyfoserviceService: SendTilSyfoserviceService,
+    diagnoseService: DiagnoseService,
+    jwkProviderInternal: JwkProvider,
+    issuerServiceuser: String,
+    clientId: String,
+    appIds: List<String>
 ): ApplicationEngine =
         embeddedServer(Netty, env.applicationPort) {
             install(ContentNegotiation) {
@@ -57,6 +60,7 @@ fun createApplicationEngine(
                     registrerPeriodeApi(updatePeriodeService)
                     registrerBehandletDatoApi(updateBehandletDatoService)
                     registerSendToSyfoserviceApi(sendTilSyfoserviceService)
+                    registerUpdateDiagnosisApi(diagnoseService)
                 }
             }
         }
