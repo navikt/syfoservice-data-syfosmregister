@@ -39,7 +39,9 @@ import no.nav.syfo.model.Behandlingsutfall
 import no.nav.syfo.model.Eia
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.RuleInfo
+import no.nav.syfo.model.Status
 import no.nav.syfo.model.Sykmeldingsdokument
+import no.nav.syfo.model.ValidationResult
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.GradService
@@ -182,9 +184,10 @@ fun main() {
 
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
 
-    /*GlobalScope.launch {
-        SykmeldingStatusKafkaConsumerService(environment, getVaultServiceUser()).start()
-    }*/
+    GlobalScope.launch {
+        val behandlingsutfallKafkaProducer = BehandlingsutfallKafkaProducer(environment.behandlingsutfallTopic, KafkaProducer<String, ValidationResult>(producerProperties))
+        behandlingsutfallKafkaProducer.publishToKafka(ValidationResult(Status.OK, emptyList()), "c8598549-a96f-4564-9394-cc7bdf76c6a1")
+    }
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
