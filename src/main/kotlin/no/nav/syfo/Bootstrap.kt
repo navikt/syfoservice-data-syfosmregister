@@ -181,11 +181,6 @@ fun main() {
     applicationState.ready = true
 
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
-
-    GlobalScope.launch {
-        val behandlingsutfallKafkaProducer = BehandlingsutfallKafkaProducer(environment.behandlingsutfallTopic, KafkaProducer<String, ValidationResult>(producerProperties))
-        behandlingsutfallKafkaProducer.publishToKafka(ValidationResult(Status.OK, emptyList()), "c8598549-a96f-4564-9394-cc7bdf76c6a1")
-    }
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
