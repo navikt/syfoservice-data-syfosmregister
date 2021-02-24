@@ -48,7 +48,7 @@ class HentSykmeldingerFraSyfosmregisterService(
             ids.forEach {
                 val behandlingsutfall = databasePostgres.connection.getBehandlingsutfall(it)
                 if (behandlingsutfall != null) {
-                    behandlingsutfallKafkaProducer.publishToKafka(behandlingsutfall)
+                    behandlingsutfallKafkaProducer.publishToKafka(behandlingsutfall.behandlingsutfall, behandlingsutfall.id)
                     counter++
                 }
             }
@@ -105,10 +105,10 @@ class HentSykmeldingerFraSyfosmregisterService(
                             val oppdatertBehandlingsutfall = sykmelding.behandlingsutfall.copy(behandlingsutfall = oppdatertValidationResult)
                             counterOppdatertBehandlingsutfall++
                             databasePostgres.oppdaterBehandlingsutfall(oppdatertBehandlingsutfall)
-                            behandlingsutfallKafkaProducer.publishToKafka(oppdatertBehandlingsutfall)
+                            behandlingsutfallKafkaProducer.publishToKafka(oppdatertBehandlingsutfall.behandlingsutfall, oppdatertBehandlingsutfall.id)
                         }
                     } else {
-                        behandlingsutfallKafkaProducer.publishToKafka(sykmelding.behandlingsutfall)
+                        behandlingsutfallKafkaProducer.publishToKafka(sykmelding.behandlingsutfall.behandlingsutfall, sykmelding.behandlingsutfall.id)
                     }
                 }
             }
