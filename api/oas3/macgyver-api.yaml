@@ -11,16 +11,43 @@ paths:
   /api/sykmelding/{sykmeldingId}:
     patch:
       operationId: patchSykmelding
-      tags:
-        - Sykmelding
-      security:
-        - bearerAuth: [ ]
       summary: Endre fnr for en gitt sykmelding
       description: Oppdaterer sykemeldts fnr for en gitt sykmelding i SyfoSmRegister og SyfoService
       parameters:
         - $ref: '#/components/parameters/sykmeldingId'
       requestBody:
         $ref: '#/components/requestBodies/PeriodelisteDTORequest'
+  /api/sykmelding/{sykmeldingId}/syfoservice:
+    post:
+      operationId: sendToSyfoservice
+      tags:
+        - Sykmelding
+      security:
+        - bearerAuth: [ ]
+      summary: Send sykmelding til syfoservice
+      description: Send sykmelding med gitt sykmeldingId til syfoservice
+      parameters:
+        - $ref: '#/components/parameters/sykmeldingId'
+      responses:
+        '200':
+          description: Ok
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  /api/sykmelding/{sykmeldingId}/diagnose:
+    post:
+      operationId: updateDiagnosis
+      tags:
+        - Sykmelding
+      security:
+        - bearerAuth: [ ]
+      summary: Endre diagnose for sykmelding
+      description: Endre diagnose i syfosmregister og syfoservice
+      parameters:
+        - $ref: '#/components/parameters/sykmeldingId'
+      requestBody:
+        $ref: '#/components/requestBodies/EndreDiagnoseRequest'
       responses:
         '200':
           description: Ok
@@ -89,6 +116,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/BehandletDatoDTO'
+    EndreDiagnoseRequest:
+      description: "Riktig diagnose for sykmeldingen"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EndreDiagnose'
   parameters:
     sykmeldingId:
       description: Id for sykmelding som skal rettes
@@ -189,6 +222,13 @@ components:
       properties:
         behandletDato:
           $ref: '#/components/schemas/Date'
+    EndreDiagnose:
+      type: object
+      properties:
+        kode:
+          type: string
+        system:
+          type: string
 
   securitySchemes:
     bearerAuth:

@@ -579,7 +579,7 @@ fun Connection.hentSykmelding(mottakId: String): SykmeldingDbModel? =
             """
         ).use {
             it.setString(1, mottakId)
-            it.executeQuery().toSykmelding(mottakId)
+            it.executeQuery().toSykmelding()
         }
     }
 
@@ -700,7 +700,7 @@ fun Connection.hentSykmeldingMedId(sykmeldingId: String): SykmeldingDbModel? =
             """
         ).use {
             it.setString(1, sykmeldingId)
-            it.executeQuery().toSykmelding(sykmeldingId)
+            it.executeQuery().toSykmelding()
         }
     }
 
@@ -814,7 +814,7 @@ fun DatabaseInterfacePostgres.deleteSykmeldingStatus(sykmeldingId: String, kafka
     }
 }
 
-fun ResultSet.toSykmelding(mottakId: String): SykmeldingDbModel? {
+fun ResultSet.toSykmelding(): SykmeldingDbModel? {
     if (next()) {
         val sykmeldingId = getString("id")
         val sykmeldingsdokument =

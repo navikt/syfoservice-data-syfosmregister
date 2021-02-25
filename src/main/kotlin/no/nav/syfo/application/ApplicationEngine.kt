@@ -16,12 +16,16 @@ import io.ktor.server.netty.Netty
 import no.nav.syfo.Environment
 import no.nav.syfo.application.api.registerNaisApi
 import no.nav.syfo.application.api.setupSwaggerDocApi
+import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.api.UpdateBehandletDatoService
 import no.nav.syfo.papirsykmelding.api.UpdatePeriodeService
 import no.nav.syfo.papirsykmelding.api.registrerBehandletDatoApi
 import no.nav.syfo.papirsykmelding.api.registrerPeriodeApi
+import no.nav.syfo.papirsykmelding.tilsyfoservice.SendTilSyfoserviceService
 import no.nav.syfo.sykmelding.UpdateFnrService
 import no.nav.syfo.sykmelding.api.registerFnrApi
+import no.nav.syfo.sykmelding.api.registerSendToSyfoserviceApi
+import no.nav.syfo.sykmelding.api.registerUpdateDiagnosisApi
 
 fun createApplicationEngine(
     env: Environment,
@@ -29,6 +33,8 @@ fun createApplicationEngine(
     updatePeriodeService: UpdatePeriodeService,
     updateBehandletDatoService: UpdateBehandletDatoService,
     updateFnrService: UpdateFnrService,
+    sendTilSyfoserviceService: SendTilSyfoserviceService,
+    diagnoseService: DiagnoseService,
     jwkProviderInternal: JwkProvider,
     issuerServiceuser: String,
     clientId: String,
@@ -57,6 +63,8 @@ fun createApplicationEngine(
                     registrerPeriodeApi(updatePeriodeService)
                     registrerBehandletDatoApi(updateBehandletDatoService)
                     registerFnrApi(updateFnrService)
+                    registerSendToSyfoserviceApi(sendTilSyfoserviceService)
+                    registerUpdateDiagnosisApi(diagnoseService)
                 }
             }
         }

@@ -175,6 +175,8 @@ fun main() {
         updatePeriodeService = updatePeriodeService,
         updateBehandletDatoService = updateBehandletDatoService,
         updateFnrService = updateFnrService,
+        sendTilSyfoserviceService = createSendTilSyfoservice(environment, databasePostgres, producerProperties),
+        diagnoseService = DiagnoseService(databaseOracle, databasePostgres),
         jwkProviderInternal = jwkProviderInternal,
         issuerServiceuser = jwtVaultSecrets.jwtIssuer,
         clientId = jwtVaultSecrets.clientId,
@@ -190,8 +192,6 @@ fun main() {
     /*GlobalScope.launch {
         SykmeldingStatusKafkaConsumerService(environment, getVaultServiceUser()).start()
     }*/
-
-    // sendTilSyfoservice(environment, databasePostgres, producerProperties)
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
@@ -253,11 +253,9 @@ fun updateGrad(applicationState: ApplicationState, environment: Environment) {
     gradService.addPeriode()
 }
 
-fun sendTilSyfoservice(environment: Environment, databasePostgres: DatabasePostgres, producerProperties: Properties) {
+fun createSendTilSyfoservice(environment: Environment, databasePostgres: DatabasePostgres, producerProperties: Properties): SendTilSyfoserviceService {
     val syfoserviceKafkaProducer = SykmeldingSyfoserviceKafkaProducer(KafkaProducer<String, SykmeldingSyfoserviceKafkaMessage>(producerProperties), environment.syfoserviceKafkaTopic)
-
-    val sendTilSyfoServiceService = SendTilSyfoserviceService(syfoserviceKafkaProducer, databasePostgres)
-    sendTilSyfoServiceService.start()
+    return SendTilSyfoserviceService(syfoserviceKafkaProducer, databasePostgres)
 }
 
 fun oppdaterStatus(applicationState: ApplicationState, environment: Environment) {
@@ -285,11 +283,6 @@ fun oppdaterStatus(applicationState: ApplicationState, environment: Environment)
     val oppdaterStatusService = OppdaterStatusService(databaseOracle, statusKafkaProducer, databasePostgres)
 
     oppdaterStatusService.start()
-}
-
-fun updateDiagnose(databaseOracle: DatabaseOracle, databasePostgres: DatabasePostgres) {
-    val diagnoseService = DiagnoseService(databaseOracle, databasePostgres)
-    diagnoseService.start()
 }
 
 fun opprett4ukersmeldinger(applicationState: ApplicationState, environment: Environment) {
