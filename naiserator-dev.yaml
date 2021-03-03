@@ -77,3 +77,5 @@ spec:
       value: "2020-06-20"
     - name: PDL_GRAPHQL_PATH
       value: https://pdl-api.nais.preprod.local/graphql
+    - name: SECURITY_TOKEN_SERVICE_URL
+      value: https://security-token-service.nais.preprod.local/rest/v1/sts/token
