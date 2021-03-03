@@ -49,8 +49,6 @@ class HttpClients(environment: Environment, vaultServiceUser: VaultServiceUser) 
         }
     }
 
-    private val httpClientWithProxy = HttpClient(Apache, proxyConfig)
-
     private val httpClient = HttpClient(Apache, config)
 
     private val stsOidcClient =
