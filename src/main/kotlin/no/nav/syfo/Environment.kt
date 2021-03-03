@@ -16,7 +16,7 @@ data class Environment(
     val pale2DBURL: String = getEnvVar("PALE_2_REGISTER_DB_URL"),
     val sparenaproxyDBURL: String = getEnvVar("SPARENAPROXY_DB_URL"),
     val mountPathVault: String = getEnvVar("MOUNT_PATH_VAULT"),
-    val cluster: String = getEnvVar("NAIS_CLUSTER_NAME"),
+    override val cluster: String = getEnvVar("NAIS_CLUSTER_NAME"),
     val databaseName: String = getEnvVar("DATABASE_NAME", "syfosmregister"),
     val databasePaleName: String = getEnvVar("DATABASE_PALE_NAME", "pale-2-register"),
     val databaseSparenaproxyName: String = getEnvVar("DATABASE_SPARENAPROXY_NAME", "sparenaproxy"),
@@ -43,7 +43,9 @@ data class Environment(
     val syfoserviceKafkaTopic: String = "privat-syfo-syfoservice-mq",
     val endringsloggTopic: String = "privat-sykmelding-endringslogg",
     val securityTokenUrl: String = getEnvVar("SECURITY_TOKEN_SERVICE_URL", "http://security-token-service/rest/v1/sts/token"),
-    val pdlGraphqlPath: String = getEnvVar("PDL_GRAPHQL_PATH")
+    val pdlGraphqlPath: String = getEnvVar("PDL_GRAPHQL_PATH"),
+    override val truststore: String? = getEnvVar("NAV_TRUSTSTORE_PATH"),
+    override val truststorePassword: String? = getEnvVar("NAV_TRUSTSTORE_PASSWORD")
 ) : KafkaConfig
 
 data class VaultCredentials(
