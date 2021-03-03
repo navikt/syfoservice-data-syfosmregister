@@ -3,16 +3,18 @@ package no.nav.syfo.sykmelding.db
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.log
 
-fun DatabaseInterfacePostgres.updateFnr(sykmeldingsId: String, pasientFnr: String) {
+fun DatabaseInterfacePostgres.updateFnr(fnr: String, nyttFnr: String): Int {
         connection.use { connection ->
+            var updated = 0
             connection.prepareStatement("""
-            UPDATE sykmeldingsopplysninger set pasient_fnr = ? where id = ?;
+            UPDATE sykmeldingsopplysninger set pasient_fnr = ? where pasient_fnr = ?;
         """).use {
-                it.setString(1, pasientFnr)
-                it.setString(2, sykmeldingsId)
-                val updated = it.executeUpdate()
+                it.setString(1, nyttFnr)
+                it.setString(2, fnr)
+                updated = it.executeUpdate()
                 log.info("Updated {} sykmeldingsdokument", updated)
             }
             connection.commit()
+            return updated
         }
 }

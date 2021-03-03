@@ -41,7 +41,9 @@ data class Environment(
     val pale2dump: String = "privat-syfo-pale2-dump-v1",
     val pale2RerunTopic: String = "pale-2-rerun-v1",
     val syfoserviceKafkaTopic: String = "privat-syfo-syfoservice-mq",
-    val endringsloggTopic: String = "privat-sykmelding-endringslogg"
+    val endringsloggTopic: String = "privat-sykmelding-endringslogg",
+    val securityTokenUrl: String = getEnvVar("SECURITY_TOKEN_SERVICE_URL", "http://security-token-service/rest/v1/sts/token"),
+    val pdlGraphqlPath: String = getEnvVar("PDL_GRAPHQL_PATH")
 ) : KafkaConfig
 
 data class VaultCredentials(

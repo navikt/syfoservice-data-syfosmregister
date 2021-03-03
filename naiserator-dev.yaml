@@ -75,3 +75,5 @@ spec:
       value: "2019-05-01"
     - name: LAST_INDEX_SPARENAPROXY
       value: "2020-06-20"
+    - name: PDL_GRAPHQL_PATH
+      value: https://pdl-api.nais.preprod.local/graphql

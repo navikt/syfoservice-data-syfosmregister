@@ -1,41 +1,29 @@
 package no.nav.syfo.sykmelding
 
-import no.nav.helse.sm2013.CV
-import no.nav.helse.sm2013.Ident
-import no.nav.syfo.aksessering.db.oracle.getSykmeldingsDokument
-import no.nav.syfo.aksessering.db.oracle.updateDocument
-import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.db.DatabaseInterfacePostgres
-import no.nav.syfo.log
+import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.sykmelding.db.updateFnr
+import org.slf4j.LoggerFactory
 
 class UpdateFnrService(
-    val syfoSmRegisterDb: DatabaseInterfacePostgres,
-    val syfoServiceDb: DatabaseInterfaceOracle
+    private val pdlPersonService: PdlPersonService,
+    private val syfoSmRegisterDb: DatabaseInterfacePostgres
 ) {
 
-    fun updateFnr(sykmeldingId: String, fnr: String) {
+    private val log = LoggerFactory.getLogger(UpdateFnrService::class.java)
 
-        val result = syfoServiceDb.getSykmeldingsDokument(sykmeldingId)
+    suspend fun updateFnr(accessToken: String, fnr: String, nyttFnr: String): Boolean {
 
-        if (result.rows.isNotEmpty()) {
-            log.info("updating sykmelding dokument with sykmelding id {}", sykmeldingId)
-            val document = result.rows.first()
-            if (document != null) {
-                document.pasient.fodselsnummer = Ident().apply {
-                    id = fnr
-                    typeId = CV().apply {
-                        v = "FNR"
-                        s = "2.16.578.1.12.4.1.1.8116"
-                        dn = "Fødselsnummer"
-                    }
-                }
+        val pdlPerson = pdlPersonService.getPdlPerson(fnr, accessToken)
 
-                syfoServiceDb.updateDocument(document, sykmeldingId)
-                syfoSmRegisterDb.updateFnr(sykmeldingId, fnr)
-            }
-        } else {
-            log.info("could not find sykmelding with id {}", sykmeldingId)
+        if (pdlPerson.fnr != nyttFnr) {
+            // Vi sjekker bare nyttFnr, det gamle finnes ofte ikke i PDL
+            log.error("Oppdatering av fnr feilet, nytt fnr ikke funnet i PDL")
+            return false
         }
+
+        log.info("Oppdaterer fnr for person ")
+        val updateFnr = syfoSmRegisterDb.updateFnr(nyttFnr = nyttFnr, fnr = fnr)
+        return updateFnr > 0
     }
 }

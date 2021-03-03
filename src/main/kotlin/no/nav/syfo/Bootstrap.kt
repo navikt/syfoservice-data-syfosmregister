@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
+import no.nav.syfo.clients.HttpClients
 import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.db.DatabasePostgresUtenVault
@@ -111,11 +112,6 @@ val log: Logger = LoggerFactory.getLogger("no.nav.syfo.syfoservicedatasyfosmregi
 
 @KtorExperimentalAPI
 fun main() {
-    /*var r = object {}::class.java.getResource("/ruleMap.json")
-    val ruleMap = objectMapper.readValue<Map<String, RuleInfo>>(r)
-    if (ruleMap == null || ruleMap.isEmpty()) {
-        throw RuntimeException("Fant ikke ruleMap")
-    }*/
     val environment = Environment()
     val applicationState = ApplicationState()
 
@@ -134,11 +130,13 @@ fun main() {
         databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
     )
     val vaultCredentialService = VaultCredentialService()
+    val vaultServiceuser = getVaultServiceUser()
 
     val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
     val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
 
-    val vaultServiceuser = getVaultServiceUser()
+    val httpClients = HttpClients(environment, vaultServiceuser)
+
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
     val producerProperties =
         kafkaBaseConfig.toProducerConfig(
@@ -165,8 +163,8 @@ fun main() {
     )
 
     val updateFnrService = UpdateFnrService(
-            syfoSmRegisterDb = databasePostgres,
-            syfoServiceDb = databaseOracle
+        pdlPersonService = httpClients.pdlService,
+        syfoSmRegisterDb = databasePostgres
     )
 
     val applicationEngine = createApplicationEngine(
@@ -188,10 +186,6 @@ fun main() {
     applicationState.ready = true
 
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
-
-    /*GlobalScope.launch {
-        SykmeldingStatusKafkaConsumerService(environment, getVaultServiceUser()).start()
-    }*/
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
