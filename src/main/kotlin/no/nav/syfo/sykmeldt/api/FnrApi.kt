@@ -13,11 +13,6 @@ import no.nav.syfo.utils.getAccessTokenFromAuthHeader
 fun Route.registerUserFnrApi(updateFnrService: UpdateFnrService) {
     post("/api/sykmelding/fnr") {
 
-        val sykmeldingId = call.parameters["sykmeldingId"]!!
-        if (sykmeldingId.isNullOrEmpty()) {
-            call.respond(HttpStatusCode.BadRequest, "Sykmeldingid må være satt")
-        }
-
         val endreFnr = call.receiveOrNull<EndreFnr>()
 
         when {
