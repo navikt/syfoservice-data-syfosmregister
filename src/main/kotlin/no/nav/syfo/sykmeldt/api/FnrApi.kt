@@ -5,13 +5,13 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.request.receiveOrNull
 import io.ktor.response.respond
 import io.ktor.routing.Route
-import io.ktor.routing.patch
+import io.ktor.routing.post
 import no.nav.syfo.sykmelding.UpdateFnrService
 import no.nav.syfo.sykmeldt.model.EndreFnr
 import no.nav.syfo.utils.getAccessTokenFromAuthHeader
 
 fun Route.registerUserFnrApi(updateFnrService: UpdateFnrService) {
-    patch("/api/sykmeldt") {
+    post("/api/sykmelding/fnr") {
 
         val sykmeldingId = call.parameters["sykmeldingId"]!!
         if (sykmeldingId.isNullOrEmpty()) {

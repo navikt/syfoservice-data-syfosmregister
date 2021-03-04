@@ -8,15 +8,11 @@ servers:
   - url: 'https://macgyver.dev.intern.nav.no'
   - url: 'https://macgyver.intern.nav.no'
 paths:
-  /api/sykmelding/{sykmeldingId}:
-    patch:
-      operationId: patchSykmelding
-      summary: Endre fnr for en gitt sykmelding
-      description: Oppdaterer sykemeldts fnr for en gitt sykmelding i SyfoSmRegister og SyfoService
-      parameters:
-        - $ref: '#/components/parameters/sykmeldingId'
-      requestBody:
-        $ref: '#/components/requestBodies/PeriodelisteDTORequest'
+  /api/sykmelding/fnr:
+    post:
+      operationId: endreBrukerFnr
+      summary: Endre fnr for sykmeldinger
+      description: Endrer fnr for et gitt fnr i alle sykmeldinger i SyfoSmRegister
   /api/sykmelding/{sykmeldingId}/syfoservice:
     post:
       operationId: sendToSyfoservice
@@ -98,12 +94,12 @@ paths:
 
 components:
   requestBodies:
-    SykmeldingMap:
-      description: "Sykmelding representert som et Map"
+    EndreFnrRequest:
+      description: "Endre fnr for bruker"
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/PeriodelisteDTO'
+            $ref: "#/components/schemas/EndreFnr"
     PeriodelisteDTORequest:
       description: "Riktig periodeliste for sykmeldingen"
       content:
@@ -132,12 +128,17 @@ components:
         type: string
       example: '123'
   schemas:
-    SykmeldingMap:
+    EndreFnr:
       type: object
       required:
         - fnr
+        - nyttFnr
       properties:
         fnr:
+          type: string
+          minLength: 11
+          maxLength: 11
+        nyttFnr:
           type: string
           minLength: 11
           maxLength: 11
