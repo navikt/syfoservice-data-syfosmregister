@@ -1,4 +1,4 @@
-package no.nav.syfo.sykmeldt.model
+package no.nav.syfo.sykmelding.api.model
 
 data class EndreFnr(
     val fnr: String,

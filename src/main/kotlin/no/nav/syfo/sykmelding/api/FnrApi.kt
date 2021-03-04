@@ -7,7 +7,7 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.syfo.sykmelding.UpdateFnrService
-import no.nav.syfo.sykmeldt.model.EndreFnr
+import no.nav.syfo.sykmelding.api.model.EndreFnr
 import no.nav.syfo.utils.getAccessTokenFromAuthHeader
 
 fun Route.registerUserFnrApi(updateFnrService: UpdateFnrService) {
