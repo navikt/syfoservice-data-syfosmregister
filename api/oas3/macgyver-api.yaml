@@ -13,6 +13,21 @@ paths:
       operationId: endreBrukerFnr
       summary: Endre fnr for sykmeldinger
       description: Endrer fnr for et gitt fnr i alle sykmeldinger i SyfoSmRegister
+      tags:
+        - Sykmelding
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        $ref: '#/components/requestBodies/EndreFnrRequest'
+      responses:
+        '200':
+          description: Ok
+        '304':
+          description: Not Modified
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
   /api/sykmelding/{sykmeldingId}/syfoservice:
     post:
       operationId: sendToSyfoservice
