@@ -1,8 +1,8 @@
-package no.nav.syfo.sykmeldt.api
+package no.nav.syfo.sykmelding.api
 
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.request.receiveOrNull
+import io.ktor.request.*
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.post
@@ -10,21 +10,21 @@ import no.nav.syfo.sykmelding.UpdateFnrService
 import no.nav.syfo.sykmelding.api.model.EndreFnr
 import no.nav.syfo.utils.getAccessTokenFromAuthHeader
 
-fun Route.registerUserFnrApi(updateFnrService: UpdateFnrService) {
+fun Route.registerFnrApi(updateFnrService: UpdateFnrService) {
     post("/api/sykmelding/fnr") {
 
-        val endreFnr = call.receiveOrNull<EndreFnr>()
-
+        val endreFnr = call.receive<EndreFnr>()
+        println("endreFnr = ${endreFnr}")
         when {
             endreFnr == null -> {
                 call.respond(HttpStatusCode.BadRequest, "Klarte ikke tolke forespørsel")
             }
-            endreFnr.fnr.length != 11 || endreFnr.fnr.toIntOrNull() == null -> {
+            endreFnr.fnr.length != 11 || endreFnr.fnr.any { !it.isDigit() } -> {
                 // Hvis fnr ikke er et tall på 11 tegn så er det antakeligvis noe rart som har skjedd,
                 // og vi bør undersøke ytterligere
                 call.respond(HttpStatusCode.BadRequest, "fnr må være et fnr / dnr på 11 tegn")
             }
-            endreFnr.nyttFnr.length != 11 || endreFnr.nyttFnr.toIntOrNull() == null -> {
+            endreFnr.nyttFnr.length != 11 || endreFnr.nyttFnr.any { !it.isDigit() } -> {
                 call.respond(HttpStatusCode.BadRequest, "nyttFnr må være et fnr / dnr på 11 tegn")
             }
             else -> {

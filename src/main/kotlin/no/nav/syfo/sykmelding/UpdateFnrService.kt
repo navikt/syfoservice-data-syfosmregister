@@ -19,7 +19,7 @@ class UpdateFnrService(
         if (pdlPerson.fnr != nyttFnr) {
             // Vi sjekker bare nyttFnr, det gamle finnes ofte ikke i PDL
             log.error("Oppdatering av fnr feilet, nytt fnr ikke funnet i PDL")
-            return false
+            throw RuntimeException("Oppdatering av fnr feilet, nytt fnr ikke funnet i PDL")
         }
 
         log.info("Oppdaterer fnr for person ")

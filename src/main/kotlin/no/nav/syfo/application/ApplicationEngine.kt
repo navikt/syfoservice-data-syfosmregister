@@ -25,7 +25,7 @@ import no.nav.syfo.papirsykmelding.tilsyfoservice.SendTilSyfoserviceService
 import no.nav.syfo.sykmelding.UpdateFnrService
 import no.nav.syfo.sykmelding.api.registerSendToSyfoserviceApi
 import no.nav.syfo.sykmelding.api.registerUpdateDiagnosisApi
-import no.nav.syfo.sykmeldt.api.registerUserFnrApi
+import no.nav.syfo.sykmelding.api.registerFnrApi
 
 fun createApplicationEngine(
     env: Environment,
@@ -62,7 +62,7 @@ fun createApplicationEngine(
                 authenticate("jwtserviceuser") {
                     registrerPeriodeApi(updatePeriodeService)
                     registrerBehandletDatoApi(updateBehandletDatoService)
-                    registerUserFnrApi(updateFnrService)
+                    registerFnrApi(updateFnrService)
                     registerSendToSyfoserviceApi(sendTilSyfoserviceService)
                     registerUpdateDiagnosisApi(diagnoseService)
                 }
