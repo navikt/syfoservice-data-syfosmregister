@@ -14,7 +14,7 @@ class UpdateFnrService(
 
     suspend fun updateFnr(accessToken: String, fnr: String, nyttFnr: String): Boolean {
 
-        val pdlPerson = pdlPersonService.getPdlPerson(fnr, accessToken)
+        val pdlPerson = pdlPersonService.getPdlPerson(nyttFnr, accessToken)
 
         log.info("Debugging PDL lookup on Q, f = {}, nf = {}, pdlPerson = {}", fnr, nyttFnr, pdlPerson)
         if (pdlPerson.fnr != nyttFnr) {
