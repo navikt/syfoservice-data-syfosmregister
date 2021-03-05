@@ -16,6 +16,7 @@ class UpdateFnrService(
 
         val pdlPerson = pdlPersonService.getPdlPerson(fnr, accessToken)
 
+        log.info("Debugging PDL lookup on Q, f = {}, nf = {}, pdlPerson = {}", fnr, nyttFnr, pdlPerson)
         if (pdlPerson.fnr != nyttFnr) {
             // Vi sjekker bare nyttFnr, det gamle finnes ofte ikke i PDL
             log.error("Oppdatering av fnr feilet, nytt fnr ikke funnet i PDL")

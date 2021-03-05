@@ -29,7 +29,7 @@ fun Route.registerFnrApi(updateFnrService: UpdateFnrService) {
             }
             else -> {
                 val accessToken = getAccessTokenFromAuthHeader(call.request)!!
-                val updateFnr = updateFnrService.updateFnr(accessToken, endreFnr.fnr, endreFnr.nyttFnr)
+                val updateFnr = updateFnrService.updateFnr(accessToken = accessToken, fnr = endreFnr.fnr, nyttFnr = endreFnr.nyttFnr)
                 if (updateFnr) {
                     call.respond(HttpStatusCode.OK)
                 } else {
