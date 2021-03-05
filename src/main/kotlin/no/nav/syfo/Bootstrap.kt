@@ -36,11 +36,12 @@ import no.nav.syfo.kafka.SykmeldingKafkaProducer
 import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
-import no.nav.syfo.model.Behandlingsutfall
 import no.nav.syfo.model.Eia
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.RuleInfo
+import no.nav.syfo.model.Status
 import no.nav.syfo.model.Sykmeldingsdokument
+import no.nav.syfo.model.ValidationResult
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.GradService
@@ -58,7 +59,6 @@ import no.nav.syfo.service.CheckSendtSykmeldinger
 import no.nav.syfo.service.CheckTombstoneService
 import no.nav.syfo.service.HentSykmeldingerFraEiaService
 import no.nav.syfo.service.HentSykmeldingerFraSyfoServiceService
-import no.nav.syfo.service.HentSykmeldingerFraSyfosmregisterService
 import no.nav.syfo.service.HentSykmeldingsidFraBackupService
 import no.nav.syfo.service.InsertOKBehandlingsutfall
 import no.nav.syfo.service.MapSykmeldingStringToSykemldignJsonMap
@@ -554,30 +554,30 @@ fun addSykmeldingerToReceivedTopic(applicationState: ApplicationState, environme
 //    ).run()
 // }
 
-suspend fun hentBehandlingsutfallOgSkrivTilTopic(applicationState: ApplicationState, environment: Environment) {
-    val vaultServiceuser = getVaultServiceUser()
-
-    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
-    val producerProperties =
-        kafkaBaseConfig.toProducerConfig(environment.applicationName, valueSerializer = JacksonKafkaSerializer::class)
-
-    val kafkaProducerRS = KafkaProducer<String, ReceivedSykmelding>(producerProperties)
-    val receivedSykmeldingKafkaProducer =
-        ReceivedSykmeldingKafkaProducer(environment.receivedSykmeldingBackupTopic, kafkaProducerRS)
-
-    val kafkaProducerBU = KafkaProducer<String, Behandlingsutfall>(producerProperties)
-    val behandlingsutfallKafkaProducer = BehandlingsutfallKafkaProducer(environment.behandlingsutfallBackupTopic, kafkaProducerBU)
-
-    val vaultCredentialService = VaultCredentialService()
-    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
-    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
-
-    HentSykmeldingerFraSyfosmregisterService(
-        receivedSykmeldingKafkaProducer = receivedSykmeldingKafkaProducer,
-        behandlingsutfallKafkaProducer = behandlingsutfallKafkaProducer,
-        databasePostgres = databasePostgres, lastIndexSyfosmregister = environment.lastIndexSyfosmregister, applicationState = applicationState
-    ).skrivBehandlingsutfallTilTopic()
-}
+// suspend fun hentBehandlingsutfallOgSkrivTilTopic(applicationState: ApplicationState, environment: Environment) {
+//    val vaultServiceuser = getVaultServiceUser()
+//
+//    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
+//    val producerProperties =
+//        kafkaBaseConfig.toProducerConfig(environment.applicationName, valueSerializer = JacksonKafkaSerializer::class)
+//
+//    val kafkaProducerRS = KafkaProducer<String, ReceivedSykmelding>(producerProperties)
+//    val receivedSykmeldingKafkaProducer =
+//        ReceivedSykmeldingKafkaProducer(environment.receivedSykmeldingBackupTopic, kafkaProducerRS)
+//
+//    val kafkaProducerBU = KafkaProducer<String, Behandlingsutfall>(producerProperties)
+//    val behandlingsutfallKafkaProducer = BehandlingsutfallKafkaProducer(environment.behandlingsutfallBackupTopic, ka)
+//
+//    val vaultCredentialService = VaultCredentialService()
+//    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+//    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
+//
+//    HentSykmeldingerFraSyfosmregisterService(
+//        receivedSykmeldingKafkaProducer = receivedSykmeldingKafkaProducer,
+//        behandlingsutfallKafkaProducer = behandlingsutfallKafkaProducer,
+//        databasePostgres = databasePostgres, lastIndexSyfosmregister = environment.lastIndexSyfosmregister, applicationState = applicationState
+//    ).skrivBehandlingsutfallTilTopic()
+// }
 
 fun lagreOkBehandlingsutfall(applicationState: ApplicationState, environment: Environment) {
     val vaultServiceuser = getVaultServiceUser()
