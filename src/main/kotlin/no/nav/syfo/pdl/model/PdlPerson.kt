@@ -9,7 +9,7 @@ data class PdlPerson(
     val aktorId: String? = identer.firstOrNull { it.gruppe == "AKTORID" && !it.historisk }?.ident
 
     fun harHistoriskFnr(fnr: String): Boolean {
-        return finnIdent(ident = fnr, gruppe = "FOLKEREGISTERIDENT").any{ it.historisk }
+        return finnIdent(ident = fnr, gruppe = "FOLKEREGISTERIDENT").any { it.historisk }
     }
 
     fun finnIdent(ident: String, gruppe: String): List<IdentInformasjon> {

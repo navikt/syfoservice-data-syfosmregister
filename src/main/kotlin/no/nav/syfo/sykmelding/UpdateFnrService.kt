@@ -33,6 +33,5 @@ class UpdateFnrService(
                 return updateFnr > 0
             }
         }
-
     }
 }

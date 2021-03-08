@@ -26,7 +26,6 @@ import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.db.DatabasePostgresUtenVault
 import no.nav.syfo.db.DatabaseSparenaproxyPostgres
 import no.nav.syfo.db.VaultCredentialService
-import no.nav.syfo.kafka.BehandlingsutfallKafkaProducer
 import no.nav.syfo.kafka.EiaSykmeldingKafkaProducer
 import no.nav.syfo.kafka.ReceivedSykmeldingKafkaProducer
 import no.nav.syfo.kafka.RerunKafkaMessage
@@ -39,9 +38,7 @@ import no.nav.syfo.kafka.toProducerConfig
 import no.nav.syfo.model.Eia
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.RuleInfo
-import no.nav.syfo.model.Status
 import no.nav.syfo.model.Sykmeldingsdokument
-import no.nav.syfo.model.ValidationResult
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.GradService

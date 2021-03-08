@@ -23,9 +23,9 @@ import no.nav.syfo.papirsykmelding.api.registrerBehandletDatoApi
 import no.nav.syfo.papirsykmelding.api.registrerPeriodeApi
 import no.nav.syfo.papirsykmelding.tilsyfoservice.SendTilSyfoserviceService
 import no.nav.syfo.sykmelding.UpdateFnrService
+import no.nav.syfo.sykmelding.api.registerFnrApi
 import no.nav.syfo.sykmelding.api.registerSendToSyfoserviceApi
 import no.nav.syfo.sykmelding.api.registerUpdateDiagnosisApi
-import no.nav.syfo.sykmelding.api.registerFnrApi
 
 fun createApplicationEngine(
     env: Environment,
