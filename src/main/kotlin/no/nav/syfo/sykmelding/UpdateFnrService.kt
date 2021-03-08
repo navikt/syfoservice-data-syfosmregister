@@ -14,16 +14,25 @@ class UpdateFnrService(
 
     suspend fun updateFnr(accessToken: String, fnr: String, nyttFnr: String): Boolean {
 
-        val pdlPerson = pdlPersonService.getPdlPerson(nyttFnr, accessToken)
+        val pdlPerson = pdlPersonService.getPdlPerson(fnr, accessToken)
 
-        if (pdlPerson.fnr != nyttFnr) {
-            // Vi sjekker bare nyttFnr, det gamle finnes ofte ikke i PDL
-            log.error("Oppdatering av fnr feilet, nytt fnr ikke funnet i PDL")
-            throw RuntimeException("Oppdatering av fnr feilet, nytt fnr ikke funnet i PDL")
+        when {
+            pdlPerson.fnr != nyttFnr -> {
+                val msg = "Oppdatering av fnr feilet, nyttFnr != pdlPerson.fnr"
+                log.error(msg)
+                throw RuntimeException(msg)
+            }
+            !pdlPerson.harHistoriskFnr(fnr) -> {
+                val msg = "Oppdatering av fnr feilet, fnr er ikke historisk for aktør"
+                log.error(msg)
+                throw RuntimeException(msg)
+            }
+            else -> {
+                log.info("Oppdaterer fnr for person ")
+                val updateFnr = syfoSmRegisterDb.updateFnr(nyttFnr = nyttFnr, fnr = fnr)
+                return updateFnr > 0
+            }
         }
 
-        log.info("Oppdaterer fnr for person ")
-        val updateFnr = syfoSmRegisterDb.updateFnr(nyttFnr = nyttFnr, fnr = fnr)
-        return updateFnr > 0
     }
 }

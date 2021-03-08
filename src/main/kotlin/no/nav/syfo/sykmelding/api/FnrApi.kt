@@ -14,7 +14,6 @@ fun Route.registerFnrApi(updateFnrService: UpdateFnrService) {
     post("/api/sykmelding/fnr") {
 
         val endreFnr = call.receive<EndreFnr>()
-        println("endreFnr = ${endreFnr}")
         when {
             endreFnr == null -> {
                 call.respond(HttpStatusCode.BadRequest, "Klarte ikke tolke forespørsel")
