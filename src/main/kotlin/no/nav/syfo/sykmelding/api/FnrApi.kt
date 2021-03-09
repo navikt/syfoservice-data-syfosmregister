@@ -7,6 +7,7 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.syfo.sykmelding.UpdateFnrService
+import no.nav.syfo.sykmelding.UpdateIdentException
 import no.nav.syfo.sykmelding.api.model.EndreFnr
 import no.nav.syfo.utils.getAccessTokenFromAuthHeader
 
@@ -28,12 +29,18 @@ fun Route.registerFnrApi(updateFnrService: UpdateFnrService) {
             }
             else -> {
                 val accessToken = getAccessTokenFromAuthHeader(call.request)!!
-                val updateFnr = updateFnrService.updateFnr(accessToken = accessToken, fnr = endreFnr.fnr, nyttFnr = endreFnr.nyttFnr)
-                if (updateFnr) {
-                    call.respond(HttpStatusCode.OK, "Vellykket oppdatering.")
-                } else {
-                    call.respond(HttpStatusCode.NotModified, "Ingenting ble endret.")
+                try {
+                    val updateFnr = updateFnrService.updateFnr(accessToken = accessToken, fnr = endreFnr.fnr, nyttFnr = endreFnr.nyttFnr)
+
+                    if (updateFnr) {
+                        call.respond(HttpStatusCode.OK, "Vellykket oppdatering.")
+                    } else {
+                        call.respond(HttpStatusCode.NotModified, "Ingenting ble endret.")
+                    }
+                } catch (e: UpdateIdentException) {
+                    call.respond(HttpStatusCode.InternalServerError, e.message)
                 }
+
             }
         }
     }
