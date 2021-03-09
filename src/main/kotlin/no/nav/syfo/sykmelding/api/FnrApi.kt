@@ -1,7 +1,6 @@
 package no.nav.syfo.sykmelding.api
 
 import io.ktor.application.call
-import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.response.respond
@@ -9,6 +8,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.syfo.sykmelding.UpdateFnrService
 import no.nav.syfo.sykmelding.api.model.EndreFnr
+import no.nav.syfo.utils.getAccessTokenFromAuthHeader
 
 fun Route.registerFnrApi(updateFnrService: UpdateFnrService) {
     post("/api/sykmelding/fnr") {
@@ -27,7 +27,7 @@ fun Route.registerFnrApi(updateFnrService: UpdateFnrService) {
                 call.respond(HttpStatusCode.BadRequest, "nyttFnr må være et fnr / dnr på 11 tegn")
             }
             else -> {
-                val accessToken = call.request.headers[HttpHeaders.Authorization]!!
+                val accessToken = getAccessTokenFromAuthHeader(call.request)!!
                 val updateFnr = updateFnrService.updateFnr(accessToken = accessToken, fnr = endreFnr.fnr, nyttFnr = endreFnr.nyttFnr)
                 if (updateFnr) {
                     call.respond(HttpStatusCode.OK)
