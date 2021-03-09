@@ -20,12 +20,12 @@ import kotlinx.coroutines.launch
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
+import no.nav.syfo.clients.HttpClients
 import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.db.DatabasePostgresUtenVault
 import no.nav.syfo.db.DatabaseSparenaproxyPostgres
 import no.nav.syfo.db.VaultCredentialService
-import no.nav.syfo.kafka.BehandlingsutfallKafkaProducer
 import no.nav.syfo.kafka.EiaSykmeldingKafkaProducer
 import no.nav.syfo.kafka.ReceivedSykmeldingKafkaProducer
 import no.nav.syfo.kafka.RerunKafkaMessage
@@ -38,9 +38,7 @@ import no.nav.syfo.kafka.toProducerConfig
 import no.nav.syfo.model.Eia
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.RuleInfo
-import no.nav.syfo.model.Status
 import no.nav.syfo.model.Sykmeldingsdokument
-import no.nav.syfo.model.ValidationResult
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.GradService
@@ -78,6 +76,7 @@ import no.nav.syfo.sykmelding.MottattSykmeldingKafkaProducer
 import no.nav.syfo.sykmelding.MottattSykmeldingService
 import no.nav.syfo.sykmelding.SendtSykmeldingService
 import no.nav.syfo.sykmelding.SykmeldingStatusKafkaProducer
+import no.nav.syfo.sykmelding.UpdateFnrService
 import no.nav.syfo.sykmelding.kafka.model.MottattSykmeldingKafkaMessage
 import no.nav.syfo.sykmelding.kafka.model.SykmeldingKafkaMessage
 import no.nav.syfo.utils.JacksonKafkaSerializer
@@ -110,11 +109,6 @@ val log: Logger = LoggerFactory.getLogger("no.nav.syfo.syfoservicedatasyfosmregi
 
 @KtorExperimentalAPI
 fun main() {
-    /*var r = object {}::class.java.getResource("/ruleMap.json")
-    val ruleMap = objectMapper.readValue<Map<String, RuleInfo>>(r)
-    if (ruleMap == null || ruleMap.isEmpty()) {
-        throw RuntimeException("Fant ikke ruleMap")
-    }*/
     val environment = Environment()
     val applicationState = ApplicationState()
 
@@ -133,11 +127,13 @@ fun main() {
         databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
     )
     val vaultCredentialService = VaultCredentialService()
+    val vaultServiceuser = getVaultServiceUser()
 
     val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
     val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
 
-    val vaultServiceuser = getVaultServiceUser()
+    val httpClients = HttpClients(environment, vaultServiceuser)
+
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
     val producerProperties =
         kafkaBaseConfig.toProducerConfig(
@@ -163,11 +159,17 @@ fun main() {
         sykmeldingEndringsloggKafkaProducer = sykmeldingEndringsloggKafkaProducer
     )
 
+    val updateFnrService = UpdateFnrService(
+        pdlPersonService = httpClients.pdlService,
+        syfoSmRegisterDb = databasePostgres
+    )
+
     val applicationEngine = createApplicationEngine(
         env = environment,
         applicationState = applicationState,
         updatePeriodeService = updatePeriodeService,
         updateBehandletDatoService = updateBehandletDatoService,
+        updateFnrService = updateFnrService,
         sendTilSyfoserviceService = createSendTilSyfoservice(environment, databasePostgres, producerProperties),
         diagnoseService = DiagnoseService(databaseOracle, databasePostgres),
         jwkProviderInternal = jwkProviderInternal,

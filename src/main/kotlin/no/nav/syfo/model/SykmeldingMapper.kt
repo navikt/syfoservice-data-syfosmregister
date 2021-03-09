@@ -61,7 +61,8 @@ fun toReceivedSykmelding(sykmeldingDbModel: SykmeldingDbModel): ReceivedSykmeldi
         personNrLege = sykmeldingsopplysninger.legeFnr,
         personNrPasient = sykmeldingsopplysninger.pasientFnr,
         rulesetVersion = null,
-        tlfPasient = null
+        tlfPasient = null,
+        merknader = null
     )
 }
 
@@ -89,7 +90,8 @@ fun toReceivedSykmelding(jsonMap: Map<String, Any?>): ReceivedSykmelding {
         mottattDato = Timestamp.valueOf((jsonMap["CREATED"].toString())).toLocalDateTime(),
         rulesetVersion = unmarshallerToHealthInformation.regelSettVersjon,
         fellesformat = "",
-        tssid = ""
+        tssid = "",
+        merknader = null
     )
 }
 

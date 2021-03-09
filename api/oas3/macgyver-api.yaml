@@ -8,6 +8,26 @@ servers:
   - url: 'https://macgyver.dev.intern.nav.no'
   - url: 'https://macgyver.intern.nav.no'
 paths:
+  /api/sykmelding/fnr:
+    post:
+      operationId: endreBrukerFnr
+      summary: Endre fnr for sykmeldinger
+      description: Endrer fnr for et gitt fnr i alle sykmeldinger i SyfoSmRegister
+      tags:
+        - Sykmelding
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        $ref: '#/components/requestBodies/EndreFnrRequest'
+      responses:
+        '200':
+          description: Ok
+        '304':
+          description: Not Modified
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
   /api/sykmelding/{sykmeldingId}/syfoservice:
     post:
       operationId: sendToSyfoservice
@@ -89,6 +109,12 @@ paths:
 
 components:
   requestBodies:
+    EndreFnrRequest:
+      description: "Endre fnr for bruker"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/EndreFnr"
     PeriodelisteDTORequest:
       description: "Riktig periodeliste for sykmeldingen"
       content:
@@ -117,6 +143,20 @@ components:
         type: string
       example: '123'
   schemas:
+    EndreFnr:
+      type: object
+      required:
+        - fnr
+        - nyttFnr
+      properties:
+        fnr:
+          type: string
+          minLength: 11
+          maxLength: 11
+        nyttFnr:
+          type: string
+          minLength: 11
+          maxLength: 11
     Date:
       type: string
       format: date
