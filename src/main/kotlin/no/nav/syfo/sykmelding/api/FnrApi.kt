@@ -30,9 +30,9 @@ fun Route.registerFnrApi(updateFnrService: UpdateFnrService) {
                 val accessToken = getAccessTokenFromAuthHeader(call.request)!!
                 val updateFnr = updateFnrService.updateFnr(accessToken = accessToken, fnr = endreFnr.fnr, nyttFnr = endreFnr.nyttFnr)
                 if (updateFnr) {
-                    call.respond(HttpStatusCode.OK)
+                    call.respond(HttpStatusCode.OK, "Vellykket oppdatering.")
                 } else {
-                    call.respond(HttpStatusCode.NotModified)
+                    call.respond(HttpStatusCode.NotModified, "Ingenting ble endret.")
                 }
             }
         }
