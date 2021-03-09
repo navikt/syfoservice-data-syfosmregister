@@ -4,6 +4,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import kotlin.test.assertFailsWith
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.pdl.client.model.IdentInformasjon
@@ -13,12 +14,8 @@ import no.nav.syfo.sykmelding.db.updateFnr
 import org.amshove.kluent.shouldEqual
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import java.lang.RuntimeException
-import kotlin.test.assertFailsWith
-import kotlin.test.expect
 
 class UpdateFnrServiceTets : Spek({
-
 
     describe("Test at UpdateFnrService fungerer som forventet") {
 
@@ -45,7 +42,6 @@ class UpdateFnrServiceTets : Spek({
                         accessToken = accessToken,
                         fnr = "12345678912",
                         nyttFnr = "12345678913") shouldEqual true
-
             }
         }
 
@@ -90,9 +86,5 @@ class UpdateFnrServiceTets : Spek({
                 assertFailsWith.message shouldEqual "Oppdatering av fnr feilet, fnr er ikke historisk for aktør"
             }
         }
-
-
-
     }
-
 })
