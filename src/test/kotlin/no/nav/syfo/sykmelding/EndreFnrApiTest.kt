@@ -96,7 +96,7 @@ class EndreFnrApiTest : Spek({
                 setBody(objectMapper.writeValueAsString(endreFnr))
             }) {
                 response.status() shouldEqual HttpStatusCode.OK
-                response.content shouldEqual null
+                response.content shouldEqual "Vellykket oppdatering."
             }
         }
     }
