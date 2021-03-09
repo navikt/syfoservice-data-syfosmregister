@@ -46,9 +46,9 @@ class EndreFnrApiTest : Spek({
             val uri = Paths.get(path).toUri().toURL()
             val jwkProvider = JwkProviderBuilder(uri).build()
 
-            mockkStatic("no.nav.syfo.sykmelding.db.SyfoSmRegisterKt")
-
             val pdlPersonService = mockk<PdlPersonService>(relaxed = true)
+
+            mockkStatic("no.nav.syfo.sykmelding.db.SyfoSmRegisterKt")
             val db = mockk<DatabaseInterfacePostgres>(relaxed = true)
 
             start()
@@ -86,7 +86,7 @@ class EndreFnrApiTest : Spek({
                 )
             )
 
-            every { db.updateFnr(any(), any()) } returns 2
+            every { db.updateFnr(any(), any()) } returns 1
 
             val endreFnr = EndreFnr(fnr = "12345678912", nyttFnr = "12345678913")
 

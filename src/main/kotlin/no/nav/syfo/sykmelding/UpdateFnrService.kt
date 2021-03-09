@@ -18,14 +18,14 @@ class UpdateFnrService(
 
         when {
             pdlPerson.fnr != nyttFnr -> {
-                val msg = "Oppdatering av fnr feilet, nyttFnr != pdlPerson.fnr"
+                val msg = "Oppdatering av fnr feilet, nyttFnr står ikke som aktivt fnr for aktøren i PDL"
                 log.error(msg)
-                throw RuntimeException(msg)
+                throw UpdateIdentException(msg)
             }
             !pdlPerson.harHistoriskFnr(fnr) -> {
                 val msg = "Oppdatering av fnr feilet, fnr er ikke historisk for aktør"
                 log.error(msg)
-                throw RuntimeException(msg)
+                throw UpdateIdentException(msg)
             }
             else -> {
                 log.info("Oppdaterer fnr for person ")
@@ -35,3 +35,5 @@ class UpdateFnrService(
         }
     }
 }
+
+class UpdateIdentException(override val message: String) : Exception(message)
