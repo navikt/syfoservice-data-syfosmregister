@@ -71,6 +71,7 @@ import no.nav.syfo.service.UpdateStatusService
 import no.nav.syfo.service.WriteReceivedSykmeldingService
 import no.nav.syfo.sparenaproxy.Arena4UkerService
 import no.nav.syfo.sykmelding.BekreftSykmeldingService
+import no.nav.syfo.sykmelding.DeleteSykmeldingService
 import no.nav.syfo.sykmelding.EnkelSykmeldingKafkaProducer
 import no.nav.syfo.sykmelding.MottattSykmeldingKafkaProducer
 import no.nav.syfo.sykmelding.MottattSykmeldingService
@@ -181,6 +182,8 @@ fun main() {
 
     applicationServer.start()
     applicationState.ready = true
+
+    DeleteSykmeldingService(environment, applicationState).deleteSykmelding()
 
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
 }
