@@ -40,7 +40,6 @@ fun Route.registerFnrApi(updateFnrService: UpdateFnrService) {
                 } catch (e: UpdateIdentException) {
                     call.respond(HttpStatusCode.InternalServerError, e.message)
                 }
-
             }
         }
     }

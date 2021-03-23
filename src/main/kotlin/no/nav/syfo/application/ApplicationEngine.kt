@@ -25,6 +25,7 @@ import no.nav.syfo.papirsykmelding.tilsyfoservice.SendTilSyfoserviceService
 import no.nav.syfo.sykmelding.UpdateFnrService
 import no.nav.syfo.sykmelding.api.registerFnrApi
 import no.nav.syfo.sykmelding.api.registerSendToSyfoserviceApi
+import no.nav.syfo.sykmelding.api.registerUpdateBiDiagnosisApi
 import no.nav.syfo.sykmelding.api.registerUpdateDiagnosisApi
 
 fun createApplicationEngine(
@@ -65,6 +66,7 @@ fun createApplicationEngine(
                     registerFnrApi(updateFnrService)
                     registerSendToSyfoserviceApi(sendTilSyfoserviceService)
                     registerUpdateDiagnosisApi(diagnoseService)
+                    registerUpdateBiDiagnosisApi(diagnoseService)
                 }
             }
         }
