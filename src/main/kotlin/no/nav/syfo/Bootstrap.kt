@@ -30,6 +30,7 @@ import no.nav.syfo.kafka.EiaSykmeldingKafkaProducer
 import no.nav.syfo.kafka.ReceivedSykmeldingKafkaProducer
 import no.nav.syfo.kafka.RerunKafkaMessage
 import no.nav.syfo.kafka.RerunKafkaMessageKafkaProducer
+import no.nav.syfo.kafka.SykmeldingEndringsloggKafkaProducer
 import no.nav.syfo.kafka.SykmeldingIdKafkaProducer
 import no.nav.syfo.kafka.SykmeldingKafkaProducer
 import no.nav.syfo.kafka.loadBaseConfig
@@ -44,7 +45,6 @@ import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.GradService
 import no.nav.syfo.papirsykmelding.PeriodeService
 import no.nav.syfo.papirsykmelding.SlettInformasjonService
-import no.nav.syfo.papirsykmelding.api.SykmeldingEndringsloggKafkaProducer
 import no.nav.syfo.papirsykmelding.api.UpdateBehandletDatoService
 import no.nav.syfo.papirsykmelding.api.UpdatePeriodeService
 import no.nav.syfo.papirsykmelding.tilsyfoservice.SendTilSyfoserviceService
@@ -71,6 +71,7 @@ import no.nav.syfo.service.UpdateStatusService
 import no.nav.syfo.service.WriteReceivedSykmeldingService
 import no.nav.syfo.sparenaproxy.Arena4UkerService
 import no.nav.syfo.sykmelding.BekreftSykmeldingService
+import no.nav.syfo.sykmelding.DeleteSykmeldingService
 import no.nav.syfo.sykmelding.EnkelSykmeldingKafkaProducer
 import no.nav.syfo.sykmelding.MottattSykmeldingKafkaProducer
 import no.nav.syfo.sykmelding.MottattSykmeldingService
@@ -144,7 +145,7 @@ fun main() {
     val mottattSykmeldingKafkaProducer = MottattSykmeldingKafkaProducer(KafkaProducer<String, MottattSykmeldingKafkaMessage>(producerProperties), environment.mottattSykmeldingTopic)
     val sendtSykmeldingKafkaProducer = EnkelSykmeldingKafkaProducer(KafkaProducer<String, SykmeldingKafkaMessage>(producerProperties), environment.sendSykmeldingTopic)
     val bekreftetSykmeldingKafkaProducer = EnkelSykmeldingKafkaProducer(KafkaProducer<String, SykmeldingKafkaMessage>(producerProperties), environment.bekreftSykmeldingKafkaTopic)
-
+    val statusKafkaProducer = SykmeldingStatusKafkaProducer(KafkaProducer(producerProperties), environment.sykmeldingStatusTopic)
     val updatePeriodeService = UpdatePeriodeService(
         databaseoracle = databaseOracle,
         databasePostgres = databasePostgres,
@@ -163,7 +164,7 @@ fun main() {
         pdlPersonService = httpClients.pdlService,
         syfoSmRegisterDb = databasePostgres
     )
-
+    val deleteSykmeldingService = DeleteSykmeldingService(environment, databasePostgres, databaseOracle, statusKafkaProducer, sykmeldingEndringsloggKafkaProducer)
     val applicationEngine = createApplicationEngine(
         env = environment,
         applicationState = applicationState,
@@ -175,7 +176,8 @@ fun main() {
         jwkProviderInternal = jwkProviderInternal,
         issuerServiceuser = jwtVaultSecrets.jwtIssuer,
         clientId = jwtVaultSecrets.clientId,
-        appIds = listOf(jwtVaultSecrets.clientId)
+        appIds = listOf(jwtVaultSecrets.clientId),
+        deleteSykmeldingService = deleteSykmeldingService
     )
     val applicationServer = ApplicationServer(applicationEngine, applicationState)
 

@@ -1,4 +1,4 @@
-package no.nav.syfo.papirsykmelding.api
+package no.nav.syfo.kafka
 
 import no.nav.syfo.log
 import no.nav.syfo.model.Sykmeldingsdokument
