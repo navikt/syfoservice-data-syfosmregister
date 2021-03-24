@@ -36,7 +36,7 @@ class DeleteSykmeldingService(
                         null,
                         null
                     ),
-                    "syfosmregister",
+                    "macgyver",
                     sykmelding.sykmeldingsopplysninger.pasientFnr
                 )
             } else {
