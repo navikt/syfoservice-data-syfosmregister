@@ -171,7 +171,7 @@ fun main() {
         updateBehandletDatoService = updateBehandletDatoService,
         updateFnrService = updateFnrService,
         sendTilSyfoserviceService = createSendTilSyfoservice(environment, databasePostgres, producerProperties),
-        diagnoseService = DiagnoseService(databaseOracle, databasePostgres),
+        diagnoseService = DiagnoseService(databaseOracle, databasePostgres, sykmeldingEndringsloggKafkaProducer),
         jwkProviderInternal = jwkProviderInternal,
         issuerServiceuser = jwtVaultSecrets.jwtIssuer,
         clientId = jwtVaultSecrets.clientId,

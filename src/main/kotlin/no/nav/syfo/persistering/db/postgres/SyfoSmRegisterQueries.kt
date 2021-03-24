@@ -50,6 +50,7 @@ data class DatabaseResult(
     var databaseTime: Double = 0.0,
     var processingTime: Double = 0.0
 )
+
 fun Connection.getSykmeldingIds(lastMottattDato: LocalDate): List<String> =
     use {
         this.prepareStatement(
@@ -1042,11 +1043,12 @@ fun DatabaseInterfacePostgres.lagreSporsmalOgSvarOgArbeidsgiver(
 }
 
 fun Connection.oppdaterSykmeldingStatusTimestamp(newStatuses: List<SykmeldingStatusEvent>) {
-    use {
-        connection ->
-        connection.prepareStatement("""
+    use { connection ->
+        connection.prepareStatement(
+            """
             update sykmeldingstatus set timestamp = ? where sykmelding_id = ? and event_timestamp = ?;
-        """).use {
+        """
+        ).use {
             for (status in newStatuses) {
                 it.setTimestamp(1, Timestamp.from(status.timestamp!!.toInstant()))
                 it.setString(2, status.sykmeldingId)
@@ -1061,11 +1063,30 @@ fun Connection.oppdaterSykmeldingStatusTimestamp(newStatuses: List<SykmeldingSta
 
 fun DatabasePostgres.updateDiagnose(diagnose: Diagnosekoder.DiagnosekodeType, sykmeldingId: String) {
     connection.use { connection ->
-        connection.prepareStatement("""
+        connection.prepareStatement(
+            """
             UPDATE sykmeldingsdokument set sykmelding = jsonb_set(sykmelding, '{medisinskVurdering,hovedDiagnose}', ?::jsonb) where id = ?;
-        """).use {
+        """
+        ).use {
             val diag = Diagnose(diagnose.oid, diagnose.code, diagnose.text)
             it.setString(1, objectMapper.writeValueAsString(diag))
+            it.setString(2, sykmeldingId)
+            val updated = it.executeUpdate()
+            log.info("Updated {} sykmeldingsdokument", updated)
+        }
+        connection.commit()
+    }
+}
+
+fun DatabasePostgres.updateBiDiagnose(diagnoser: List<Diagnosekoder.DiagnosekodeType>, sykmeldingId: String) {
+    connection.use { connection ->
+        connection.prepareStatement(
+            """
+            UPDATE sykmeldingsdokument set sykmelding = jsonb_set(sykmelding, '{medisinskVurdering,biDiagnoser}', ?::jsonb) where id = ?;
+        """
+        ).use {
+            val biDiagnoser = diagnoser.map { diagnose -> Diagnose(diagnose.oid, diagnose.code, diagnose.text) }
+            it.setString(1, objectMapper.writeValueAsString(biDiagnoser))
             it.setString(2, sykmeldingId)
             val updated = it.executeUpdate()
             log.info("Updated {} sykmeldingsdokument", updated)
@@ -1077,9 +1098,11 @@ fun DatabasePostgres.updateDiagnose(diagnose: Diagnosekoder.DiagnosekodeType, sy
 fun DatabasePostgres.updateSvangerskap(sykmeldingId: String, svangerskap: Boolean): Int {
     var updated = 0
     connection.use { connection ->
-        connection.prepareStatement("""
+        connection.prepareStatement(
+            """
             UPDATE sykmeldingsdokument set sykmelding = jsonb_set(sykmelding, '{medisinskVurdering,svangerskap}', ?::jsonb) where id = ?;
-        """).use {
+        """
+        ).use {
             it.setString(1, svangerskap.toString())
             it.setString(2, sykmeldingId)
             updated = it.executeUpdate()
@@ -1091,9 +1114,11 @@ fun DatabasePostgres.updateSvangerskap(sykmeldingId: String, svangerskap: Boolea
 
 fun DatabasePostgres.updateBehandletTidspunkt(sykmeldingId: String, behandletTidspunkt: LocalDateTime) {
     connection.use { connection ->
-        connection.prepareStatement("""
+        connection.prepareStatement(
+            """
             UPDATE sykmeldingsdokument set sykmelding = jsonb_set(sykmelding, '{behandletTidspunkt}', ?::jsonb) where id = ?;
-        """).use {
+        """
+        ).use {
             it.setString(1, objectMapper.writeValueAsString(behandletTidspunkt))
             it.setString(2, sykmeldingId)
             val updated = it.executeUpdate()
@@ -1106,9 +1131,11 @@ fun DatabasePostgres.updateBehandletTidspunkt(sykmeldingId: String, behandletTid
 fun DatabasePostgres.updateSkjermesForPasient(sykmeldingId: String, skjermet: Boolean): Int {
     var updated = 0
     connection.use { connection ->
-        connection.prepareStatement("""
+        connection.prepareStatement(
+            """
             UPDATE sykmeldingsdokument set sykmelding = jsonb_set(sykmelding, '{medisinskVurdering,skjermetForPasient}', ?::jsonb) where id = ?;
-        """).use {
+        """
+        ).use {
             it.setString(1, skjermet.toString())
             it.setString(2, sykmeldingId)
             updated = it.executeUpdate()
@@ -1120,9 +1147,11 @@ fun DatabasePostgres.updateSkjermesForPasient(sykmeldingId: String, skjermet: Bo
 
 fun DatabasePostgres.updatePeriode(periodeListe: List<Periode>, sykmeldingId: String) {
     connection.use { connection ->
-        connection.prepareStatement("""
+        connection.prepareStatement(
+            """
             UPDATE sykmeldingsdokument set sykmelding = jsonb_set(sykmelding, '{perioder}', ?::jsonb) where id = ?;
-        """).use {
+        """
+        ).use {
             it.setString(1, objectMapper.writeValueAsString(periodeListe))
             it.setString(2, sykmeldingId)
             val updated = it.executeUpdate()
@@ -1134,9 +1163,11 @@ fun DatabasePostgres.updatePeriode(periodeListe: List<Periode>, sykmeldingId: St
 
 fun DatabasePostgres.updateErIkkeIArbeid(sykmeldingId: String, erIkkeIArbeid: ErIkkeIArbeid?) {
     connection.use { connection ->
-        connection.prepareStatement("""
+        connection.prepareStatement(
+            """
             UPDATE sykmeldingsdokument set sykmelding = jsonb_set(sykmelding, '{prognose,erIkkeIArbeid}', ?::jsonb) where id = ?;
-        """).use {
+        """
+        ).use {
             it.setString(1, objectMapper.writeValueAsString(erIkkeIArbeid))
             it.setString(2, sykmeldingId)
             val updated = it.executeUpdate()
@@ -1148,11 +1179,13 @@ fun DatabasePostgres.updateErIkkeIArbeid(sykmeldingId: String, erIkkeIArbeid: Er
 
 fun Connection.getSykmeldingWithIArbeidIkkeIArbeid(): List<Sykmelding> {
     use {
-        this.prepareStatement("""
+        this.prepareStatement(
+            """
             select sykmelding from sykmeldingsopplysninger so
                 inner join sykmeldingsdokument sd on sd.id = so.id
             where epj_system_navn = 'Papirsykmelding' and mottatt_tidspunkt > '2020-09-28' and sykmelding->'prognose'->>'erIArbeid' is not null and sykmelding->'prognose'->>'erIkkeIArbeid' is not null;
-        """).use {
+        """
+        ).use {
             return it.executeQuery().toList { getSykmeldingdocument() }
         }
     }
@@ -1160,11 +1193,13 @@ fun Connection.getSykmeldingWithIArbeidIkkeIArbeid(): List<Sykmelding> {
 
 fun Connection.getSykmeldingWithEmptyUtdypendeOpplysninger(): List<Sykmelding> {
     use {
-        this.prepareStatement("""
+        this.prepareStatement(
+            """
             select sykmelding from sykmeldingsopplysninger so 
             inner join sykmeldingsdokument sd on sd.id = so.id
             where epj_system_navn = 'Papirsykmelding' and mottatt_tidspunkt > '2020-09-28' and sykmelding->>'utdypendeOpplysninger' != '{}' and sykmelding->>'utdypendeOpplysninger' LIKE '%' || '{}' || '%';
-        """).use {
+        """
+        ).use {
             return it.executeQuery().toList { getSykmeldingdocument() }
         }
     }
@@ -1176,9 +1211,11 @@ private fun ResultSet.getSykmeldingdocument(): Sykmelding {
 
 fun DatabasePostgres.updatePrognose(sykmeldingId: String, prognose: Prognose?) {
     connection.use { connection ->
-        connection.prepareStatement("""
+        connection.prepareStatement(
+            """
             UPDATE sykmeldingsdokument set sykmelding = jsonb_set(sykmelding, '{prognose}', ?::jsonb) where id = ?;
-        """).use {
+        """
+        ).use {
             it.setString(1, objectMapper.writeValueAsString(prognose))
             it.setString(2, sykmeldingId)
             val updated = it.executeUpdate()
@@ -1188,11 +1225,16 @@ fun DatabasePostgres.updatePrognose(sykmeldingId: String, prognose: Prognose?) {
     }
 }
 
-fun DatabasePostgres.updateUtdypendeOpplysninger(sykmeldingId: String, utdypendeOpplysninger: Map<String, Map<String, SporsmalSvar>>) {
+fun DatabasePostgres.updateUtdypendeOpplysninger(
+    sykmeldingId: String,
+    utdypendeOpplysninger: Map<String, Map<String, SporsmalSvar>>
+) {
     connection.use { connection ->
-        connection.prepareStatement("""
+        connection.prepareStatement(
+            """
             UPDATE sykmeldingsdokument set sykmelding = jsonb_set(sykmelding, '{utdypendeOpplysninger}', ?::jsonb) where id = ?;
-        """).use {
+        """
+        ).use {
             it.setString(1, objectMapper.writeValueAsString(utdypendeOpplysninger))
             it.setString(2, sykmeldingId)
             val updated = it.executeUpdate()
