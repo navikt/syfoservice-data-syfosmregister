@@ -5,6 +5,7 @@ import no.nav.syfo.aksessering.db.oracle.getSykmeldingsDokument
 import no.nav.syfo.aksessering.db.oracle.updateDocumentAndBehandletDato
 import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.db.DatabasePostgres
+import no.nav.syfo.kafka.SykmeldingEndringsloggKafkaProducer
 import no.nav.syfo.log
 import no.nav.syfo.objectMapper
 import no.nav.syfo.persistering.db.postgres.hentSykmeldingsdokument

@@ -22,7 +22,9 @@ import no.nav.syfo.papirsykmelding.api.UpdatePeriodeService
 import no.nav.syfo.papirsykmelding.api.registrerBehandletDatoApi
 import no.nav.syfo.papirsykmelding.api.registrerPeriodeApi
 import no.nav.syfo.papirsykmelding.tilsyfoservice.SendTilSyfoserviceService
+import no.nav.syfo.sykmelding.DeleteSykmeldingService
 import no.nav.syfo.sykmelding.UpdateFnrService
+import no.nav.syfo.sykmelding.api.registerDeleteSykmeldingApi
 import no.nav.syfo.sykmelding.api.registerFnrApi
 import no.nav.syfo.sykmelding.api.registerSendToSyfoserviceApi
 import no.nav.syfo.sykmelding.api.registerUpdateDiagnosisApi
@@ -38,7 +40,8 @@ fun createApplicationEngine(
     jwkProviderInternal: JwkProvider,
     issuerServiceuser: String,
     clientId: String,
-    appIds: List<String>
+    appIds: List<String>,
+    deleteSykmeldingService: DeleteSykmeldingService
 ): ApplicationEngine =
         embeddedServer(Netty, env.applicationPort) {
             install(ContentNegotiation) {
@@ -65,6 +68,7 @@ fun createApplicationEngine(
                     registerFnrApi(updateFnrService)
                     registerSendToSyfoserviceApi(sendTilSyfoserviceService)
                     registerUpdateDiagnosisApi(diagnoseService)
+                    registerDeleteSykmeldingApi(deleteSykmeldingService)
                 }
             }
         }

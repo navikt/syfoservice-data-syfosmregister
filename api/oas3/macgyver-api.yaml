@@ -28,6 +28,24 @@ paths:
           description: Unauthorized
         '403':
           description: Forbidden
+  /api/sykmelding/{sykmeldingId}:
+    delete:
+      summary: Sletter en sykmelding
+      operationId: deleteSykmelding
+      tags:
+        - Sykmelding
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/sykmeldingId'
+      responses:
+        '200':
+          description: Ok
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
   /api/sykmelding/{sykmeldingId}/syfoservice:
     post:
       operationId: sendToSyfoservice
