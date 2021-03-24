@@ -84,6 +84,28 @@ paths:
           description: Unauthorized
         '403':
           description: Forbidden
+  /api/sykmelding/{sykmeldingId}/bidiagnose:
+    post:
+      operationId: updateBiDiagnose
+      tags:
+        - Sykmelding
+      security:
+        - bearerAuth: [ ]
+      summary: Endre Bi-diagnose for sykmelding
+      description: Endre Bi-diagnoser i syfosmregister og syfoservice
+      parameters:
+        - $ref: '#/components/parameters/sykmeldingId'
+      requestBody:
+        $ref: '#/components/requestBodies/EndreBiDiagnoseRequest'
+      responses:
+        '200':
+          description: Ok
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
+
   /api/papirsykmelding/{sykmeldingId}/periode:
     post:
       operationId: updatePeriode
@@ -151,6 +173,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EndreDiagnose'
+    EndreBiDiagnoseRequest:
+      description: "Riktig bi-diagnose for sykmelding"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EndreBiDiagnose'
   parameters:
     sykmeldingId:
       description: Id for sykmelding som skal rettes
@@ -263,7 +291,15 @@ components:
           type: string
         system:
           type: string
-
+    EndreBiDiagnoser:
+      type: array
+      items:
+        $ref: '#/components/schemas/EndreDiagnose'
+    EndreBiDiagnose:
+      type: object
+      properties:
+        diagnoser:
+          $ref: '#/components/schemas/EndreBiDiagnoser'
   securitySchemes:
     bearerAuth:
       type: http
