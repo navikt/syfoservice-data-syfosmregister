@@ -78,7 +78,7 @@ fun DatabaseInterfaceOracle.finnSisteNarmesteLeder(): String =
                         SELECT NAERMESTE_LEDER_ID 
                         FROM NAERMESTE_LEDER 
                         ORDER BY NAERMESTE_LEDER_ID DESC 
-                        FETCH FIRST 1 ROWS ONLY;
+                        FETCH FIRST 1 ROWS ONLY
                         """
         ).use {
             it.executeQuery().toList { getString("NAERMESTE_LEDER_ID") }.first()
