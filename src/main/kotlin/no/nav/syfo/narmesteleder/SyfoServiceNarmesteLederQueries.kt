@@ -70,3 +70,17 @@ fun ResultSet.toAntallNarmesteLederKoblinger(): AntallNarmesteLederKoblinger =
     AntallNarmesteLederKoblinger(
         antall = getString("antall")
     )
+
+fun DatabaseInterfaceOracle.finnSisteNarmesteLeder(): String =
+    connection.use { connection ->
+        connection.prepareStatement(
+            """
+                        SELECT NAERMESTE_LEDER_ID 
+                        FROM NAERMESTE_LEDER 
+                        ORDER BY NAERMESTE_LEDER_ID DESC 
+                        FETCH FIRST 1 ROWS ONLY;
+                        """
+        ).use {
+            it.executeQuery().toList { getString("NAERMESTE_LEDER_ID") }.first()
+        }
+    }
