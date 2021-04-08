@@ -33,6 +33,7 @@ import no.nav.syfo.kafka.RerunKafkaMessageKafkaProducer
 import no.nav.syfo.kafka.SykmeldingEndringsloggKafkaProducer
 import no.nav.syfo.kafka.SykmeldingIdKafkaProducer
 import no.nav.syfo.kafka.SykmeldingKafkaProducer
+import no.nav.syfo.kafka.aiven.KafkaUtils
 import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
@@ -41,6 +42,9 @@ import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.model.Sykmeldingsdokument
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
+import no.nav.syfo.narmesteleder.NarmesteLederFraSyfoServiceService
+import no.nav.syfo.narmesteleder.SyfoServiceNarmesteLeder
+import no.nav.syfo.narmesteleder.SyfoServiceNarmesteLederKafkaProducer
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.GradService
 import no.nav.syfo.papirsykmelding.PeriodeService
@@ -87,6 +91,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.serialization.StringDeserializer
+import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -184,7 +189,22 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
+    hentNarmesteLedereOgPubliserTilTopic(databaseOracle, applicationState, environment)
+
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+}
+
+fun hentNarmesteLedereOgPubliserTilTopic(databaseOracle: DatabaseOracle, applicationState: ApplicationState, environment: Environment) {
+    val kafkaProducer = KafkaProducer<String, SyfoServiceNarmesteLeder>(
+        KafkaUtils
+            .getAivenKafkaConfig()
+            .toProducerConfig("syfoservice-data-syfosmregister-producer", JacksonKafkaSerializer::class, StringSerializer::class)
+    )
+    val syfoServiceNarmesteLederKafkaProducer = SyfoServiceNarmesteLederKafkaProducer(environment.nlMigreringTopic, kafkaProducer)
+
+    NarmesteLederFraSyfoServiceService(
+        databaseOracle, environment.lastIndexNlSyfoservice, syfoServiceNarmesteLederKafkaProducer, applicationState
+    ).run()
 }
 
 fun getDatabasePostgres(): DatabasePostgres {
