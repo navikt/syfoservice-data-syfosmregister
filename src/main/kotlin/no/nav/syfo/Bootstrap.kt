@@ -175,8 +175,9 @@ fun main() {
         pdlPersonService = httpClients.pdlService,
         syfoSmRegisterDb = databasePostgres
     )
-    val kafkaConsumer = KafkaConsumer(
-        KafkaUtils.getAivenKafkaConfig().toConsumerConfig("syfoservice-data-syfosmregister-consumer-test", JacksonKafkaDeserializer::class),
+    val consumerProperties = KafkaUtils.getAivenKafkaConfig()
+    consumerProperties["auto.offset.reset"] = "earliest"
+    val kafkaConsumer = KafkaConsumer(consumerProperties.toConsumerConfig("syfoservice-data-syfosmregister-consumer-test2", JacksonKafkaDeserializer::class),
         StringDeserializer(),
         JacksonKafkaDeserializer(SyfoServiceNarmesteLeder::class)
     )
