@@ -54,9 +54,12 @@ class HttpClients(environment: Environment, vaultServiceUser: VaultServiceUser) 
     private val stsOidcClient =
         StsOidcClient(vaultServiceUser.serviceuserUsername, vaultServiceUser.serviceuserPassword, environment.securityTokenUrl)
 
-    private val pdlClient = PdlClient(httpClient,
-        environment.pdlGraphqlPath,
-        PdlClient::class.java.getResource("/graphql/getPerson.graphql").readText().replace(Regex("[\n\t]"), ""))
+    private val pdlClient = PdlClient(
+        httpClient = httpClient,
+        basePath = environment.pdlGraphqlPath,
+        graphQlQuery = PdlClient::class.java.getResource("/graphql/getPerson.graphql").readText().replace(Regex("[\n\t]"), ""),
+        graphQlQueryAktorids = PdlClient::class.java.getResource("/graphql/getAktorids.graphql").readText().replace(Regex("[\n\t]"), "")
+    )
 
     val pdlService = PdlPersonService(pdlClient, stsOidcClient)
 }

@@ -14,6 +14,7 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 import java.util.Properties
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -42,9 +43,13 @@ import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.model.Sykmeldingsdokument
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
+import no.nav.syfo.narmesteleder.NarmesteLederConsumerService
 import no.nav.syfo.narmesteleder.NarmesteLederFraSyfoServiceService
+import no.nav.syfo.narmesteleder.NarmesteLederMappingService
+import no.nav.syfo.narmesteleder.NarmesteLederResponseKafkaProducer
 import no.nav.syfo.narmesteleder.SyfoServiceNarmesteLeder
 import no.nav.syfo.narmesteleder.SyfoServiceNarmesteLederKafkaProducer
+import no.nav.syfo.narmesteleder.kafkamodel.NlResponseKafkaMessage
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.GradService
 import no.nav.syfo.papirsykmelding.PeriodeService
@@ -84,6 +89,7 @@ import no.nav.syfo.sykmelding.SykmeldingStatusKafkaProducer
 import no.nav.syfo.sykmelding.UpdateFnrService
 import no.nav.syfo.sykmelding.kafka.model.MottattSykmeldingKafkaMessage
 import no.nav.syfo.sykmelding.kafka.model.SykmeldingKafkaMessage
+import no.nav.syfo.utils.JacksonKafkaDeserializer
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
 import no.nav.syfo.vault.RenewVaultService
@@ -169,6 +175,19 @@ fun main() {
         pdlPersonService = httpClients.pdlService,
         syfoSmRegisterDb = databasePostgres
     )
+    val kafkaConsumer = KafkaConsumer(
+        KafkaUtils.getAivenKafkaConfig().toConsumerConfig("syfoservice-data-syfosmregister-consumer-test", JacksonKafkaDeserializer::class),
+        StringDeserializer(),
+        JacksonKafkaDeserializer(SyfoServiceNarmesteLeder::class)
+    )
+    val kafkaProducer = KafkaProducer<String, NlResponseKafkaMessage>(
+        KafkaUtils
+            .getAivenKafkaConfig()
+            .toProducerConfig("syfoservice-data-syfosmregister-producer", JacksonKafkaSerializer::class, StringSerializer::class)
+    )
+    val narmesteLederResponseKafkaProducer = NarmesteLederResponseKafkaProducer(environment.nlResponseTopic, kafkaProducer)
+    val narmesteLederConsumerService = NarmesteLederConsumerService(kafkaConsumer, applicationState, environment.nlMigreringTopic, NarmesteLederMappingService(httpClients.pdlService), narmesteLederResponseKafkaProducer)
+
     val deleteSykmeldingService = DeleteSykmeldingService(environment, databasePostgres, databaseOracle, statusKafkaProducer, sykmeldingEndringsloggKafkaProducer)
     val applicationEngine = createApplicationEngine(
         env = environment,
@@ -190,6 +209,22 @@ fun main() {
     applicationState.ready = true
 
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+
+    startBackgroundJob(applicationState) {
+        narmesteLederConsumerService.startConsumer()
+    }
+}
+
+fun startBackgroundJob(applicationState: ApplicationState, block: suspend CoroutineScope.() -> Unit) {
+    GlobalScope.launch {
+        try {
+            block()
+        } catch (ex: Exception) {
+            log.error("Error in background task, restarting application")
+            applicationState.alive = false
+            applicationState.ready = false
+        }
+    }
 }
 
 fun hentNarmesteLedereOgPubliserTilTopic(databaseOracle: DatabaseOracle, applicationState: ApplicationState, environment: Environment) {

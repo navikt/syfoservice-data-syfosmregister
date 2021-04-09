@@ -1,0 +1,40 @@
+package no.nav.syfo.narmesteleder
+
+import io.ktor.util.KtorExperimentalAPI
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
+import no.nav.syfo.log
+import no.nav.syfo.narmesteleder.kafkamodel.Leder
+import no.nav.syfo.narmesteleder.kafkamodel.NlResponse
+import no.nav.syfo.narmesteleder.kafkamodel.Sykmeldt
+import no.nav.syfo.pdl.service.PdlPersonService
+
+@KtorExperimentalAPI
+class NarmesteLederMappingService(private val pdlPersonService: PdlPersonService) {
+    suspend fun mapSyfoServiceNarmesteLederTilNlResponse(syfoServiceNarmesteLeder: SyfoServiceNarmesteLeder): NlResponse {
+        val fnrs = pdlPersonService.getFnrs(listOf(syfoServiceNarmesteLeder.aktorId, syfoServiceNarmesteLeder.nlAktorId), syfoServiceNarmesteLeder.id.toString())
+        val sykmeldtFnr = fnrs[syfoServiceNarmesteLeder.aktorId]
+        val lederFnr = fnrs[syfoServiceNarmesteLeder.nlAktorId]
+        if (sykmeldtFnr == null || lederFnr == null) {
+            log.error("Mangler fnr for sykmeldt eller leder! NL-id: ${syfoServiceNarmesteLeder.id}")
+            throw IllegalStateException("Mangler fnr for sykmeldt eller leder! NL-id: ${syfoServiceNarmesteLeder.id}")
+        }
+        return NlResponse(
+            orgnummer = syfoServiceNarmesteLeder.orgnummer,
+            utbetalesLonn = syfoServiceNarmesteLeder.agForskutterer,
+            leder = Leder(
+                fnr = lederFnr,
+                mobil = syfoServiceNarmesteLeder.nlTelefonnummer,
+                epost = syfoServiceNarmesteLeder.nlEpost,
+                fornavn = "dummynavn",
+                etternavn = "dummynavn"
+            ),
+            sykmeldt = Sykmeldt(
+                fnr = sykmeldtFnr,
+                navn = "dummynavn"
+            ),
+            aktivFom = OffsetDateTime.of(syfoServiceNarmesteLeder.aktivFom.atStartOfDay(), ZoneOffset.UTC),
+            aktivTom = syfoServiceNarmesteLeder.aktivTom?.let { OffsetDateTime.of(syfoServiceNarmesteLeder.aktivTom.atStartOfDay(), ZoneOffset.UTC) }
+        )
+    }
+}
