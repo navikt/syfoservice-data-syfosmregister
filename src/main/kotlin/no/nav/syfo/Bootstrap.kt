@@ -189,8 +189,6 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
-    hentNarmesteLedereOgPubliserTilTopic(databaseOracle, applicationState, environment)
-
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
 }
 
