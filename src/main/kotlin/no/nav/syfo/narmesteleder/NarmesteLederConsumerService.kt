@@ -15,19 +15,21 @@ class NarmesteLederConsumerService(
     private val applicationState: ApplicationState,
     private val topic: String,
     private val narmesteLederMappingService: NarmesteLederMappingService,
-    private val narmesteLederResponseKafkaProducer: NarmesteLederResponseKafkaProducer
+    private val narmesteLederResponseKafkaProducer: NarmesteLederResponseKafkaProducer,
+    private val cluster: String
 ) {
     private var counter = 0
+    private var feiledeEvents = 0
 
     suspend fun startConsumer() {
         GlobalScope.launch {
             var lastCounter = 0
             while (applicationState.ready) {
                 if (lastCounter != counter) {
-                    log.info("Lest: {} events", counter)
+                    log.info("Lest: {} events, antall feil: {}", counter, feiledeEvents)
                     lastCounter = counter
                 }
-                delay(15_000)
+                delay(10_000)
             }
         }
 
@@ -36,9 +38,18 @@ class NarmesteLederConsumerService(
 
         while (applicationState.ready) {
             kafkaConsumer.poll(Duration.ZERO).forEach {
-                val nlResponse = narmesteLederMappingService.mapSyfoServiceNarmesteLederTilNlResponse(it.value())
-                // narmesteLederResponseKafkaProducer.publishToKafka(nlResponse)
-                counter++
+                try {
+                    val nlResponse = narmesteLederMappingService.mapSyfoServiceNarmesteLederTilNlResponse(it.value())
+                    // narmesteLederResponseKafkaProducer.publishToKafka(nlResponse)
+                    counter++
+                } catch (e: IllegalStateException) {
+                    if (cluster == "dev-fss") {
+                        log.error("Noe gikk galt for key ${it.key()}, ignorerer i dev")
+                        feiledeEvents++
+                    } else {
+                        throw e
+                    }
+                }
             }
             delay(1L)
         }

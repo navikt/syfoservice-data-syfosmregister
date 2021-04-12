@@ -187,7 +187,7 @@ fun main() {
             .toProducerConfig("syfoservice-data-syfosmregister-producer", JacksonKafkaSerializer::class, StringSerializer::class)
     )
     val narmesteLederResponseKafkaProducer = NarmesteLederResponseKafkaProducer(environment.nlResponseTopic, kafkaProducer)
-    val narmesteLederConsumerService = NarmesteLederConsumerService(kafkaConsumer, applicationState, environment.nlMigreringTopic, NarmesteLederMappingService(httpClients.pdlService), narmesteLederResponseKafkaProducer)
+    val narmesteLederConsumerService = NarmesteLederConsumerService(kafkaConsumer, applicationState, environment.nlMigreringTopic, NarmesteLederMappingService(httpClients.pdlService), narmesteLederResponseKafkaProducer, environment.cluster)
 
     val deleteSykmeldingService = DeleteSykmeldingService(environment, databasePostgres, databaseOracle, statusKafkaProducer, sykmeldingEndringsloggKafkaProducer)
     val applicationEngine = createApplicationEngine(

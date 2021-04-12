@@ -15,9 +15,15 @@ class NarmesteLederMappingService(private val pdlPersonService: PdlPersonService
         val fnrs = pdlPersonService.getFnrs(listOf(syfoServiceNarmesteLeder.aktorId, syfoServiceNarmesteLeder.nlAktorId), syfoServiceNarmesteLeder.id.toString())
         val sykmeldtFnr = fnrs[syfoServiceNarmesteLeder.aktorId]
         val lederFnr = fnrs[syfoServiceNarmesteLeder.nlAktorId]
-        if (sykmeldtFnr == null || lederFnr == null) {
-            log.error("Mangler fnr for sykmeldt eller leder! NL-id: ${syfoServiceNarmesteLeder.id}")
-            throw IllegalStateException("Mangler fnr for sykmeldt eller leder! NL-id: ${syfoServiceNarmesteLeder.id}")
+        if (sykmeldtFnr == null && lederFnr == null) {
+            log.error("Mangler fnr for sykmeldt og leder! NL-id: ${syfoServiceNarmesteLeder.id}")
+            throw IllegalStateException("Mangler fnr for sykmeldt og leder! NL-id: ${syfoServiceNarmesteLeder.id}")
+        } else if (sykmeldtFnr == null) {
+            log.error("Mangler fnr for sykmeldt! NL-id: ${syfoServiceNarmesteLeder.id}")
+            throw IllegalStateException("Mangler fnr for sykmeldt! NL-id: ${syfoServiceNarmesteLeder.id}")
+        } else if (lederFnr == null) {
+            log.error("Mangler fnr for leder! NL-id: ${syfoServiceNarmesteLeder.id}")
+            throw IllegalStateException("Mangler fnr for leder! NL-id: ${syfoServiceNarmesteLeder.id}")
         }
         return NlResponse(
             orgnummer = syfoServiceNarmesteLeder.orgnummer,
