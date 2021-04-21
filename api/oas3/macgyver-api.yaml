@@ -339,6 +339,28 @@ components:
           type: array
           items:
             type: string
+        behandlingsutfall:
+          description: Behandlingsutfall som skal brukes
+          type: object
+          properties:
+            status:
+              type: string
+              enum: [ OK, MANUAL_PROCESSING ]
+            ruleHits:
+              type: array
+              items:
+                type: object
+                properties:
+                  messageForSender:
+                    type: string
+                  messageForUser:
+                    type: string
+                  ruleName:
+                    type: string
+                  ruleStatus:
+                    type: string
+                    enum: [OK, MANUAL_PROCESSING]
+
     pdfRerun:
       type: object
       properties:

@@ -5,7 +5,9 @@ import java.sql.ResultSet
 import java.util.UUID
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.db.toList
+import no.nav.syfo.model.Behandlingsutfall
 import no.nav.syfo.model.ReceivedSykmelding
+import no.nav.syfo.model.toPGObject
 import no.nav.syfo.objectMapper
 
 fun DatabaseInterfacePostgres.getSykmeldingerByIds(sykmeldingIds: List<String>): List<ReceivedSykmelding> =
@@ -21,6 +23,35 @@ fun DatabaseInterfacePostgres.getSykmeldingerByIds(sykmeldingIds: List<String>):
             it.setArray(1, connection.createArrayOf("VARCHAR", sykmeldingIds.toTypedArray()))
             it.executeQuery().toList { toReceivedSykmelding() }
         }
+    }
+
+fun DatabaseInterfacePostgres.erBehandlingsutfallLagret(sykmeldingsid: String) =
+    connection.use { connection ->
+        connection.prepareStatement(
+            """
+                SELECT *
+                FROM BEHANDLINGSUTFALL
+                WHERE id=?;
+                """
+        ).use {
+            it.setString(1, sykmeldingsid)
+            it.executeQuery().next()
+        }
+    }
+
+fun DatabaseInterfacePostgres.opprettBehandlingsutfall(behandlingsutfall: Behandlingsutfall) =
+    connection.use { connection ->
+        connection.prepareStatement(
+            """
+                    INSERT INTO BEHANDLINGSUTFALL(id, behandlingsutfall) VALUES (?, ?)
+                """
+        ).use {
+            it.setString(1, behandlingsutfall.id)
+            it.setObject(2, behandlingsutfall.behandlingsutfall.toPGObject())
+            it.executeUpdate()
+        }
+
+        connection.commit()
     }
 
 fun ResultSet.toReceivedSykmelding(): ReceivedSykmelding {
