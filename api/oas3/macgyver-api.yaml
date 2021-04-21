@@ -158,14 +158,21 @@ paths:
       requestBody:
         $ref: '#/components/requestBodies/RerunPDFRequest'
       responses:
-        '201':
-          description: Accepted
+        '202':
+          $ref: '#/components/responses/pdfRerunResponse'
         '401':
           description: Unauthorized
         '403':
           description: Forbidden
 
 components:
+  responses:
+    pdfRerunResponse:
+      description: "Response for rekjøring av pdf"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/pdfRerun"
   requestBodies:
     EndreFnrRequest:
       description: "Endre fnr for bruker"
@@ -329,6 +336,19 @@ components:
       properties:
         ids:
           description: Liste med sykmeldings ider
+          type: array
+          items:
+            type: string
+    pdfRerun:
+      type: object
+      properties:
+        accepted:
+          description: Liste med ider som ble oppdatert
+          type: array
+          items:
+            type: string
+        notFound:
+          description: Liste med ider som ikke eksisterer i registeret
           type: array
           items:
             type: string
