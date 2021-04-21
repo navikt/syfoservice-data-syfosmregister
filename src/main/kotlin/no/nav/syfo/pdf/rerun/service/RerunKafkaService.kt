@@ -39,6 +39,7 @@ class RerunKafkaService(private val database: DatabaseInterfacePostgres, private
                 )
                 log.info("Behandlingsutfall lagret i databasen, sykmeldingId: {}", it.sykmelding.id)
             }
+            listOk.add(it.sykmelding.id)
         }
         return listOk
     }
