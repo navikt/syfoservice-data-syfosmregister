@@ -46,7 +46,8 @@ data class Environment(
     val pdlGraphqlPath: String = getEnvVar("PDL_GRAPHQL_PATH"),
     override val truststore: String? = getEnvVar("NAV_TRUSTSTORE_PATH"),
     override val truststorePassword: String? = getEnvVar("NAV_TRUSTSTORE_PASSWORD"),
-    val behandlingsutfallTopic: String = "privat-syfo-sm2013-behandlingsUtfall"
+    val behandlingsutfallTopic: String = "privat-syfo-sm2013-behandlingsUtfall",
+    val kafkaRerunTopic: String = "privat-syfo-register-rerun-tmp"
 ) : KafkaConfig
 
 data class VaultCredentials(
