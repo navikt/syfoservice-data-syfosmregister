@@ -7,9 +7,7 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import io.ktor.routing.route
-import no.nav.syfo.model.ValidationResult
 import no.nav.syfo.pdf.rerun.service.RerunKafkaService
-import no.nav.syfo.rerunkafka.service.RerunKafkaService
 
 data class ResponseDTO(val accepted: List<String>, val notFound: List<String>)
 

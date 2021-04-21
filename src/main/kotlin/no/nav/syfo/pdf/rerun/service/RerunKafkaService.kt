@@ -1,6 +1,5 @@
 package no.nav.syfo.pdf.rerun.service
 
-import net.logstash.logback.argument.StructuredArguments.fields
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.ValidationResult
@@ -25,7 +24,7 @@ class RerunKafkaService(private val database: DatabaseInterfacePostgres, private
 
         receivedSykmelding.forEach {
             val behandlingsutfall = database.connection.getBehandlingsutfall(it.sykmelding.id)
-            if(behandlingsutfall != null) {
+            if (behandlingsutfall != null) {
                 publishToKafka(RerunKafkaMessage(receivedSykmelding = it, validationResult = behandlingsutfall.behandlingsutfall))
                 listOk.add(it.sykmelding.id)
             }

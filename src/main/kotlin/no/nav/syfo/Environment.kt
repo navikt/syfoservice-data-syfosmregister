@@ -48,8 +48,7 @@ data class Environment(
     override val truststorePassword: String? = getEnvVar("NAV_TRUSTSTORE_PASSWORD"),
     val behandlingsutfallTopic: String = "privat-syfo-sm2013-behandlingsUtfall",
     val lastIndexNlSyfoservice: Int = getEnvVar("LAST_INDEX_NL_SYFOSERVICE").toInt(),
-    val nlMigreringTopic: String = "teamsykmelding.syfo-nl-migrering",
-    val kafkaRerunTopic: String = "privat-syfo-register-rerun-tmp"
+    val nlMigreringTopic: String = "teamsykmelding.syfo-nl-migrering"
 ) : KafkaConfig
 
 data class VaultCredentials(
