@@ -199,6 +199,8 @@ fun main() {
     applicationState.ready = true
 
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+
+    hentNarmesteLedereOgPubliserTilTopic(databaseOracle, applicationState, environment)
 }
 
 fun hentNarmesteLedereOgPubliserTilTopic(databaseOracle: DatabaseOracle, applicationState: ApplicationState, environment: Environment) {
@@ -209,10 +211,13 @@ fun hentNarmesteLedereOgPubliserTilTopic(databaseOracle: DatabaseOracle, applica
     )
     val syfoServiceNarmesteLederKafkaProducer = SyfoServiceNarmesteLederKafkaProducer(environment.nlMigreringTopic, kafkaProducer)
 
-    NarmesteLederFraSyfoServiceService(
-        databaseOracle, environment.lastIndexNlSyfoservice, syfoServiceNarmesteLederKafkaProducer, applicationState
-    ).run()
+    GlobalScope.launch {
+        NarmesteLederFraSyfoServiceService(
+            databaseOracle, environment.lastIndexNlSyfoservice, syfoServiceNarmesteLederKafkaProducer, applicationState
+        ).run()
+    }
 }
+
 
 fun getDatabasePostgres(): DatabasePostgres {
     val environment = Environment()
