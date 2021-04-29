@@ -14,7 +14,8 @@ class NarmesteLederFraSyfoServiceService(
     private val applicationState: ApplicationState
 ) {
     fun run() {
-        val antallNarmesteLederKoblinger = Integer.valueOf(databaseOracle.hentAntallNarmesteLederKoblinger().first().antall)
+        val antallNarmesteLederKoblinger =
+            Integer.valueOf(databaseOracle.hentAntallNarmesteLederKoblinger().first().antall)
         log.info("Antall narmesteleder-koblinger som finnes i syfoservice: {}", antallNarmesteLederKoblinger)
         val sisteNarmesteLederId = Integer.valueOf(databaseOracle.finnSisteNarmesteLeder())
         log.info("Siste narmesteleder-kobling som finnes i syfoservice: {}", sisteNarmesteLederId)
@@ -33,7 +34,7 @@ class NarmesteLederFraSyfoServiceService(
         }
 
         while (lastIndex <= sisteNarmesteLederId) {
-            val result = databaseOracle.hentNarmesteLederSyfoService(lastIndex = lastIndex, limit = 100)
+            val result = databaseOracle.hentNarmesteLederSyfoService(lastIndex = lastIndex, limit = 10_000)
             for (syfoServiceNarmesteLeder in result.rows) {
                 syfoServiceNarmesteLederKafkaProducer.publishToKafka(syfoServiceNarmesteLeder)
             }

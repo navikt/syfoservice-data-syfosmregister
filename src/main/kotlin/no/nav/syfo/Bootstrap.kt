@@ -59,6 +59,8 @@ import no.nav.syfo.papirsykmelding.api.UpdatePeriodeService
 import no.nav.syfo.papirsykmelding.tilsyfoservice.SendTilSyfoserviceService
 import no.nav.syfo.papirsykmelding.tilsyfoservice.kafka.SykmeldingSyfoserviceKafkaProducer
 import no.nav.syfo.papirsykmelding.tilsyfoservice.kafka.model.SykmeldingSyfoserviceKafkaMessage
+import no.nav.syfo.pdf.rerun.kafka.RerunKafkaProducer
+import no.nav.syfo.pdf.rerun.service.RerunKafkaService
 import no.nav.syfo.sak.avro.RegisterTask
 import no.nav.syfo.service.BehandlingsutfallFraOppgaveTopicService
 import no.nav.syfo.service.CheckSendtSykmeldinger
@@ -190,6 +192,12 @@ fun main() {
     val narmesteLederConsumerService = NarmesteLederConsumerService(kafkaConsumer, applicationState, environment.nlMigreringTopic, NarmesteLederMappingService(httpClients.pdlService), narmesteLederResponseKafkaProducer, environment.cluster)
 
     val deleteSykmeldingService = DeleteSykmeldingService(environment, databasePostgres, databaseOracle, statusKafkaProducer, sykmeldingEndringsloggKafkaProducer)
+
+    val producerConfigRerun = kafkaBaseConfig.toProducerConfig(
+        "${environment.applicationName}-producer", valueSerializer = StringSerializer::class
+    )
+    val rerunKafkaService = RerunKafkaService(databasePostgres, RerunKafkaProducer(KafkaProducer(producerConfigRerun), environment))
+
     val applicationEngine = createApplicationEngine(
         env = environment,
         applicationState = applicationState,
@@ -202,7 +210,8 @@ fun main() {
         issuerServiceuser = jwtVaultSecrets.jwtIssuer,
         clientId = jwtVaultSecrets.clientId,
         appIds = listOf(jwtVaultSecrets.clientId),
-        deleteSykmeldingService = deleteSykmeldingService
+        deleteSykmeldingService = deleteSykmeldingService,
+        rerunKafkaService = rerunKafkaService
     )
     val applicationServer = ApplicationServer(applicationEngine, applicationState)
 
@@ -236,9 +245,11 @@ fun hentNarmesteLedereOgPubliserTilTopic(databaseOracle: DatabaseOracle, applica
     )
     val syfoServiceNarmesteLederKafkaProducer = SyfoServiceNarmesteLederKafkaProducer(environment.nlMigreringTopic, kafkaProducer)
 
-    NarmesteLederFraSyfoServiceService(
-        databaseOracle, environment.lastIndexNlSyfoservice, syfoServiceNarmesteLederKafkaProducer, applicationState
-    ).run()
+    GlobalScope.launch {
+        NarmesteLederFraSyfoServiceService(
+            databaseOracle, environment.lastIndexNlSyfoservice, syfoServiceNarmesteLederKafkaProducer, applicationState
+        ).run()
+    }
 }
 
 fun getDatabasePostgres(): DatabasePostgres {

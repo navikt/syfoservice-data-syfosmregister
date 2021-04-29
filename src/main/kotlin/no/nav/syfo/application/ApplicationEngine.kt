@@ -22,6 +22,8 @@ import no.nav.syfo.papirsykmelding.api.UpdatePeriodeService
 import no.nav.syfo.papirsykmelding.api.registrerBehandletDatoApi
 import no.nav.syfo.papirsykmelding.api.registrerPeriodeApi
 import no.nav.syfo.papirsykmelding.tilsyfoservice.SendTilSyfoserviceService
+import no.nav.syfo.pdf.rerun.api.registerRerunKafkaApi
+import no.nav.syfo.pdf.rerun.service.RerunKafkaService
 import no.nav.syfo.sykmelding.DeleteSykmeldingService
 import no.nav.syfo.sykmelding.UpdateFnrService
 import no.nav.syfo.sykmelding.api.registerDeleteSykmeldingApi
@@ -42,7 +44,8 @@ fun createApplicationEngine(
     issuerServiceuser: String,
     clientId: String,
     appIds: List<String>,
-    deleteSykmeldingService: DeleteSykmeldingService
+    deleteSykmeldingService: DeleteSykmeldingService,
+    rerunKafkaService: RerunKafkaService
 ): ApplicationEngine =
         embeddedServer(Netty, env.applicationPort) {
             install(ContentNegotiation) {
@@ -71,6 +74,7 @@ fun createApplicationEngine(
                     registerUpdateDiagnosisApi(diagnoseService)
                     registerDeleteSykmeldingApi(deleteSykmeldingService)
                     registerUpdateBiDiagnosisApi(diagnoseService)
+                    registerRerunKafkaApi(rerunKafkaService)
                 }
             }
         }
