@@ -32,12 +32,12 @@ class NarmesteLederMappingService(private val pdlPersonService: PdlPersonService
                 fnr = lederFnr,
                 mobil = syfoServiceNarmesteLeder.nlTelefonnummer,
                 epost = updateEmail(syfoServiceNarmesteLeder.nlEpost),
-                fornavn = "dummynavn",
-                etternavn = "dummynavn"
+                fornavn = null,
+                etternavn = null
             ),
             sykmeldt = Sykmeldt(
                 fnr = sykmeldtFnr,
-                navn = "dummynavn"
+                navn = null
             ),
             aktivFom = OffsetDateTime.of(syfoServiceNarmesteLeder.aktivFom.atStartOfDay(), ZoneOffset.UTC),
             aktivTom = syfoServiceNarmesteLeder.aktivTom?.let { OffsetDateTime.of(syfoServiceNarmesteLeder.aktivTom.atStartOfDay(), ZoneOffset.UTC) }
@@ -45,9 +45,15 @@ class NarmesteLederMappingService(private val pdlPersonService: PdlPersonService
     }
 
     private fun updateEmail(nlEpost: String) =
-        if (nlEpost.contains("@statoil.")) {
-            nlEpost.replace("@statoil.", "@equinor.")
-        } else {
-            nlEpost
+        when {
+            nlEpost.contains("@statoil.no") -> {
+                nlEpost.replace("@statoil.no", "@equinor.com")
+            }
+            nlEpost.contains("@statoil.com") -> {
+                nlEpost.replace("@statoil.com", "@equinor.com")
+            }
+            else -> {
+                nlEpost
+            }
         }
 }

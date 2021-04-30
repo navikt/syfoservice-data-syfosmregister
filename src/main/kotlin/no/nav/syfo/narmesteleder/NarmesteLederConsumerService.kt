@@ -15,8 +15,7 @@ class NarmesteLederConsumerService(
     private val applicationState: ApplicationState,
     private val topic: String,
     private val narmesteLederMappingService: NarmesteLederMappingService,
-    private val narmesteLederResponseKafkaProducer: NarmesteLederResponseKafkaProducer,
-    private val cluster: String
+    private val narmesteLederResponseKafkaProducer: NarmesteLederResponseKafkaProducer
 ) {
     private var counter = 0
     private var feiledeEvents = 0
@@ -40,15 +39,11 @@ class NarmesteLederConsumerService(
             kafkaConsumer.poll(Duration.ZERO).forEach {
                 try {
                     val nlResponse = narmesteLederMappingService.mapSyfoServiceNarmesteLederTilNlResponse(it.value())
-                    // narmesteLederResponseKafkaProducer.publishToKafka(nlResponse)
+                    narmesteLederResponseKafkaProducer.publishToKafka(nlResponse)
                     counter++
                 } catch (e: IllegalStateException) {
-                    if (cluster == "dev-fss") {
-                        log.error("Noe gikk galt for key ${it.key()}, ignorerer i dev")
-                        feiledeEvents++
-                    } else {
-                        throw e
-                    }
+                    log.error("Noe gikk galt for key ${it.key()}")
+                    feiledeEvents++
                 }
             }
             delay(1L)
