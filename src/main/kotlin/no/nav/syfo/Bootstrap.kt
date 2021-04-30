@@ -200,7 +200,7 @@ fun main() {
 
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
 
-    hentNarmesteLedereOgPubliserTilTopic(databaseOracle, applicationState, environment)
+    // hentNarmesteLedereOgPubliserTilTopic(databaseOracle, applicationState, environment)
 }
 
 fun hentNarmesteLedereOgPubliserTilTopic(databaseOracle: DatabaseOracle, applicationState: ApplicationState, environment: Environment) {
