@@ -179,7 +179,7 @@ fun main() {
     )
     val consumerProperties = KafkaUtils.getAivenKafkaConfig()
     consumerProperties["auto.offset.reset"] = "earliest"
-    val kafkaConsumer = KafkaConsumer(consumerProperties.toConsumerConfig("syfoservice-data-syfosmregister-consumer-test2", JacksonKafkaDeserializer::class),
+    val kafkaConsumer = KafkaConsumer(consumerProperties.toConsumerConfig("syfoservice-data-syfosmregister-consumer-test3", JacksonKafkaDeserializer::class),
         StringDeserializer(),
         JacksonKafkaDeserializer(SyfoServiceNarmesteLeder::class)
     )

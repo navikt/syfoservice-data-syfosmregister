@@ -4,6 +4,7 @@ import java.sql.ResultSet
 import no.nav.syfo.aksessering.db.oracle.DatabaseResult
 import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.db.toList
+import no.nav.syfo.log
 
 fun DatabaseInterfaceOracle.hentNarmesteLederSyfoService(
     lastIndex: Int,
@@ -60,6 +61,21 @@ fun DatabaseInterfaceOracle.hentAntallNarmesteLederKoblinger(): List<AntallNarme
         ).use {
             it.executeQuery().toList { toAntallNarmesteLederKoblinger() }
         }
+    }
+
+fun DatabaseInterfaceOracle.oppdaterEpostForEquinor(nlId: Long, nlEpost: String) =
+    connection.use { connection ->
+        connection.prepareStatement(
+            """
+                update NAERMESTE_LEDER set NL_EPOST = ?
+                WHERE NAERMESTE_LEDER_ID = ?
+                """
+        ).use {
+            it.setString(1, nlEpost)
+            it.setLong(2, nlId)
+            it.executeUpdate()
+        }
+        connection.commit()
     }
 
 data class AntallNarmesteLederKoblinger(
