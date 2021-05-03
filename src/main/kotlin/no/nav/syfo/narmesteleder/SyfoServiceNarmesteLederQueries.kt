@@ -62,6 +62,21 @@ fun DatabaseInterfaceOracle.hentAntallNarmesteLederKoblinger(): List<AntallNarme
         }
     }
 
+fun DatabaseInterfaceOracle.oppdaterEpostForEquinor(nlId: Long, nlEpost: String) =
+    connection.use { connection ->
+        connection.prepareStatement(
+            """
+                update NAERMESTE_LEDER set NL_EPOST = ?
+                WHERE NAERMESTE_LEDER_ID = ?
+                """
+        ).use {
+            it.setString(1, nlEpost)
+            it.setLong(2, nlId)
+            it.executeUpdate()
+        }
+        connection.commit()
+    }
+
 data class AntallNarmesteLederKoblinger(
     val antall: String
 )
