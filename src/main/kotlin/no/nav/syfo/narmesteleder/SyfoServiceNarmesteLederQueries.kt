@@ -47,8 +47,21 @@ private fun ResultSet.mapToSyfoServiceNarmesteLeder() =
         nlEpost = getString("NL_EPOST"),
         aktivFom = getDate("AKTIV_FOM").toLocalDate(),
         aktivTom = getDate("AKTIV_TOM")?.toLocalDate(),
-        agForskutterer = getBoolean("AG_FORSKUTTERER")
+        agForskutterer = oracleBooleanTilBoolean(getString("AG_FORSKUTTERER"))
     )
+
+fun oracleBooleanTilBoolean(result: String?): Boolean? =
+    when (result) {
+        "1" -> {
+            true
+        }
+        "0" -> {
+            false
+        }
+        else -> {
+            null
+        }
+    }
 
 fun DatabaseInterfaceOracle.hentAntallNarmesteLederKoblinger(): List<AntallNarmesteLederKoblinger> =
     connection.use { connection ->

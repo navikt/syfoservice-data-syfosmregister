@@ -84,4 +84,4 @@ spec:
     - name: KAFKA_CLIENT_ID
       value: syfoservice-data-syfosmregister
     - name: LAST_INDEX_NL_SYFOSERVICE
-      value: "2000000"
+      value: "0"

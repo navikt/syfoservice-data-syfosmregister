@@ -99,6 +99,7 @@ import no.nav.syfo.vault.RenewVaultService
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.Logger
@@ -200,8 +201,6 @@ fun main() {
     )
     val rerunKafkaService = RerunKafkaService(databasePostgres, RerunKafkaProducer(KafkaProducer(producerConfigRerun), environment))
 
-    val equinorConsumerService = NarmesteLederEquinorConsumerService(kafkaConsumer, applicationState, environment.nlMigreringTopic, databaseOracle)
-
     val applicationEngine = createApplicationEngine(
         env = environment,
         applicationState = applicationState,
@@ -224,9 +223,7 @@ fun main() {
 
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
 
-    startBackgroundJob(applicationState) {
-        equinorConsumerService.startConsumer()
-    }
+    hentNarmesteLedereOgPubliserTilTopic(databaseOracle, applicationState, environment)
 }
 
 fun startBackgroundJob(applicationState: ApplicationState, block: suspend CoroutineScope.() -> Unit) {
@@ -245,7 +242,10 @@ fun hentNarmesteLedereOgPubliserTilTopic(databaseOracle: DatabaseOracle, applica
     val kafkaProducer = KafkaProducer<String, SyfoServiceNarmesteLeder>(
         KafkaUtils
             .getAivenKafkaConfig()
-            .toProducerConfig("syfoservice-data-syfosmregister-producer", JacksonKafkaSerializer::class, StringSerializer::class)
+            .toProducerConfig("syfoservice-data-syfosmregister-producer", JacksonKafkaSerializer::class, StringSerializer::class).apply {
+                this[ProducerConfig.ACKS_CONFIG] = 1
+                this[ProducerConfig.RETRIES_CONFIG] = 1000
+            }
     )
     val syfoServiceNarmesteLederKafkaProducer = SyfoServiceNarmesteLederKafkaProducer(environment.nlMigreringTopic, kafkaProducer)
 
