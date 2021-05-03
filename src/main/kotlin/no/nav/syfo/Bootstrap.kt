@@ -178,24 +178,6 @@ fun main() {
         pdlPersonService = httpClients.pdlService,
         syfoSmRegisterDb = databasePostgres
     )
-    val consumerProperties = KafkaUtils.getAivenKafkaConfig()
-    consumerProperties["auto.offset.reset"] = "earliest"
-    consumerProperties["max.poll.records"] = 1000
-    val kafkaConsumer = KafkaConsumer(consumerProperties.toConsumerConfig("syfoservice-data-syfosmregister-consumer-test5", JacksonKafkaDeserializer::class),
-        StringDeserializer(),
-        JacksonKafkaDeserializer(SyfoServiceNarmesteLeder::class)
-    )
-    val kafkaProducer = KafkaProducer<String, NlResponseKafkaMessage>(
-        KafkaUtils
-            .getAivenKafkaConfig()
-            .toProducerConfig("syfoservice-data-syfosmregister-producer", JacksonKafkaSerializer::class, StringSerializer::class).apply {
-                this[ProducerConfig.ACKS_CONFIG] = "1"
-                this[ProducerConfig.RETRIES_CONFIG] = 1000
-                this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
-            }
-    )
-    val narmesteLederResponseKafkaProducer = NarmesteLederResponseKafkaProducer(environment.nlResponseTopic, kafkaProducer)
-    val narmesteLederConsumerService = NarmesteLederConsumerService(kafkaConsumer, applicationState, environment.nlMigreringTopic, NarmesteLederMappingService(httpClients.pdlService), narmesteLederResponseKafkaProducer)
 
     val deleteSykmeldingService = DeleteSykmeldingService(environment, databasePostgres, databaseOracle, statusKafkaProducer, sykmeldingEndringsloggKafkaProducer)
 
@@ -226,9 +208,6 @@ fun main() {
 
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
 
-    startBackgroundJob(applicationState) {
-        narmesteLederConsumerService.startConsumer()
-    }
 }
 
 fun startBackgroundJob(applicationState: ApplicationState, block: suspend CoroutineScope.() -> Unit) {
