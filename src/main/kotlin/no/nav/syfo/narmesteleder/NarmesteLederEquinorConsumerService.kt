@@ -45,14 +45,15 @@ class NarmesteLederEquinorConsumerService(
                         it.value().nlEpost.contains("@statoil.com") -> {
                             it.value().nlEpost.replace("@statoil.com", "@equinor.com")
                         }
-                        else -> throw IllegalStateException("epost matcher ikke forventet format, ${it.value().id}")
+                        else -> null
                     }
-                    databaseOracle.oppdaterEpostForEquinor(it.value().id, oppdatertEpost)
-                    oppdaterte++
+                    if (oppdatertEpost != null) {
+                        databaseOracle.oppdaterEpostForEquinor(it.value().id, oppdatertEpost)
+                        oppdaterte++
+                    }
                 } else {
                     counter++
                 }
-                delay(1L)
             }
         }
     }

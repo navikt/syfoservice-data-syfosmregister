@@ -44,6 +44,7 @@ import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.model.Sykmeldingsdokument
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.narmesteleder.NarmesteLederConsumerService
+import no.nav.syfo.narmesteleder.NarmesteLederEquinorConsumerService
 import no.nav.syfo.narmesteleder.NarmesteLederFraSyfoServiceService
 import no.nav.syfo.narmesteleder.NarmesteLederMappingService
 import no.nav.syfo.narmesteleder.NarmesteLederResponseKafkaProducer
@@ -179,7 +180,7 @@ fun main() {
     )
     val consumerProperties = KafkaUtils.getAivenKafkaConfig()
     consumerProperties["auto.offset.reset"] = "earliest"
-    val kafkaConsumer = KafkaConsumer(consumerProperties.toConsumerConfig("syfoservice-data-syfosmregister-consumer-test3", JacksonKafkaDeserializer::class),
+    val kafkaConsumer = KafkaConsumer(consumerProperties.toConsumerConfig("syfoservice-data-syfosmregister-consumer-test4", JacksonKafkaDeserializer::class),
         StringDeserializer(),
         JacksonKafkaDeserializer(SyfoServiceNarmesteLeder::class)
     )
@@ -197,6 +198,8 @@ fun main() {
         "${environment.applicationName}-producer", valueSerializer = StringSerializer::class
     )
     val rerunKafkaService = RerunKafkaService(databasePostgres, RerunKafkaProducer(KafkaProducer(producerConfigRerun), environment))
+
+    val equinorConsumerService = NarmesteLederEquinorConsumerService(kafkaConsumer, applicationState, environment.nlMigreringTopic, databaseOracle)
 
     val applicationEngine = createApplicationEngine(
         env = environment,
@@ -221,7 +224,7 @@ fun main() {
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
 
     startBackgroundJob(applicationState) {
-        narmesteLederConsumerService.startConsumer()
+        equinorConsumerService.startConsumer()
     }
 }
 

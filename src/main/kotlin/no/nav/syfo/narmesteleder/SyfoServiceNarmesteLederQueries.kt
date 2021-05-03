@@ -4,7 +4,6 @@ import java.sql.ResultSet
 import no.nav.syfo.aksessering.db.oracle.DatabaseResult
 import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.db.toList
-import no.nav.syfo.log
 
 fun DatabaseInterfaceOracle.hentNarmesteLederSyfoService(
     lastIndex: Int,
