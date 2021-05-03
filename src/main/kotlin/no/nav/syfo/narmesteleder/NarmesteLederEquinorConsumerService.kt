@@ -37,23 +37,20 @@ class NarmesteLederEquinorConsumerService(
 
         while (applicationState.ready) {
             kafkaConsumer.poll(Duration.ZERO).forEach {
-                if (it.value().nlEpost.contains("@statoil")) {
-                    val oppdatertEpost = when {
-                        it.value().nlEpost.contains("@statoil.no") -> {
-                            it.value().nlEpost.replace("@statoil.no", "@equinor.com")
-                        }
-                        it.value().nlEpost.contains("@statoil.com") -> {
-                            it.value().nlEpost.replace("@statoil.com", "@equinor.com")
-                        }
-                        else -> null
+                val oppdatertEpost = when {
+                    it.value().nlEpost.contains("@statoil.no") -> {
+                        it.value().nlEpost.replace("@statoil.no", "@equinor.com")
                     }
-                    if (oppdatertEpost != null) {
-                        databaseOracle.oppdaterEpostForEquinor(it.value().id, oppdatertEpost)
-                        oppdaterte++
+                    it.value().nlEpost.contains("@statoil.com") -> {
+                        it.value().nlEpost.replace("@statoil.com", "@equinor.com")
                     }
-                } else {
-                    counter++
+                    else -> null
                 }
+                if (oppdatertEpost != null) {
+                    databaseOracle.oppdaterEpostForEquinor(it.value().id, oppdatertEpost)
+                    oppdaterte++
+                }
+                counter++
             }
         }
     }
