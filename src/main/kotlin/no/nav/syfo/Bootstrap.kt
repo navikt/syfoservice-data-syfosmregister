@@ -44,7 +44,6 @@ import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.model.Sykmeldingsdokument
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.narmesteleder.NarmesteLederConsumerService
-import no.nav.syfo.narmesteleder.NarmesteLederEquinorConsumerService
 import no.nav.syfo.narmesteleder.NarmesteLederFraSyfoServiceService
 import no.nav.syfo.narmesteleder.NarmesteLederMappingService
 import no.nav.syfo.narmesteleder.NarmesteLederResponseKafkaProducer
@@ -182,14 +181,18 @@ fun main() {
     val consumerProperties = KafkaUtils.getAivenKafkaConfig()
     consumerProperties["auto.offset.reset"] = "earliest"
     consumerProperties["max.poll.records"] = 1000
-    val kafkaConsumer = KafkaConsumer(consumerProperties.toConsumerConfig("syfoservice-data-syfosmregister-consumer-test4", JacksonKafkaDeserializer::class),
+    val kafkaConsumer = KafkaConsumer(consumerProperties.toConsumerConfig("syfoservice-data-syfosmregister-consumer-test5", JacksonKafkaDeserializer::class),
         StringDeserializer(),
         JacksonKafkaDeserializer(SyfoServiceNarmesteLeder::class)
     )
     val kafkaProducer = KafkaProducer<String, NlResponseKafkaMessage>(
         KafkaUtils
             .getAivenKafkaConfig()
-            .toProducerConfig("syfoservice-data-syfosmregister-producer", JacksonKafkaSerializer::class, StringSerializer::class)
+            .toProducerConfig("syfoservice-data-syfosmregister-producer", JacksonKafkaSerializer::class, StringSerializer::class).apply {
+                this[ProducerConfig.ACKS_CONFIG] = "1"
+                this[ProducerConfig.RETRIES_CONFIG] = 1000
+                this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
+            }
     )
     val narmesteLederResponseKafkaProducer = NarmesteLederResponseKafkaProducer(environment.nlResponseTopic, kafkaProducer)
     val narmesteLederConsumerService = NarmesteLederConsumerService(kafkaConsumer, applicationState, environment.nlMigreringTopic, NarmesteLederMappingService(httpClients.pdlService), narmesteLederResponseKafkaProducer)
@@ -223,7 +226,9 @@ fun main() {
 
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
 
-    hentNarmesteLedereOgPubliserTilTopic(databaseOracle, applicationState, environment)
+    startBackgroundJob(applicationState) {
+        narmesteLederConsumerService.startConsumer()
+    }
 }
 
 fun startBackgroundJob(applicationState: ApplicationState, block: suspend CoroutineScope.() -> Unit) {

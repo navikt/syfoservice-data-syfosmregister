@@ -39,14 +39,13 @@ class NarmesteLederConsumerService(
             kafkaConsumer.poll(Duration.ZERO).forEach {
                 try {
                     val nlResponse = narmesteLederMappingService.mapSyfoServiceNarmesteLederTilNlResponse(it.value())
-                    narmesteLederResponseKafkaProducer.publishToKafka(nlResponse)
+                    narmesteLederResponseKafkaProducer.publishToKafka(nlResponse, it.key())
                     counter++
                 } catch (e: IllegalStateException) {
                     log.error("Noe gikk galt for key ${it.key()}")
                     feiledeEvents++
                 }
             }
-            delay(1L)
         }
     }
 }

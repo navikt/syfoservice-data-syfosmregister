@@ -31,7 +31,7 @@ class NarmesteLederMappingService(private val pdlPersonService: PdlPersonService
             leder = Leder(
                 fnr = lederFnr,
                 mobil = syfoServiceNarmesteLeder.nlTelefonnummer,
-                epost = updateEmail(syfoServiceNarmesteLeder.nlEpost),
+                epost = syfoServiceNarmesteLeder.nlEpost,
                 fornavn = null,
                 etternavn = null
             ),
@@ -43,17 +43,4 @@ class NarmesteLederMappingService(private val pdlPersonService: PdlPersonService
             aktivTom = syfoServiceNarmesteLeder.aktivTom?.let { OffsetDateTime.of(syfoServiceNarmesteLeder.aktivTom.atStartOfDay(), ZoneOffset.UTC) }
         )
     }
-
-    private fun updateEmail(nlEpost: String) =
-        when {
-            nlEpost.contains("@statoil.no") -> {
-                nlEpost.replace("@statoil.no", "@equinor.com")
-            }
-            nlEpost.contains("@statoil.com") -> {
-                nlEpost.replace("@statoil.com", "@equinor.com")
-            }
-            else -> {
-                nlEpost
-            }
-        }
 }

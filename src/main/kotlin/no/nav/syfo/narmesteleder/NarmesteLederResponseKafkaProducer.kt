@@ -8,22 +8,28 @@ import no.nav.syfo.narmesteleder.kafkamodel.NlResponse
 import no.nav.syfo.narmesteleder.kafkamodel.NlResponseKafkaMessage
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.clients.producer.RecordMetadata
 
 class NarmesteLederResponseKafkaProducer(
     private val topic: String,
     private val kafkaProducerNlResponse: KafkaProducer<String, NlResponseKafkaMessage>
 ) {
 
-    fun publishToKafka(nlResponse: NlResponse) {
-        try {
-            val kafkaMessage = NlResponseKafkaMessage(
-                kafkaMetadata = KafkaMetadata(OffsetDateTime.now(ZoneOffset.UTC), "macgyver"),
-                nlResponse = nlResponse
+    fun publishToKafka(nlResponse: NlResponse, nlId: String) {
+        val kafkaMessage = NlResponseKafkaMessage(
+            kafkaMetadata = KafkaMetadata(OffsetDateTime.now(ZoneOffset.UTC), "macgyver"),
+            nlResponse = nlResponse
+        )
+        kafkaProducerNlResponse.send(
+            ProducerRecord(
+                topic,
+                nlResponse.orgnummer,
+                kafkaMessage
             )
-            kafkaProducerNlResponse.send(ProducerRecord(topic, nlResponse.orgnummer, kafkaMessage)).get()
-        } catch (e: Exception) {
-            log.error("Noe gikk galt ved skriving av nl-response til topic: ${e.message}")
-            throw e
+        ) { metadata: RecordMetadata?, exception: Exception? ->
+            if (exception != null) {
+                log.error("Noe gikk galt ved skriving av nlResponse for id $nlId til migreringstopic: ${exception.message}")
+            }
         }
     }
 }
