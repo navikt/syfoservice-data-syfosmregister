@@ -180,6 +180,7 @@ fun main() {
     )
     val consumerProperties = KafkaUtils.getAivenKafkaConfig()
     consumerProperties["auto.offset.reset"] = "earliest"
+    consumerProperties["max.poll.records"] = 1000
     val kafkaConsumer = KafkaConsumer(consumerProperties.toConsumerConfig("syfoservice-data-syfosmregister-consumer-test4", JacksonKafkaDeserializer::class),
         StringDeserializer(),
         JacksonKafkaDeserializer(SyfoServiceNarmesteLeder::class)
