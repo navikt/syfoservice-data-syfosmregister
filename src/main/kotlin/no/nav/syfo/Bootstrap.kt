@@ -243,7 +243,7 @@ fun hentNarmesteLedereOgPubliserTilTopic(databaseOracle: DatabaseOracle, applica
         KafkaUtils
             .getAivenKafkaConfig()
             .toProducerConfig("syfoservice-data-syfosmregister-producer", JacksonKafkaSerializer::class, StringSerializer::class).apply {
-                this[ProducerConfig.ACKS_CONFIG] = 1
+                this[ProducerConfig.ACKS_CONFIG] = "1"
                 this[ProducerConfig.RETRIES_CONFIG] = 1000
             }
     )
