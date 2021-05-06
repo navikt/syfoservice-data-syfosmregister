@@ -23,27 +23,24 @@ class DeleteSykmeldingService(
     val topic = environment.sykmeldingStatusTopic
 
     fun deleteSykmelding(sykmeldingID: String) {
-        try {
-            val sykmelding = databasePostgres.connection.hentSykmeldingMedId(sykmeldingID)
-            if (sykmelding != null) {
-                endringsloggKafkaProducer.publishToKafka(sykmelding.sykmeldingsdokument!!)
-                databaseOracle.settTilSlettet(sykmeldingID)
-                kafkaProducer.send(
-                    SykmeldingStatusKafkaEventDTO(
-                        sykmeldingID,
-                        OffsetDateTime.now(ZoneOffset.UTC),
-                        STATUS_SLETTET,
-                        null,
-                        null
-                    ),
-                    "macgyver",
-                    sykmelding.sykmeldingsopplysninger.pasientFnr
-                )
-            } else {
-                log.info("Could not find symkelding with id $sykmeldingID")
-            }
-        } catch (ex: Exception) {
-            log.error("Error when deleting sykmelding", ex)
+
+        val sykmelding = databasePostgres.connection.hentSykmeldingMedId(sykmeldingID)
+        if (sykmelding != null) {
+            endringsloggKafkaProducer.publishToKafka(sykmelding.sykmeldingsdokument!!)
+            databaseOracle.settTilSlettet(sykmeldingID)
+            kafkaProducer.send(
+                SykmeldingStatusKafkaEventDTO(
+                    sykmeldingID,
+                    OffsetDateTime.now(ZoneOffset.UTC),
+                    STATUS_SLETTET,
+                    null,
+                    null
+                ),
+                "macgyver",
+                sykmelding.sykmeldingsopplysninger.pasientFnr
+            )
+        } else {
+            log.info("Could not find symkelding with id $sykmeldingID")
         }
     }
 }

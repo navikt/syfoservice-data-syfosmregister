@@ -18,8 +18,8 @@ fun Route.registerDeleteSykmeldingApi(deleteSykmeldingService: DeleteSykmeldingS
             deleteSykmeldingService.deleteSykmelding(sykmeldingId)
             call.respond(HttpStatusCode.OK)
         } catch (e: Exception) {
-            log.error("Kastet exception ved sending av sykmelding med id {} til syfoservice: {}", sykmeldingId, e)
-            call.respond(HttpStatusCode.InternalServerError, "Noe gikk galt ved sending til syfoservice")
+            log.error("Kastet exception ved sletting av sykmelding med id $sykmeldingId", e)
+            call.respond(HttpStatusCode.InternalServerError, "Noe gikk galt ved sletting av sykmelding, prøv igjen")
         }
     }
 }
