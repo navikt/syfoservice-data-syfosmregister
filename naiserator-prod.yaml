@@ -85,3 +85,5 @@ spec:
       value: syfoservice-data-syfosmregister
     - name: LAST_INDEX_NL_SYFOSERVICE
       value: "0"
+    - name: OPPGAVEBEHANDLING_URL
+      value: https://oppgave.nais.adeo.no/api/v1/oppgaver

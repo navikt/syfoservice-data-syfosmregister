@@ -160,6 +160,38 @@ paths:
       responses:
         '202':
           $ref: '#/components/responses/pdfRerunResponse'
+  /api/oppgave/{oppgaveId}:
+    post:
+      operationId: getOppgave
+      tags:
+        - Oppgave
+      security:
+        - bearerAuth: [ ]
+      summary: Hent oppgave
+      description: Hent oppgave med oppgaveId fra Oppgave-api
+      parameters:
+        - $ref: '#/components/parameters/oppgaveId'
+      responses:
+        '200':
+          description: Ok
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  /api/oppgave/list:
+    post:
+      operationId: getOppgave
+      tags:
+        - Oppgave
+      security:
+        - bearerAuth: [ ]
+      summary: Hent liste av oppgaver
+      description: Hent en liste av oppgaver med oppgaveId fra Oppgave-api
+      requestBody:
+        $ref: '#/components/requestBodies/PeriodelisteDTORequest'
+      responses:
+        '200':
+          description: Ok
         '401':
           description: Unauthorized
         '403':
@@ -210,10 +242,25 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/RerunPDF'
+    HentOppgaverRequest:
+      description: "Liste av oppgaveider som skal hentes"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HentOppgaver'
+
   parameters:
     sykmeldingId:
       description: Id for sykmelding som skal rettes
       name: sykmeldingId
+      in: path
+      required: true
+      schema:
+        type: string
+      example: '123'
+    oppgaveId:
+      description: Id for oppgave som skal hentes
+      name: oppgaveId
       in: path
       required: true
       schema:
@@ -375,6 +422,10 @@ components:
           type: array
           items:
             type: string
+    HentOppgaver:
+      type: array
+      items:
+        type: string
 
   securitySchemes:
     bearerAuth:

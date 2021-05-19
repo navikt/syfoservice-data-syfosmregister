@@ -16,6 +16,9 @@ import io.ktor.server.netty.Netty
 import no.nav.syfo.Environment
 import no.nav.syfo.application.api.registerNaisApi
 import no.nav.syfo.application.api.setupSwaggerDocApi
+import no.nav.syfo.oppgave.OppgaveClient
+import no.nav.syfo.oppgave.api.registerHentOppgaveApi
+import no.nav.syfo.oppgave.api.registerHentOppgaverApi
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.api.UpdateBehandletDatoService
 import no.nav.syfo.papirsykmelding.api.UpdatePeriodeService
@@ -40,6 +43,7 @@ fun createApplicationEngine(
     updateFnrService: UpdateFnrService,
     sendTilSyfoserviceService: SendTilSyfoserviceService,
     diagnoseService: DiagnoseService,
+    oppgaveClient: OppgaveClient,
     jwkProviderInternal: JwkProvider,
     issuerServiceuser: String,
     clientId: String,
@@ -75,6 +79,8 @@ fun createApplicationEngine(
                     registerDeleteSykmeldingApi(deleteSykmeldingService)
                     registerUpdateBiDiagnosisApi(diagnoseService)
                     registerRerunKafkaApi(rerunKafkaService)
+                    registerHentOppgaveApi(oppgaveClient)
+                    registerHentOppgaverApi(oppgaveClient)
                 }
             }
         }
