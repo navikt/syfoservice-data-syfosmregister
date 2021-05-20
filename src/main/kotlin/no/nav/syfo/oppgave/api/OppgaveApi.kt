@@ -15,7 +15,7 @@ fun Route.registerHentOppgaverApi(oppgaveClient: OppgaveClient) {
 
         val callId = UUID.randomUUID().toString()
 
-        val ids = call.receive<List<String>>()
+        val ids = call.receive<List<Int>>()
         if (ids.isEmpty()) {
             call.respond(HttpStatusCode.BadRequest, "Listen med oppgaveId-er kan ikke være tom")
         }
@@ -23,16 +23,8 @@ fun Route.registerHentOppgaverApi(oppgaveClient: OppgaveClient) {
         try {
             log.info("Henter oppgaver fra Oppgave-api {}", ids)
 
-            ids.forEach {
-                when {
-                    it.toIntOrNull() == null -> {
-                        call.respond(HttpStatusCode.BadRequest, "$it er ikke et nummer")
-                    }
-                }
-            }
-
             val toList = ids.map {
-                oppgaveClient.hentOppgave(oppgaveId = it.toInt(), msgId = callId)
+                oppgaveClient.hentOppgave(oppgaveId = it, msgId = callId)
             }.toList()
 
             call.respond(HttpStatusCode.OK, toList)
