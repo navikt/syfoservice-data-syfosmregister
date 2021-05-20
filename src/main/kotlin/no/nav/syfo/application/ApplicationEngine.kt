@@ -17,7 +17,6 @@ import no.nav.syfo.Environment
 import no.nav.syfo.application.api.registerNaisApi
 import no.nav.syfo.application.api.setupSwaggerDocApi
 import no.nav.syfo.oppgave.OppgaveClient
-import no.nav.syfo.oppgave.api.registerHentOppgaveApi
 import no.nav.syfo.oppgave.api.registerHentOppgaverApi
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.api.UpdateBehandletDatoService
@@ -79,7 +78,6 @@ fun createApplicationEngine(
                     registerDeleteSykmeldingApi(deleteSykmeldingService)
                     registerUpdateBiDiagnosisApi(diagnoseService)
                     registerRerunKafkaApi(rerunKafkaService)
-                    registerHentOppgaveApi(oppgaveClient)
                     registerHentOppgaverApi(oppgaveClient)
                 }
             }

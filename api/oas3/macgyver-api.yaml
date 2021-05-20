@@ -160,25 +160,7 @@ paths:
       responses:
         '202':
           $ref: '#/components/responses/pdfRerunResponse'
-  /api/oppgave/{oppgaveId}:
-    post:
-      operationId: getOppgave
-      tags:
-        - Oppgave
-      security:
-        - bearerAuth: [ ]
-      summary: Hent oppgave
-      description: Hent oppgave med oppgaveId fra Oppgave-api
-      parameters:
-        - $ref: '#/components/parameters/oppgaveId'
-      responses:
-        '200':
-          description: Ok
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden
-  /api/oppgave/list:
+  /api/oppgave:
     post:
       operationId: getOppgave
       tags:
