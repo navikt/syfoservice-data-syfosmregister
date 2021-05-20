@@ -28,7 +28,7 @@ fun Route.registerHentOppgaverApi(oppgaveClient: OppgaveClient) {
             call.respond(HttpStatusCode.OK, toList)
 
         } catch (e: Exception) {
-            log.error("Kastet exception ved enting av oppgaverfra oppgave-api: {}", e.message)
+            log.error("Kastet exception ved enting av oppgaverfra oppgave-api", e)
             call.respond(HttpStatusCode.InternalServerError, "Noe gikk galt ved henting av oppgave")
         }
     }
