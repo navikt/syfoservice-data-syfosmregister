@@ -23,6 +23,14 @@ fun Route.registerHentOppgaverApi(oppgaveClient: OppgaveClient) {
         try {
             log.info("Henter oppgaver fra Oppgave-api {}", ids)
 
+            ids.forEach {
+                when {
+                    it.toIntOrNull() == null -> {
+                        call.respond(HttpStatusCode.BadRequest, "$it er ikke et nummer")
+                    }
+                }
+            }
+
             val toList = ids.map {
                 oppgaveClient.hentOppgave(oppgaveId = it.toInt(), msgId = callId)
             }.toList()
