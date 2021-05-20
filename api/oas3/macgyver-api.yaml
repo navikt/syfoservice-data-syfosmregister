@@ -188,7 +188,7 @@ paths:
       summary: Hent liste av oppgaver
       description: Hent en liste av oppgaver med oppgaveId fra Oppgave-api
       requestBody:
-        $ref: '#/components/requestBodies/PeriodelisteDTORequest'
+        $ref: '#/components/requestBodies/HentOppgaverRequest'
       responses:
         '200':
           description: Ok
