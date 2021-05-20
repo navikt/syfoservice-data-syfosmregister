@@ -21,6 +21,8 @@ fun Route.registerHentOppgaverApi(oppgaveClient: OppgaveClient) {
         }
 
         try {
+            log.info("Henter oppgaver fra Oppgave-api {}", ids)
+
             val toList = ids.map {
                 oppgaveClient.hentOppgave(oppgaveId = it.toInt(), msgId = callId)
             }.toList()
