@@ -24,7 +24,7 @@ fun Route.registerHentOppgaveApi(oppgaveClient: OppgaveClient) {
             val oppgave = oppgaveClient.hentOppgave(oppgaveId = oppgaveId!!, msgId = callId)
             call.respond(HttpStatusCode.OK, oppgave)
         } catch (e: Exception) {
-            log.error("Kastet exception ved enting av oppgave med id fra oppgave-api: {}", oppgaveId, e)
+            log.error("Kastet exception ved enting av oppgave med id {} fra oppgave-api: {}", oppgaveId, e.message)
             call.respond(HttpStatusCode.InternalServerError, "Noe gikk galt ved henting av oppgave")
         }
     }
@@ -48,7 +48,7 @@ fun Route.registerHentOppgaverApi(oppgaveClient: OppgaveClient) {
             call.respond(HttpStatusCode.OK, toList)
 
         } catch (e: Exception) {
-            log.error("Kastet exception ved enting av oppgaverfra oppgave-api: {}", e)
+            log.error("Kastet exception ved enting av oppgaverfra oppgave-api: {}", e.message)
             call.respond(HttpStatusCode.InternalServerError, "Noe gikk galt ved henting av oppgave")
         }
     }
