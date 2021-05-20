@@ -160,7 +160,7 @@ paths:
       responses:
         '202':
           $ref: '#/components/responses/pdfRerunResponse'
-  /api/oppgave:
+  /api/oppgave/list:
     post:
       operationId: getOppgave
       tags:
