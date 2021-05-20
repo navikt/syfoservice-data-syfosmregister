@@ -49,7 +49,8 @@ data class Environment(
     val behandlingsutfallTopic: String = "privat-syfo-sm2013-behandlingsUtfall",
     val lastIndexNlSyfoservice: Int = getEnvVar("LAST_INDEX_NL_SYFOSERVICE").toInt(),
     val nlMigreringTopic: String = "teamsykmelding.syfo-nl-migrering",
-    val nlResponseTopic: String = "teamsykmelding.syfo-narmesteleder"
+    val nlResponseTopic: String = "teamsykmelding.syfo-narmesteleder",
+    val oppgavebehandlingUrl: String = getEnvVar("OPPGAVEBEHANDLING_URL")
 ) : KafkaConfig
 
 data class VaultCredentials(
