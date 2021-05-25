@@ -1,5 +1,6 @@
 package no.nav.syfo.sykmelding
 
+import io.ktor.util.KtorExperimentalAPI
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -15,7 +16,8 @@ import org.amshove.kluent.shouldEqual
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
-class UpdateFnrServiceTets : Spek({
+@KtorExperimentalAPI
+class UpdateFnrServiceTest : Spek({
 
     describe("Test at UpdateFnrService fungerer som forventet") {
 
@@ -28,7 +30,7 @@ class UpdateFnrServiceTets : Spek({
         val accessToken = "accessToken"
 
         it("Skal oppdatere OK hvis nytt og gammelt fnr er knyttet til samme person") {
-            coEvery { pdlPersonService.getPdlPerson(any(), any()) } returns PdlPerson(
+            coEvery { pdlPersonService.getPdlPerson(any()) } returns PdlPerson(
                     listOf(
                             IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
                             IdentInformasjon("12345678912", true, "FOLKEREGISTERIDENT"),
@@ -39,14 +41,13 @@ class UpdateFnrServiceTets : Spek({
 
             runBlocking {
                 updateFnrService.updateFnr(
-                        accessToken = accessToken,
                         fnr = "12345678912",
                         nyttFnr = "12345678913") shouldEqual true
             }
         }
 
         it("Skal kaste feil hvis nytt og gammelt fnr ikke er knyttet til samme person") {
-            coEvery { pdlPersonService.getPdlPerson(any(), any()) } returns PdlPerson(
+            coEvery { pdlPersonService.getPdlPerson(any()) } returns PdlPerson(
                     listOf(
                             IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
                             IdentInformasjon("12345678912", true, "FOLKEREGISTERIDENT"),
@@ -58,7 +59,6 @@ class UpdateFnrServiceTets : Spek({
             runBlocking {
                 val assertFailsWith = assertFailsWith<UpdateIdentException> {
                     updateFnrService.updateFnr(
-                            accessToken = accessToken,
                             fnr = "12345678912",
                             nyttFnr = "12345678914")
                 }
@@ -67,7 +67,7 @@ class UpdateFnrServiceTets : Spek({
         }
 
         it("Skal kaste feil hvis fnr ikke er registrert som historisk for person") {
-            coEvery { pdlPersonService.getPdlPerson(any(), any()) } returns PdlPerson(
+            coEvery { pdlPersonService.getPdlPerson(any()) } returns PdlPerson(
                     listOf(
                             IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
                             IdentInformasjon("123", true, "FOLKEREGISTERIDENT"),
@@ -79,7 +79,6 @@ class UpdateFnrServiceTets : Spek({
             runBlocking {
                 val assertFailsWith = assertFailsWith<UpdateIdentException> {
                     updateFnrService.updateFnr(
-                            accessToken = accessToken,
                             fnr = "12345678912",
                             nyttFnr = "12345678913")
                 }

@@ -9,15 +9,14 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.syfo.client.StsOidcClient
 import java.time.LocalDate
-
+import no.nav.syfo.client.StsOidcClient
 
 @KtorExperimentalAPI
 class OppgaveClient(
-        private val url: String,
-        private val oidcClient: StsOidcClient,
-        private val httpClient: HttpClient
+    private val url: String,
+    private val oidcClient: StsOidcClient,
+    private val httpClient: HttpClient
 ) {
 
     suspend fun hentOppgave(oppgaveId: Int, msgId: String): Oppgave {
@@ -39,26 +38,25 @@ class OppgaveClient(
             }
         }
     }
-
 }
 
 data class Oppgave(
-        val id: Int? = null,
-        val versjon: Int? = null,
-        val tildeltEnhetsnr: String? = null,
-        val opprettetAvEnhetsnr: String? = null,
-        val aktoerId: String? = null,
-        val journalpostId: String? = null,
-        val behandlesAvApplikasjon: String? = null,
-        val saksreferanse: String? = null,
-        val tilordnetRessurs: String? = null,
-        val beskrivelse: String? = null,
-        val tema: String? = null,
-        val oppgavetype: String,
-        val behandlingstype: String? = null,
-        val aktivDato: LocalDate,
-        val fristFerdigstillelse: LocalDate? = null,
-        val prioritet: String,
-        val status: String? = null,
-        val mappeId: Int? = null
+    val id: Int? = null,
+    val versjon: Int? = null,
+    val tildeltEnhetsnr: String? = null,
+    val opprettetAvEnhetsnr: String? = null,
+    val aktoerId: String? = null,
+    val journalpostId: String? = null,
+    val behandlesAvApplikasjon: String? = null,
+    val saksreferanse: String? = null,
+    val tilordnetRessurs: String? = null,
+    val beskrivelse: String? = null,
+    val tema: String? = null,
+    val oppgavetype: String,
+    val behandlingstype: String? = null,
+    val aktivDato: LocalDate,
+    val fristFerdigstillelse: LocalDate? = null,
+    val prioritet: String,
+    val status: String? = null,
+    val mappeId: Int? = null
 )

@@ -6,9 +6,9 @@ import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.post
+import java.util.UUID
 import no.nav.syfo.log
 import no.nav.syfo.oppgave.OppgaveClient
-import java.util.UUID
 
 fun Route.registerHentOppgaverApi(oppgaveClient: OppgaveClient) {
     post("/api/oppgave/list") {
@@ -28,7 +28,6 @@ fun Route.registerHentOppgaverApi(oppgaveClient: OppgaveClient) {
             }.toList()
 
             call.respond(HttpStatusCode.OK, toList)
-
         } catch (e: Exception) {
             log.error("Kastet exception ved enting av oppgaver fra oppgave-api", e)
             call.respond(HttpStatusCode.InternalServerError, "Noe gikk galt ved henting av oppgave")

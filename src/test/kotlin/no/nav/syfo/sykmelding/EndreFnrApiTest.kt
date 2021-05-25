@@ -17,6 +17,7 @@ import io.ktor.routing.routing
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
+import io.ktor.util.KtorExperimentalAPI
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -37,6 +38,7 @@ import org.amshove.kluent.shouldEqual
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
+@KtorExperimentalAPI
 class EndreFnrApiTest : Spek({
     describe("Test endre fnr") {
 
@@ -78,7 +80,7 @@ class EndreFnrApiTest : Spek({
                 }
             }
 
-            coEvery { pdlPersonService.getPdlPerson(any(), any()) } returns PdlPerson(
+            coEvery { pdlPersonService.getPdlPerson(any()) } returns PdlPerson(
                     listOf(
                         IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
                         IdentInformasjon("12345678912", true, "FOLKEREGISTERIDENT"),

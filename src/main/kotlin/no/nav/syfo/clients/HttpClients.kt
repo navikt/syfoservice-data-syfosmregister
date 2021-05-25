@@ -51,9 +51,17 @@ class HttpClients(environment: Environment, vaultServiceUser: VaultServiceUser) 
     }
 
     private val httpClient = HttpClient(Apache, config)
+    private val httpClientWithProxy = HttpClient(Apache, proxyConfig)
 
     private val stsOidcClient =
         StsOidcClient(vaultServiceUser.serviceuserUsername, vaultServiceUser.serviceuserPassword, environment.securityTokenUrl)
+
+    private val accessTokenClientV2 = AccessTokenClientV2(
+        environment.aadAccessTokenV2Url,
+        environment.clientIdV2,
+        environment.clientSecretV2,
+        httpClientWithProxy
+    )
 
     private val pdlClient = PdlClient(
         httpClient = httpClient,
@@ -62,7 +70,7 @@ class HttpClients(environment: Environment, vaultServiceUser: VaultServiceUser) 
         graphQlQueryAktorids = PdlClient::class.java.getResource("/graphql/getAktorids.graphql").readText().replace(Regex("[\n\t]"), "")
     )
 
-    val pdlService = PdlPersonService(pdlClient, stsOidcClient)
+    val pdlService = PdlPersonService(pdlClient, accessTokenClientV2, environment.pdlScope)
 
     val oppgaveClient = OppgaveClient(environment.oppgavebehandlingUrl, stsOidcClient, httpClient)
 }

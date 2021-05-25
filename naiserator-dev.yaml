@@ -35,6 +35,10 @@ spec:
       memory: 128Mi
   kafka:
     pool: nav-dev
+  azure:
+    application:
+      enabled: true
+      tenant: trygdeetaten.no
   vault:
     enabled: true
     paths:
@@ -79,6 +83,8 @@ spec:
       value: "2020-06-20"
     - name: PDL_GRAPHQL_PATH
       value: https://pdl-api.nais.preprod.local/graphql
+    - name: PDL_SCOPE
+      value: api://dev-fss.pdl.pdl-api/.default
     - name: SECURITY_TOKEN_SERVICE_URL
       value: https://security-token-service.nais.preprod.local/rest/v1/sts/token
     - name: KAFKA_CLIENT_ID

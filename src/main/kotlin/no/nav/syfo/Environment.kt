@@ -50,7 +50,11 @@ data class Environment(
     val lastIndexNlSyfoservice: Int = getEnvVar("LAST_INDEX_NL_SYFOSERVICE").toInt(),
     val nlMigreringTopic: String = "teamsykmelding.syfo-nl-migrering",
     val nlResponseTopic: String = "teamsykmelding.syfo-narmesteleder",
-    val oppgavebehandlingUrl: String = getEnvVar("OPPGAVEBEHANDLING_URL")
+    val oppgavebehandlingUrl: String = getEnvVar("OPPGAVEBEHANDLING_URL"),
+    val aadAccessTokenV2Url: String = getEnvVar("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
+    val clientIdV2: String = getEnvVar("AZURE_APP_CLIENT_ID"),
+    val clientSecretV2: String = getEnvVar("AZURE_APP_CLIENT_SECRET"),
+    val pdlScope: String = getEnvVar("PDL_SCOPE")
 ) : KafkaConfig
 
 data class VaultCredentials(
