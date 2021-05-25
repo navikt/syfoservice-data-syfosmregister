@@ -1,17 +1,21 @@
 package no.nav.syfo.pdl.service
 
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.syfo.client.StsOidcClient
+import no.nav.syfo.clients.AccessTokenClientV2
 import no.nav.syfo.log
 import no.nav.syfo.pdl.client.PdlClient
 import no.nav.syfo.pdl.error.AktoerNotFoundException
 import no.nav.syfo.pdl.model.PdlPerson
 
 @KtorExperimentalAPI
-class PdlPersonService(private val pdlClient: PdlClient, private val stsOidcClient: StsOidcClient) {
-    suspend fun getPdlPerson(fnr: String, userToken: String): PdlPerson {
-        val stsToken = stsOidcClient.oidcToken().access_token
-        val pdlResponse = pdlClient.getPerson(fnr, userToken, stsToken)
+class PdlPersonService(
+    private val pdlClient: PdlClient,
+    private val accessTokenClientV2: AccessTokenClientV2,
+    private val pdlScope: String
+) {
+    suspend fun getPdlPerson(fnr: String): PdlPerson {
+        val token = accessTokenClientV2.getAccessTokenV2(pdlScope)
+        val pdlResponse = pdlClient.getPerson(fnr = fnr, token = token)
 
         if (pdlResponse.errors != null) {
             pdlResponse.errors.forEach {
@@ -26,8 +30,8 @@ class PdlPersonService(private val pdlClient: PdlClient, private val stsOidcClie
     }
 
     suspend fun getFnrs(identer: List<String>, narmesteLederId: String): Map<String, String?> {
-        val stsToken = stsOidcClient.oidcToken().access_token
-        val pdlResponse = pdlClient.getFnrs(aktorids = identer, stsToken = stsToken)
+        val token = accessTokenClientV2.getAccessTokenV2(pdlScope)
+        val pdlResponse = pdlClient.getFnrs(aktorids = identer, token = token)
 
         if (pdlResponse.errors != null) {
             pdlResponse.errors.forEach {

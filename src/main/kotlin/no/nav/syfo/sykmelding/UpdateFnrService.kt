@@ -1,10 +1,12 @@
 package no.nav.syfo.sykmelding
 
+import io.ktor.util.KtorExperimentalAPI
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.sykmelding.db.updateFnr
 import org.slf4j.LoggerFactory
 
+@KtorExperimentalAPI
 class UpdateFnrService(
     private val pdlPersonService: PdlPersonService,
     private val syfoSmRegisterDb: DatabaseInterfacePostgres
@@ -12,9 +14,9 @@ class UpdateFnrService(
 
     private val log = LoggerFactory.getLogger(UpdateFnrService::class.java)
 
-    suspend fun updateFnr(accessToken: String, fnr: String, nyttFnr: String): Boolean {
+    suspend fun updateFnr(fnr: String, nyttFnr: String): Boolean {
 
-        val pdlPerson = pdlPersonService.getPdlPerson(fnr, accessToken)
+        val pdlPerson = pdlPersonService.getPdlPerson(fnr)
 
         when {
             pdlPerson.fnr != nyttFnr -> {

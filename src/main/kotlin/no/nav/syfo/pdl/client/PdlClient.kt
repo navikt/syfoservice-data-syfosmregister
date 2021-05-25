@@ -23,23 +23,23 @@ class PdlClient(
     private val temaHeader = "TEMA"
     private val tema = "SYM"
 
-    suspend fun getPerson(fnr: String, token: String, stsToken: String): GraphQLResponse<PdlResponse> {
+    suspend fun getPerson(fnr: String, token: String): GraphQLResponse<PdlResponse> {
         val getPersonRequest = GetPersonRequest(query = graphQlQuery, variables = GetPersonVariables(ident = fnr))
-        return getGraphQLResponse(getPersonRequest, token, stsToken)
+        return getGraphQLResponse(getPersonRequest, token)
     }
 
-    suspend fun getFnrs(aktorids: List<String>, stsToken: String): GetAktoridsResponse {
+    suspend fun getFnrs(aktorids: List<String>, token: String): GetAktoridsResponse {
         val getAktoridsRequest = GetAktoridsRequest(query = graphQlQueryAktorids, variables = GetAktoridsVariables(identer = aktorids))
-        return getGraphQLResponse(getAktoridsRequest, stsToken, stsToken)
+        return getGraphQLResponse(getAktoridsRequest, token)
     }
 
-    private suspend inline fun <reified R> getGraphQLResponse(graphQlBody: Any, token: String, stsToken: String): R {
+    private suspend inline fun <reified R> getGraphQLResponse(graphQlBody: Any, token: String): R {
         return httpClient.post(basePath) {
             body = graphQlBody
             header(HttpHeaders.Authorization, "Bearer $token")
             header(temaHeader, tema)
             header(HttpHeaders.ContentType, "application/json")
-            header(navConsumerToken, "Bearer $stsToken")
+            header(navConsumerToken, "Bearer $token")
         }
     }
 }

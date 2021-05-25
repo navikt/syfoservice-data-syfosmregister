@@ -6,19 +6,17 @@ import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.post
+import io.ktor.util.KtorExperimentalAPI
 import no.nav.syfo.sykmelding.UpdateFnrService
 import no.nav.syfo.sykmelding.UpdateIdentException
 import no.nav.syfo.sykmelding.api.model.EndreFnr
-import no.nav.syfo.utils.getAccessTokenFromAuthHeader
 
+@KtorExperimentalAPI
 fun Route.registerFnrApi(updateFnrService: UpdateFnrService) {
     post("/api/sykmelding/fnr") {
 
         val endreFnr = call.receive<EndreFnr>()
         when {
-            endreFnr == null -> {
-                call.respond(HttpStatusCode.BadRequest, "Klarte ikke tolke forespørsel")
-            }
             endreFnr.fnr.length != 11 || endreFnr.fnr.any { !it.isDigit() } -> {
                 // Hvis fnr ikke er et tall på 11 tegn så er det antakeligvis noe rart som har skjedd,
                 // og vi bør undersøke ytterligere
@@ -28,9 +26,8 @@ fun Route.registerFnrApi(updateFnrService: UpdateFnrService) {
                 call.respond(HttpStatusCode.BadRequest, "nyttFnr må være et fnr / dnr på 11 tegn")
             }
             else -> {
-                val accessToken = getAccessTokenFromAuthHeader(call.request)!!
                 try {
-                    val updateFnr = updateFnrService.updateFnr(accessToken = accessToken, fnr = endreFnr.fnr, nyttFnr = endreFnr.nyttFnr)
+                    val updateFnr = updateFnrService.updateFnr(fnr = endreFnr.fnr, nyttFnr = endreFnr.nyttFnr)
 
                     if (updateFnr) {
                         call.respond(HttpStatusCode.OK, "Vellykket oppdatering.")
