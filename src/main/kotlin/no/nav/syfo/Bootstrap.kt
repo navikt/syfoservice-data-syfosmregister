@@ -66,6 +66,7 @@ import no.nav.syfo.service.HentSykmeldingerFraSyfoServiceService
 import no.nav.syfo.service.HentSykmeldingsidFraBackupService
 import no.nav.syfo.service.InsertOKBehandlingsutfall
 import no.nav.syfo.service.MapSykmeldingStringToSykemldignJsonMap
+import no.nav.syfo.service.MaskerBehandlingsutfallService
 import no.nav.syfo.service.OppdaterStatusService
 import no.nav.syfo.service.OpprettPdfService
 import no.nav.syfo.service.RyddDuplikateSykmeldingerService
@@ -203,6 +204,11 @@ fun main() {
     applicationState.ready = true
 
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+
+    val maskerBehandlingsutfallService = MaskerBehandlingsutfallService(databasePostgres)
+    startBackgroundJob(applicationState) {
+        maskerBehandlingsutfallService.maskerBehandlingsutfall()
+    }
 }
 
 fun startBackgroundJob(applicationState: ApplicationState, block: suspend CoroutineScope.() -> Unit) {
