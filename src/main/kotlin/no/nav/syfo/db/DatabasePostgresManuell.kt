@@ -19,7 +19,7 @@ class DatabasePostgresManuell(
 
         val initialCredentials = vaultCredentialService.getNewCredentials(
             mountPath = env.mountPathVault,
-            databaseName = env.databaseSparenaproxyName,
+            databaseName = env.databaseNameManuell,
             role = Role.USER
         )
         dataSource = HikariDataSource(HikariConfig().apply {
