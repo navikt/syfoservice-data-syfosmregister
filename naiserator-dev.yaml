@@ -69,6 +69,8 @@ spec:
       value: jdbc:postgresql://b27dbvl013.preprod.local:5432/pale-2-register
     - name: SPARENAPROXY_DB_URL
       value: jdbc:postgresql://b27dbvl016.preprod.local:5432/sparenaproxy
+    - name: SYFOSMMANUELL_BACKEND_DB_URL
+      value: jdbc:postgresql://b27dbvl009.preprod.local:5432/syfosmmanuell-backend
     - name: MOUNT_PATH_VAULT
       value: /postgresql/preprod-fss
     - name: LAST_INDEX_EIA
