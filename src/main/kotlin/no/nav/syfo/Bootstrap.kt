@@ -24,6 +24,7 @@ import no.nav.syfo.application.createApplicationEngine
 import no.nav.syfo.clients.HttpClients
 import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.db.DatabasePostgres
+import no.nav.syfo.db.DatabasePostgresManuell
 import no.nav.syfo.db.DatabasePostgresUtenVault
 import no.nav.syfo.db.DatabaseSparenaproxyPostgres
 import no.nav.syfo.db.VaultCredentialService
@@ -38,6 +39,7 @@ import no.nav.syfo.kafka.aiven.KafkaUtils
 import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
+import no.nav.syfo.manuell.ValidationResultService
 import no.nav.syfo.model.Eia
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.RuleInfo
@@ -203,6 +205,10 @@ fun main() {
     applicationState.ready = true
 
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+
+    startBackgroundJob(applicationState) {
+        patchManuellValidationResult(applicationState, environment)
+    }
 }
 
 fun startBackgroundJob(applicationState: ApplicationState, block: suspend CoroutineScope.() -> Unit) {
@@ -210,11 +216,20 @@ fun startBackgroundJob(applicationState: ApplicationState, block: suspend Corout
         try {
             block()
         } catch (ex: Exception) {
-            log.error("Error in background task, restarting application")
+            log.error("Error in background task, restarting application", ex)
             applicationState.alive = false
             applicationState.ready = false
         }
     }
+}
+
+fun patchManuellValidationResult(applicationState: ApplicationState, environment: Environment) {
+    val vaultCredentialService = VaultCredentialService()
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+
+    val databasePostgres = DatabasePostgresManuell(environment, vaultCredentialService)
+    val service = ValidationResultService(databasePostgres)
+    service.run()
 }
 
 fun hentNarmesteLedereOgPubliserTilTopic(databaseOracle: DatabaseOracle, applicationState: ApplicationState, environment: Environment) {
