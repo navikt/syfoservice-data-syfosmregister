@@ -15,12 +15,12 @@ fun DatabasePostgresManuell.oppdaterManuellOppgave(manuellOppgave: ManuellOppgav
             UPDATE MANUELLOPPGAVE
             SET validationresult = ?,
                 opprinnelig_validationresult = ?
-            WHERE oppgaveid = ?;
+            WHERE id = ?;
             """
         ).use {
             it.setObject(1, manuellOppgave.validationResult.toPGObject())
             it.setObject(2, manuellOppgave.opprinneligValidationResult!!.toPGObject())
-            it.setInt(3, manuellOppgave.oppgaveid)
+            it.setString(3, manuellOppgave.sykmeldingId)
             it.executeUpdate()
         }
         connection.commit()
@@ -31,7 +31,7 @@ fun DatabasePostgresManuell.hentAktuelleManuellOppgaver(): List<ManuellOppgave> 
     connection.use { connection ->
         connection.prepareStatement(
             """
-                select validationresult, oppgaveid, opprinnelig_validationresult
+                select validationresult, id, opprinnelig_validationresult
                 from manuelloppgave 
                 where ferdigstilt=true and validationresult->>'status' = 'MANUAL_PROCESSING';
                 """
@@ -43,6 +43,6 @@ fun DatabasePostgresManuell.hentAktuelleManuellOppgaver(): List<ManuellOppgave> 
 fun ResultSet.toManuellOppgave(): ManuellOppgave =
     ManuellOppgave(
         validationResult = objectMapper.readValue(getString("validationresult")),
-        oppgaveid = getInt("oppgaveid"),
+        sykmeldingId = getString("id"),
         opprinneligValidationResult = getString("opprinnelig_validationresult")?.let { objectMapper.readValue<ValidationResult>(it) }
     )

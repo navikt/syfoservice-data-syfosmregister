@@ -13,10 +13,10 @@ class ValidationResultService(
         log.info("Fant ${aktuelleOppgaver.size} oppgaver som skal patches")
 
         aktuelleOppgaver.forEach {
-            log.info("Oppdaterer oppgave med id ${it.oppgaveid}")
+            log.info("Oppdaterer oppgave med id ${it.sykmeldingId}")
             val oppdatertOppgave = ManuellOppgave(
                 validationResult = ValidationResult(Status.OK, emptyList()),
-                oppgaveid = it.oppgaveid,
+                sykmeldingId = it.sykmeldingId,
                 opprinneligValidationResult = it.validationResult
             )
             databasePostgres.oppdaterManuellOppgave(oppdatertOppgave)
