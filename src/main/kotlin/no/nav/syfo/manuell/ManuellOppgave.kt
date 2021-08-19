@@ -4,6 +4,6 @@ import no.nav.syfo.model.ValidationResult
 
 data class ManuellOppgave(
     val validationResult: ValidationResult,
-    val oppgaveid: Int,
+    val sykmeldingId: String,
     val opprinneligValidationResult: ValidationResult?
 )
