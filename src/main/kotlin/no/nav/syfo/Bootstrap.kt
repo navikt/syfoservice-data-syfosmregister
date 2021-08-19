@@ -205,10 +205,6 @@ fun main() {
     applicationState.ready = true
 
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
-
-    startBackgroundJob(applicationState) {
-        patchManuellValidationResult(applicationState, environment)
-    }
 }
 
 fun startBackgroundJob(applicationState: ApplicationState, block: suspend CoroutineScope.() -> Unit) {
