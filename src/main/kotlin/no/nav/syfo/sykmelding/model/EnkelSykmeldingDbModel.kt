@@ -5,6 +5,8 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import no.nav.syfo.model.ValidationResult
 import no.nav.syfo.objectMapper
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 fun ResultSet.toSendtSykmeldingDbModel(): EnkelSykmeldingDbModel {
     return EnkelSykmeldingDbModel(sykmeldingsDokument = objectMapper.readValue(getString("sykmelding"), Sykmelding::class.java),
@@ -57,11 +59,11 @@ private fun ResultSet.getStatus(): StatusDbModel {
 }
 
 private fun ResultSet.getSimpleStatus(): StatusDbModel {
-    val status = getString("event")
-    val status_timestamp = getTimestamp("timestamp").toLocalDateTime()
+    val status = getString("event") ?: StatusEvent.APEN.name
+    val statusTimestamp = getTimestamp("timestamp")?.toLocalDateTime() ?: OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime()
     val arbeidsgiverDbModel = null
 
-    return StatusDbModel(status, status_timestamp, arbeidsgiverDbModel)
+    return StatusDbModel(status, statusTimestamp, arbeidsgiverDbModel)
 }
 
 data class ArbeidsgiverDbModel(
