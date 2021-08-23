@@ -41,6 +41,7 @@ import no.nav.syfo.sykmelding.model.MottattSykmeldingDbModel
 import no.nav.syfo.sykmelding.model.Periode
 import no.nav.syfo.sykmelding.model.SykmeldingIdAndFnr
 import no.nav.syfo.sykmelding.model.toEnkelSykmeldingDbModel
+import no.nav.syfo.sykmelding.model.toEnkelSykmeldingDbModelUtenStatus
 import no.nav.syfo.sykmelding.model.toMotattSykmeldingDbModel
 import no.nav.syfo.sykmelding.model.toSendtSykmeldingDbModel
 
@@ -163,6 +164,27 @@ fun Connection.getEnkelSykmelding(sykmeldingId: String): EnkelSykmeldingDbModel?
         ).use {
             it.setString(1, sykmeldingId)
             it.executeQuery().toList { toEnkelSykmeldingDbModel() }.firstOrNull()
+        }
+    }
+
+fun Connection.getEnkelSykmeldingUtenStatus(sykmeldingId: String): EnkelSykmeldingDbModel? =
+    use {
+        this.prepareStatement(
+            """
+                    SELECT opplysninger.id,
+                    pasient_fnr,
+                    mottatt_tidspunkt,
+                    behandlingsutfall,
+                    legekontor_org_nr,
+                    sykmelding
+                    FROM sykmeldingsopplysninger AS opplysninger
+                        INNER JOIN sykmeldingsdokument AS dokument ON opplysninger.id = dokument.id
+                        INNER JOIN behandlingsutfall AS utfall ON opplysninger.id = utfall.id
+                     WHERE opplysninger.id = ?
+                    """
+        ).use {
+            it.setString(1, sykmeldingId)
+            it.executeQuery().toList { toEnkelSykmeldingDbModelUtenStatus() }.firstOrNull()
         }
     }
 

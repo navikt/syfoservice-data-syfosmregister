@@ -5,7 +5,7 @@ import no.nav.syfo.log
 import no.nav.syfo.model.sykmeldingstatus.KafkaMetadataDTO
 import no.nav.syfo.model.sykmeldingstatus.STATUS_APEN
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaEventDTO
-import no.nav.syfo.persistering.db.postgres.getEnkelSykmelding
+import no.nav.syfo.persistering.db.postgres.getEnkelSykmeldingUtenStatus
 import no.nav.syfo.sykmelding.kafka.model.MottattSykmeldingKafkaMessage
 import no.nav.syfo.sykmelding.kafka.model.toEnkelSykmelding
 import no.nav.syfo.sykmelding.model.EnkelSykmeldingDbModel
@@ -20,7 +20,7 @@ class PubliserNySykmeldingStatusService(
     val sykmeldingId = ""
 
     fun start() {
-        val sykmelding = databasePostgres.connection.getEnkelSykmelding(sykmeldingId)
+        val sykmelding = databasePostgres.connection.getEnkelSykmeldingUtenStatus(sykmeldingId)
         if (sykmelding != null) {
             log.info("oppdaterer status for sykmeldingid {}", sykmeldingId)
             val sykmeldingStatusKafkaEventDTO = SykmeldingStatusKafkaEventDTO(
