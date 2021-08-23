@@ -84,6 +84,7 @@ import no.nav.syfo.sykmelding.DeleteSykmeldingService
 import no.nav.syfo.sykmelding.EnkelSykmeldingKafkaProducer
 import no.nav.syfo.sykmelding.MottattSykmeldingKafkaProducer
 import no.nav.syfo.sykmelding.MottattSykmeldingService
+import no.nav.syfo.sykmelding.PubliserNySykmeldingStatusService
 import no.nav.syfo.sykmelding.SendtSykmeldingService
 import no.nav.syfo.sykmelding.SykmeldingStatusKafkaProducer
 import no.nav.syfo.sykmelding.UpdateFnrService
@@ -183,6 +184,8 @@ fun main() {
     )
     val rerunKafkaService = RerunKafkaService(databasePostgres, RerunKafkaProducer(KafkaProducer(producerConfigRerun), environment))
 
+    val publiserNySykmeldingStatusService = PubliserNySykmeldingStatusService(sykmeldingStatusKafkaProducer = statusKafkaProducer, mottattSykmeldingProudcer = mottattSykmeldingKafkaProducer, databasePostgres = databasePostgres)
+
     val applicationEngine = createApplicationEngine(
         env = environment,
         applicationState = applicationState,
@@ -205,6 +208,10 @@ fun main() {
     applicationState.ready = true
 
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+
+    startBackgroundJob(applicationState) {
+        publiserNySykmeldingStatusService.start()
+    }
 }
 
 fun startBackgroundJob(applicationState: ApplicationState, block: suspend CoroutineScope.() -> Unit) {
