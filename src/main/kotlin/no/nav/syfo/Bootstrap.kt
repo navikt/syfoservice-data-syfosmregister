@@ -208,10 +208,6 @@ fun main() {
     applicationState.ready = true
 
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
-
-    startBackgroundJob(applicationState) {
-        publiserNySykmeldingStatusService.start()
-    }
 }
 
 fun startBackgroundJob(applicationState: ApplicationState, block: suspend CoroutineScope.() -> Unit) {

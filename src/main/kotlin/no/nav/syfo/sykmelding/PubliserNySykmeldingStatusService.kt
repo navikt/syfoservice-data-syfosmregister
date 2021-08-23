@@ -17,7 +17,7 @@ class PubliserNySykmeldingStatusService(
     private val mottattSykmeldingProudcer: MottattSykmeldingKafkaProducer,
     private val databasePostgres: DatabasePostgres
 ) {
-    val sykmeldingId = "b8b250b6-dda9-47c0-b6c0-50d3a6cd95ee2"
+    val sykmeldingId = ""
 
     fun start() {
         val sykmelding = databasePostgres.connection.getEnkelSykmelding(sykmeldingId)
