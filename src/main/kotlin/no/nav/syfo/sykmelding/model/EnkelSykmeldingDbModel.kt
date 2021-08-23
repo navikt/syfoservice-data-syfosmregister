@@ -30,6 +30,17 @@ fun ResultSet.toEnkelSykmeldingDbModel(): EnkelSykmeldingDbModel {
     )
 }
 
+fun ResultSet.toEnkelSykmeldingDbModelUtenStatus(): EnkelSykmeldingDbModel {
+    return EnkelSykmeldingDbModel(sykmeldingsDokument = objectMapper.readValue(getString("sykmelding"), Sykmelding::class.java),
+        id = getString("id"),
+        mottattTidspunkt = getTimestamp("mottatt_tidspunkt").toLocalDateTime(),
+        legekontorOrgNr = getString("legekontor_org_nr"),
+        behandlingsutfall = objectMapper.readValue(getString("behandlingsutfall"), ValidationResult::class.java),
+        status = StatusDbModel(StatusEvent.APEN.name, OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime(), null),
+        fnr = getString("pasient_fnr")
+    )
+}
+
 fun ResultSet.toMotattSykmeldingDbModel(): MottattSykmeldingDbModel {
     return MottattSykmeldingDbModel(
         sykmeldingsDokument = objectMapper.readValue(getString("sykmelding"), Sykmelding::class.java),

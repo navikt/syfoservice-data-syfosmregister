@@ -41,6 +41,7 @@ import no.nav.syfo.sykmelding.model.MottattSykmeldingDbModel
 import no.nav.syfo.sykmelding.model.Periode
 import no.nav.syfo.sykmelding.model.SykmeldingIdAndFnr
 import no.nav.syfo.sykmelding.model.toEnkelSykmeldingDbModel
+import no.nav.syfo.sykmelding.model.toEnkelSykmeldingDbModelUtenStatus
 import no.nav.syfo.sykmelding.model.toMotattSykmeldingDbModel
 import no.nav.syfo.sykmelding.model.toSendtSykmeldingDbModel
 
@@ -183,7 +184,7 @@ fun Connection.getEnkelSykmeldingUtenStatus(sykmeldingId: String): EnkelSykmeldi
                     """
         ).use {
             it.setString(1, sykmeldingId)
-            it.executeQuery().toList { toEnkelSykmeldingDbModel() }.firstOrNull()
+            it.executeQuery().toList { toEnkelSykmeldingDbModelUtenStatus() }.firstOrNull()
         }
     }
 
