@@ -199,8 +199,9 @@ fun main() {
     )
     consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
     consumerProperties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
-    val kafkaSykmeldingV1Consumer = KafkaConsumer<String, SykmeldingV1KafkaMessage>(consumerProperties, StringDeserializer(), JacksonKafkaDeserializer(SykmeldingV1KafkaMessage::class))
-
+    val kafkaSykmeldingV1ConsumerMottatt = KafkaConsumer<String, SykmeldingV1KafkaMessage>(consumerProperties, StringDeserializer(), JacksonKafkaDeserializer(SykmeldingV1KafkaMessage::class))
+    val kafkaSykmeldingV1ConsumerBekreftet = KafkaConsumer<String, SykmeldingV1KafkaMessage>(consumerProperties, StringDeserializer(), JacksonKafkaDeserializer(SykmeldingV1KafkaMessage::class))
+    val kafkaSykmeldingV1ConsumerSendt = KafkaConsumer<String, SykmeldingV1KafkaMessage>(consumerProperties, StringDeserializer(), JacksonKafkaDeserializer(SykmeldingV1KafkaMessage::class))
     val kafkaAivenProducer = KafkaProducer<String, SykmeldingV2KafkaMessage?>(
         KafkaUtils
             .getAivenKafkaConfig()
@@ -219,9 +220,9 @@ fun main() {
     val topicsBekreftet = mapOf(
         environment.bekreftSykmeldingKafkaTopic to environment.bekreftSykmeldingV2KafkaTopic
     )
-    val aivenMigreringServiceBekreftet = AivenMigreringService(kafkaSykmeldingV1Consumer, SykmeldingV2KafkaProducer(kafkaAivenProducer), topicsBekreftet, applicationState, environment)
-    val aivenMigrationServiceMottatt = AivenMigreringService(kafkaSykmeldingV1Consumer, SykmeldingV2KafkaProducer(kafkaAivenProducer), topicsMottatt, applicationState, environment)
-    val aivenMigrationServiceSendt = AivenMigreringService(kafkaSykmeldingV1Consumer, SykmeldingV2KafkaProducer(kafkaAivenProducer), topicsSendt, applicationState, environment)
+    val aivenMigreringServiceBekreftet = AivenMigreringService(kafkaSykmeldingV1ConsumerBekreftet, SykmeldingV2KafkaProducer(kafkaAivenProducer), topicsBekreftet, applicationState, environment)
+    val aivenMigrationServiceMottatt = AivenMigreringService(kafkaSykmeldingV1ConsumerMottatt, SykmeldingV2KafkaProducer(kafkaAivenProducer), topicsMottatt, applicationState, environment)
+    val aivenMigrationServiceSendt = AivenMigreringService(kafkaSykmeldingV1ConsumerSendt, SykmeldingV2KafkaProducer(kafkaAivenProducer), topicsSendt, applicationState, environment)
 
     val applicationEngine = createApplicationEngine(
         env = environment,
