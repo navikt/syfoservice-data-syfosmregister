@@ -1,5 +1,7 @@
 package no.nav.syfo.sykmelding
 
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.log
 import no.nav.syfo.model.sykmeldingstatus.KafkaMetadataDTO
@@ -9,8 +11,6 @@ import no.nav.syfo.persistering.db.postgres.getEnkelSykmeldingUtenStatus
 import no.nav.syfo.sykmelding.kafka.model.MottattSykmeldingKafkaMessage
 import no.nav.syfo.sykmelding.kafka.model.toEnkelSykmelding
 import no.nav.syfo.sykmelding.model.EnkelSykmeldingDbModel
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 
 class PubliserNySykmeldingStatusService(
     private val sykmeldingStatusKafkaProducer: SykmeldingStatusKafkaProducer,

@@ -3,10 +3,10 @@ package no.nav.syfo.sykmelding.model
 import java.sql.ResultSet
 import java.time.LocalDate
 import java.time.LocalDateTime
-import no.nav.syfo.model.ValidationResult
-import no.nav.syfo.objectMapper
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
+import no.nav.syfo.model.ValidationResult
+import no.nav.syfo.objectMapper
 
 fun ResultSet.toSendtSykmeldingDbModel(): EnkelSykmeldingDbModel {
     return EnkelSykmeldingDbModel(sykmeldingsDokument = objectMapper.readValue(getString("sykmelding"), Sykmelding::class.java),

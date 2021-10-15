@@ -1,5 +1,7 @@
 package no.nav.syfo.sykmelding.aivenmigrering
 
+import java.time.Duration
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -15,7 +17,6 @@ import no.nav.syfo.model.sykmelding.arbeidsgiver.PrognoseAGDTO
 import no.nav.syfo.model.sykmelding.arbeidsgiver.SykmeldingsperiodeAGDTO
 import no.nav.syfo.model.sykmelding.model.SykmeldingsperiodeDTO
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import java.time.Duration
 
 class AivenMigreringService(
     private val sykmeldingKafkaConsumer: KafkaConsumer<String, SykmeldingV1KafkaMessage>,
@@ -25,18 +26,26 @@ class AivenMigreringService(
     private val environment: Environment
 ) {
 
-    fun start() {
+    companion object {
         var counterMottatt = 0
         var counterSendt = 0
         var counterBekreftet = 0
-        GlobalScope.launch {
-            while (applicationState.ready) {
-                log.info(
-                    "Antall meldinger som er lest. Sendt: $counterSendt, bekreftet: $counterBekreftet, mottatt: $counterMottatt"
-                )
-                delay(60_000)
+
+        init {
+            GlobalScope.launch(Dispatchers.IO) {
+                log.info("Starting logging")
+                while (true) {
+                    log.info(
+                        "Antall meldinger som er lest. Sendt: $counterSendt, bekreftet: $counterBekreftet, mottatt: $counterMottatt"
+                    )
+                    delay(60_000)
+                }
             }
         }
+    }
+
+    fun start() {
+
         sykmeldingKafkaConsumer.subscribe(topics.keys)
         log.info("Started consuming topics")
         while (applicationState.ready) {

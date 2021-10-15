@@ -15,6 +15,7 @@ import java.time.ZoneOffset
 import java.util.Properties
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -209,12 +210,18 @@ fun main() {
                 this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
             }
     )
-    val topics = mapOf(
-        environment.mottattSykmeldingTopic to environment.mottattSykmeldingV2Topic,
-        environment.sendSykmeldingTopic to environment.sendSykmeldingV2Topic,
+    val topicsMottatt = mapOf(
+        environment.mottattSykmeldingTopic to environment.mottattSykmeldingV2Topic
+    )
+    val topicsSendt = mapOf(
+        environment.sendSykmeldingTopic to environment.sendSykmeldingV2Topic
+    )
+    val topicsBekreftet = mapOf(
         environment.bekreftSykmeldingKafkaTopic to environment.bekreftSykmeldingV2KafkaTopic
     )
-    val aivenMigreringService = AivenMigreringService(kafkaSykmeldingV1Consumer, SykmeldingV2KafkaProducer(kafkaAivenProducer), topics, applicationState, environment)
+    val aivenMigreringServiceBekreftet = AivenMigreringService(kafkaSykmeldingV1Consumer, SykmeldingV2KafkaProducer(kafkaAivenProducer), topicsBekreftet, applicationState, environment)
+    val aivenMigrationServiceMottatt = AivenMigreringService(kafkaSykmeldingV1Consumer, SykmeldingV2KafkaProducer(kafkaAivenProducer), topicsMottatt, applicationState, environment)
+    val aivenMigrationServiceSendt = AivenMigreringService(kafkaSykmeldingV1Consumer, SykmeldingV2KafkaProducer(kafkaAivenProducer), topicsSendt, applicationState, environment)
 
     val applicationEngine = createApplicationEngine(
         env = environment,
@@ -240,12 +247,18 @@ fun main() {
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
 
     startBackgroundJob(applicationState) {
-        aivenMigreringService.start()
+        aivenMigreringServiceBekreftet.start()
+    }
+    startBackgroundJob(applicationState) {
+        aivenMigrationServiceMottatt.start()
+    }
+    startBackgroundJob(applicationState) {
+        aivenMigrationServiceSendt.start()
     }
 }
 
 fun startBackgroundJob(applicationState: ApplicationState, block: suspend CoroutineScope.() -> Unit) {
-    GlobalScope.launch {
+    GlobalScope.launch(Dispatchers.IO) {
         try {
             block()
         } catch (ex: Exception) {
