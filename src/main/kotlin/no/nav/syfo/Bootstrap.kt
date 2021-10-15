@@ -88,9 +88,15 @@ import no.nav.syfo.sykmelding.PubliserNySykmeldingStatusService
 import no.nav.syfo.sykmelding.SendtSykmeldingService
 import no.nav.syfo.sykmelding.SykmeldingStatusKafkaProducer
 import no.nav.syfo.sykmelding.UpdateFnrService
+import no.nav.syfo.sykmelding.aivenmigrering.AivenMigreringService
+import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV1KafkaMessage
+import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaMessage
+import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
 import no.nav.syfo.sykmelding.kafka.model.MottattSykmeldingKafkaMessage
 import no.nav.syfo.sykmelding.kafka.model.SykmeldingKafkaMessage
+import no.nav.syfo.utils.JacksonKafkaDeserializer
 import no.nav.syfo.utils.JacksonKafkaSerializer
+import no.nav.syfo.utils.JacksonNullableKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
 import no.nav.syfo.vault.RenewVaultService
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -186,6 +192,30 @@ fun main() {
 
     val publiserNySykmeldingStatusService = PubliserNySykmeldingStatusService(sykmeldingStatusKafkaProducer = statusKafkaProducer, mottattSykmeldingProudcer = mottattSykmeldingKafkaProducer, databasePostgres = databasePostgres)
 
+    val consumerProperties = kafkaBaseConfig.toConsumerConfig(
+        "macgyver-sykmeldingv1",
+        valueDeserializer = JacksonKafkaDeserializer::class
+    )
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
+    consumerProperties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+    val kafkaSykmeldingV1Consumer = KafkaConsumer<String, SykmeldingV1KafkaMessage?>(consumerProperties)
+
+    val kafkaAivenProducer = KafkaProducer<String, SykmeldingV2KafkaMessage?>(
+        KafkaUtils
+            .getAivenKafkaConfig()
+            .toProducerConfig("macgyver-producer", JacksonNullableKafkaSerializer::class, StringSerializer::class).apply {
+                this[ProducerConfig.ACKS_CONFIG] = "1"
+                this[ProducerConfig.RETRIES_CONFIG] = 1000
+                this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
+            }
+    )
+    val topics = mapOf(
+        environment.mottattSykmeldingTopic to environment.mottattSykmeldingV2Topic,
+        environment.sendSykmeldingTopic to environment.sendSykmeldingV2Topic,
+        environment.bekreftSykmeldingKafkaTopic to environment.bekreftSykmeldingV2KafkaTopic
+    )
+    val aivenMigreringService = AivenMigreringService(kafkaSykmeldingV1Consumer, SykmeldingV2KafkaProducer(kafkaAivenProducer), topics, applicationState, environment)
+
     val applicationEngine = createApplicationEngine(
         env = environment,
         applicationState = applicationState,
@@ -208,6 +238,10 @@ fun main() {
     applicationState.ready = true
 
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+
+    startBackgroundJob(applicationState) {
+        aivenMigreringService.start()
+    }
 }
 
 fun startBackgroundJob(applicationState: ApplicationState, block: suspend CoroutineScope.() -> Unit) {
