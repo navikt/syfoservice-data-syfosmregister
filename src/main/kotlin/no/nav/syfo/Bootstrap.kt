@@ -198,7 +198,7 @@ fun main() {
     )
     consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
     consumerProperties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
-    val kafkaSykmeldingV1Consumer = KafkaConsumer<String, SykmeldingV1KafkaMessage?>(consumerProperties)
+    val kafkaSykmeldingV1Consumer = KafkaConsumer<String, SykmeldingV1KafkaMessage>(consumerProperties, StringDeserializer(), JacksonKafkaDeserializer(SykmeldingV1KafkaMessage::class))
 
     val kafkaAivenProducer = KafkaProducer<String, SykmeldingV2KafkaMessage?>(
         KafkaUtils

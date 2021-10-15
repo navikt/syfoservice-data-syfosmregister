@@ -18,7 +18,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer
 import java.time.Duration
 
 class AivenMigreringService(
-    private val sykmeldingKafkaConsumer: KafkaConsumer<String, SykmeldingV1KafkaMessage?>,
+    private val sykmeldingKafkaConsumer: KafkaConsumer<String, SykmeldingV1KafkaMessage>,
     private val sykmeldingV2KafkaProducer: SykmeldingV2KafkaProducer,
     private val topics: Map<String, String>,
     private val applicationState: ApplicationState,
@@ -41,6 +41,9 @@ class AivenMigreringService(
         log.info("Started consuming topics")
         while (applicationState.ready) {
             sykmeldingKafkaConsumer.poll(Duration.ofSeconds(1)).forEach {
+                if (it.value() == null) {
+                    log.info("Klarte å lese null-verdi")
+                }
                 sykmeldingV2KafkaProducer.sendSykmelding(it.value()?.tilNyttFormat(), it.key(), topics[it.topic()]!!)
                 when (it.topic()) {
                     environment.mottattSykmeldingTopic -> counterMottatt++
