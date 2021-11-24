@@ -6,9 +6,9 @@ import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
-import java.time.LocalDate
 import no.nav.syfo.clients.AccessTokenClientV2
 import no.nav.syfo.log
+import java.time.LocalDate
 
 class NarmestelederClient(
     private val httpClient: HttpClient,
@@ -20,10 +20,9 @@ class NarmestelederClient(
     suspend fun getNarmesteledere(fnr: String): List<NarmesteLeder> {
         try {
             val token = accessTokenClientV2.getAccessTokenV2(resource)
-            log.info(token)
             return httpClient.get<List<NarmesteLeder>>("$baseUrl/sykmeldt/narmesteledere") {
                 headers {
-                    append(HttpHeaders.Authorization, token)
+                    append(HttpHeaders.Authorization, "Bearer $token")
                     append("Sykmeldt-Fnr", fnr)
                 }
                 accept(ContentType.Application.Json)

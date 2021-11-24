@@ -63,9 +63,11 @@ class UpdateFnrService(
                 }
                 val aktiveNarmesteledere = narmestelederClient.getNarmesteledere(fnr).filter { it.aktivTom == null }
                 val updateFnr = syfoSmRegisterDb.updateFnr(nyttFnr = nyttFnr, fnr = fnr)
+                log.info("Resender ${sendteSykmeldingerSisteFireMnd.size} sendte sykmeldinger")
                 sendteSykmeldingerSisteFireMnd.forEach {
                     sendtSykmeldingKafkaProducer.sendSykmelding(getKafkaMessage(it, nyttFnr))
                 }
+                log.info("Bryter og gjenoppretter ${aktiveNarmesteledere.size} nl-koblinger")
                 aktiveNarmesteledere.forEach {
                     narmesteLederResponseKafkaProducer.publishToKafka(
                         NlResponseKafkaMessage(
