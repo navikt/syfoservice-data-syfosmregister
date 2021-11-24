@@ -38,6 +38,7 @@ import no.nav.syfo.identendring.db.updateFnr
 import no.nav.syfo.narmesteleder.NarmesteLederResponseKafkaProducer
 import no.nav.syfo.narmesteleder.kafkamodel.Leder
 import no.nav.syfo.narmesteleder.kafkamodel.NlResponse
+import no.nav.syfo.narmesteleder.kafkamodel.NlResponseKafkaMessage
 import no.nav.syfo.narmesteleder.kafkamodel.Sykmeldt
 import no.nav.syfo.pdl.client.model.IdentInformasjon
 import no.nav.syfo.pdl.model.PdlPerson
@@ -139,7 +140,8 @@ class UpdateFnrServiceTest : Spek({
                     nyttFnr = "12345678913") shouldEqual true
 
                 coVerify { sendtSykmeldingKafkaProducer.sendSykmelding(match { it.kafkaMetadata.fnr == "12345678913" }) }
-                coVerify { narmesteLederResponseKafkaProducer.publishToKafka(getExpectedNarmestelederResponse()) }
+                coVerify(exactly = 1) { narmesteLederResponseKafkaProducer.publishToKafka(match<NlResponseKafkaMessage> { it.nlAvbrutt?.sykmeldtFnr == "12345678912" }, "9898") }
+                coVerify(exactly = 1) { narmesteLederResponseKafkaProducer.publishToKafka(match<NlResponseKafkaMessage> { it.nlResponse == getExpectedNarmestelederResponse() }, "9898") }
             }
         }
 
@@ -175,8 +177,8 @@ class UpdateFnrServiceTest : Spek({
                     nyttFnr = "12345678913") shouldEqual true
 
                 coVerify(exactly = 1) { sendtSykmeldingKafkaProducer.sendSykmelding(match { it.kafkaMetadata.fnr == "12345678913" }) }
-                coVerify(exactly = 1) { narmesteLederResponseKafkaProducer.publishToKafka(any()) }
-                coVerify(exactly = 1) { narmesteLederResponseKafkaProducer.publishToKafka(getExpectedNarmestelederResponse()) }
+                coVerify(exactly = 1) { narmesteLederResponseKafkaProducer.publishToKafka(match<NlResponseKafkaMessage> { it.nlAvbrutt?.sykmeldtFnr == "12345678912" }, "9898") }
+                coVerify(exactly = 1) { narmesteLederResponseKafkaProducer.publishToKafka(match<NlResponseKafkaMessage> { it.nlResponse == getExpectedNarmestelederResponse() }, "9898") }
             }
         }
     }

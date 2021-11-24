@@ -15,7 +15,21 @@ class NarmesteLederResponseKafkaProducer(
     private val kafkaProducerNlResponse: KafkaProducer<String, NlResponseKafkaMessage>
 ) {
 
-    fun publishToKafka(nlResponse: NlResponse, nlId: String? = null) {
+    fun publishToKafka(nlResponseKafkaMessage: NlResponseKafkaMessage, orgnummer: String) {
+        kafkaProducerNlResponse.send(
+            ProducerRecord(
+                topic,
+                orgnummer,
+                nlResponseKafkaMessage
+            )
+        ) { metadata: RecordMetadata?, exception: Exception? ->
+            if (exception != null) {
+                log.error("Noe gikk galt ved skriving av nlResponse: ${exception.message}")
+            }
+        }
+    }
+
+    fun publishToKafka(nlResponse: NlResponse, nlId: String) {
         val kafkaMessage = NlResponseKafkaMessage(
             kafkaMetadata = KafkaMetadata(OffsetDateTime.now(ZoneOffset.UTC), "macgyver"),
             nlResponse = nlResponse

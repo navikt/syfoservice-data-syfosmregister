@@ -2,6 +2,7 @@ package no.nav.syfo.identendring
 
 import io.ktor.util.KtorExperimentalAPI
 import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.identendring.client.NarmestelederClient
@@ -19,8 +20,11 @@ import no.nav.syfo.model.sykmeldingstatus.SporsmalOgSvarDTO
 import no.nav.syfo.model.sykmeldingstatus.SvartypeDTO
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaEventDTO
 import no.nav.syfo.narmesteleder.NarmesteLederResponseKafkaProducer
+import no.nav.syfo.narmesteleder.kafkamodel.KafkaMetadata
 import no.nav.syfo.narmesteleder.kafkamodel.Leder
+import no.nav.syfo.narmesteleder.kafkamodel.NlAvbrutt
 import no.nav.syfo.narmesteleder.kafkamodel.NlResponse
+import no.nav.syfo.narmesteleder.kafkamodel.NlResponseKafkaMessage
 import no.nav.syfo.narmesteleder.kafkamodel.Sykmeldt
 import no.nav.syfo.pdl.service.PdlPersonService
 import org.slf4j.LoggerFactory
@@ -64,23 +68,40 @@ class UpdateFnrService(
                 }
                 aktiveNarmesteledere.forEach {
                     narmesteLederResponseKafkaProducer.publishToKafka(
-                        NlResponse(
-                            orgnummer = it.orgnummer,
-                            utbetalesLonn = it.arbeidsgiverForskutterer,
-                            leder = Leder(
-                                fnr = it.narmesteLederFnr,
-                                mobil = it.narmesteLederTelefonnummer,
-                                epost = it.narmesteLederEpost,
-                                fornavn = null,
-                                etternavn = null
-                            ),
-                            sykmeldt = Sykmeldt(
-                                fnr = nyttFnr,
-                                navn = null
-                            ),
-                            aktivFom = it.aktivFom.atStartOfDay().atOffset(ZoneOffset.UTC),
-                            aktivTom = null
-                        )
+                        NlResponseKafkaMessage(
+                            kafkaMetadata = KafkaMetadata(OffsetDateTime.now(ZoneOffset.UTC), "macgyver"),
+                            nlResponse = null,
+                            nlAvbrutt = NlAvbrutt(
+                                orgnummer = it.orgnummer,
+                                sykmeldtFnr = fnr,
+                                aktivTom = OffsetDateTime.now(ZoneOffset.UTC)
+                            )
+
+                        ),
+                        it.orgnummer
+                    )
+                    narmesteLederResponseKafkaProducer.publishToKafka(
+                        NlResponseKafkaMessage(
+                            kafkaMetadata = KafkaMetadata(OffsetDateTime.now(ZoneOffset.UTC), "macgyver"),
+                            nlResponse = NlResponse(
+                                orgnummer = it.orgnummer,
+                                utbetalesLonn = it.arbeidsgiverForskutterer,
+                                leder = Leder(
+                                    fnr = it.narmesteLederFnr,
+                                    mobil = it.narmesteLederTelefonnummer,
+                                    epost = it.narmesteLederEpost,
+                                    fornavn = null,
+                                    etternavn = null
+                                ),
+                                sykmeldt = Sykmeldt(
+                                    fnr = nyttFnr,
+                                    navn = null
+                                ),
+                                aktivFom = it.aktivFom.atStartOfDay().atOffset(ZoneOffset.UTC),
+                                aktivTom = null
+                            )
+                        ),
+                        it.orgnummer
                     )
                 }
                 return updateFnr > 0
