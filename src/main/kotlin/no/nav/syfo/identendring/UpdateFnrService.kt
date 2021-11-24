@@ -62,7 +62,6 @@ class UpdateFnrService(
                     it.status.statusEvent == STATUS_SENDT && finnSisteTom(it.sykmeldingsDokument.perioder).isAfter(LocalDate.now().minusMonths(4))
                 }
                 val aktiveNarmesteledere = narmestelederClient.getNarmesteledere(fnr).filter { it.aktivTom == null }
-                val updateFnr = syfoSmRegisterDb.updateFnr(nyttFnr = nyttFnr, fnr = fnr)
                 log.info("Resender ${sendteSykmeldingerSisteFireMnd.size} sendte sykmeldinger")
                 sendteSykmeldingerSisteFireMnd.forEach {
                     sendtSykmeldingKafkaProducer.sendSykmelding(getKafkaMessage(it, nyttFnr))
@@ -106,6 +105,8 @@ class UpdateFnrService(
                         it.orgnummer
                     )
                 }
+                log.info("Oppdaterer register-databasen")
+                val updateFnr = syfoSmRegisterDb.updateFnr(nyttFnr = nyttFnr, fnr = fnr)
                 return updateFnr > 0
             }
         }
