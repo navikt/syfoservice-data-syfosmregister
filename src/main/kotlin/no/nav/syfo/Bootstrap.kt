@@ -189,10 +189,7 @@ fun main() {
             KafkaUtils
                 .getAivenKafkaConfig()
                 .toProducerConfig("macgyver-producer", JacksonNullableKafkaSerializer::class, StringSerializer::class)
-                .apply {
-                    this[ProducerConfig.ACKS_CONFIG] = "1"
-                    this[ProducerConfig.RETRIES_CONFIG] = 1000
-                })
+        )
     )
 
     val updateFnrService = UpdateFnrService(
