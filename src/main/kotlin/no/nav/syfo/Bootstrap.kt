@@ -29,6 +29,8 @@ import no.nav.syfo.db.DatabasePostgresManuell
 import no.nav.syfo.db.DatabasePostgresUtenVault
 import no.nav.syfo.db.DatabaseSparenaproxyPostgres
 import no.nav.syfo.db.VaultCredentialService
+import no.nav.syfo.identendring.SendtSykmeldingKafkaProducer
+import no.nav.syfo.identendring.UpdateFnrService
 import no.nav.syfo.kafka.EiaSykmeldingKafkaProducer
 import no.nav.syfo.kafka.ReceivedSykmeldingKafkaProducer
 import no.nav.syfo.kafka.RerunKafkaMessage
@@ -47,8 +49,10 @@ import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.model.Sykmeldingsdokument
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.narmesteleder.NarmesteLederFraSyfoServiceService
+import no.nav.syfo.narmesteleder.NarmesteLederResponseKafkaProducer
 import no.nav.syfo.narmesteleder.SyfoServiceNarmesteLeder
 import no.nav.syfo.narmesteleder.SyfoServiceNarmesteLederKafkaProducer
+import no.nav.syfo.narmesteleder.kafkamodel.NlResponseKafkaMessage
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.GradService
 import no.nav.syfo.papirsykmelding.PeriodeService
@@ -88,7 +92,6 @@ import no.nav.syfo.sykmelding.MottattSykmeldingService
 import no.nav.syfo.sykmelding.PubliserNySykmeldingStatusService
 import no.nav.syfo.sykmelding.SendtSykmeldingService
 import no.nav.syfo.sykmelding.SykmeldingStatusKafkaProducer
-import no.nav.syfo.sykmelding.UpdateFnrService
 import no.nav.syfo.sykmelding.aivenmigrering.AivenMigreringService
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV1KafkaMessage
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaMessage
@@ -179,9 +182,22 @@ fun main() {
         sykmeldingEndringsloggKafkaProducer = sykmeldingEndringsloggKafkaProducer
     )
 
+    val sendtSykmeldingKafkaProducerFnr = SendtSykmeldingKafkaProducer(KafkaProducer<String, no.nav.syfo.identendring.model.SykmeldingKafkaMessage>(producerProperties), environment.sendSykmeldingTopic)
+    val narmesteLederResponseKafkaProducer = NarmesteLederResponseKafkaProducer(
+        environment.nlResponseTopic,
+        KafkaProducer<String, NlResponseKafkaMessage>(
+            KafkaUtils
+                .getAivenKafkaConfig()
+                .toProducerConfig("macgyver-producer", JacksonNullableKafkaSerializer::class, StringSerializer::class)
+        )
+    )
+
     val updateFnrService = UpdateFnrService(
         pdlPersonService = httpClients.pdlService,
-        syfoSmRegisterDb = databasePostgres
+        syfoSmRegisterDb = databasePostgres,
+        sendtSykmeldingKafkaProducer = sendtSykmeldingKafkaProducerFnr,
+        narmesteLederResponseKafkaProducer = narmesteLederResponseKafkaProducer,
+        narmestelederClient = httpClients.narmestelederClient
     )
 
     val deleteSykmeldingService = DeleteSykmeldingService(environment, databasePostgres, databaseOracle, statusKafkaProducer, sykmeldingEndringsloggKafkaProducer)

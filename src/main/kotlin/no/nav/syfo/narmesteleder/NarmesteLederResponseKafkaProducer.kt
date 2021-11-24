@@ -15,6 +15,21 @@ class NarmesteLederResponseKafkaProducer(
     private val kafkaProducerNlResponse: KafkaProducer<String, NlResponseKafkaMessage>
 ) {
 
+    fun publishToKafka(nlResponseKafkaMessage: NlResponseKafkaMessage, orgnummer: String) {
+        try {
+            kafkaProducerNlResponse.send(
+                ProducerRecord(
+                    topic,
+                    orgnummer,
+                    nlResponseKafkaMessage
+                )
+            ).get()
+        } catch (e: Exception) {
+            log.error("Noe gikk galt ved skriving av nlResponse: ${e.message}")
+            throw e
+        }
+    }
+
     fun publishToKafka(nlResponse: NlResponse, nlId: String) {
         val kafkaMessage = NlResponseKafkaMessage(
             kafkaMetadata = KafkaMetadata(OffsetDateTime.now(ZoneOffset.UTC), "macgyver"),
@@ -28,7 +43,7 @@ class NarmesteLederResponseKafkaProducer(
             )
         ) { metadata: RecordMetadata?, exception: Exception? ->
             if (exception != null) {
-                log.error("Noe gikk galt ved skriving av nlResponse for id $nlId til migreringstopic: ${exception.message}")
+                log.error("Noe gikk galt ved skriving av nlResponse for id $nlId: ${exception.message}")
             }
         }
     }

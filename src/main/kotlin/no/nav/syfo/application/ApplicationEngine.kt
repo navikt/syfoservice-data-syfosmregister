@@ -16,6 +16,8 @@ import io.ktor.server.netty.Netty
 import no.nav.syfo.Environment
 import no.nav.syfo.application.api.registerNaisApi
 import no.nav.syfo.application.api.setupSwaggerDocApi
+import no.nav.syfo.identendring.UpdateFnrService
+import no.nav.syfo.identendring.api.registerFnrApi
 import no.nav.syfo.oppgave.OppgaveClient
 import no.nav.syfo.oppgave.api.registerHentOppgaverApi
 import no.nav.syfo.papirsykmelding.DiagnoseService
@@ -27,9 +29,7 @@ import no.nav.syfo.papirsykmelding.tilsyfoservice.SendTilSyfoserviceService
 import no.nav.syfo.pdf.rerun.api.registerRerunKafkaApi
 import no.nav.syfo.pdf.rerun.service.RerunKafkaService
 import no.nav.syfo.sykmelding.DeleteSykmeldingService
-import no.nav.syfo.sykmelding.UpdateFnrService
 import no.nav.syfo.sykmelding.api.registerDeleteSykmeldingApi
-import no.nav.syfo.sykmelding.api.registerFnrApi
 import no.nav.syfo.sykmelding.api.registerSendToSyfoserviceApi
 import no.nav.syfo.sykmelding.api.registerUpdateBiDiagnosisApi
 import no.nav.syfo.sykmelding.api.registerUpdateDiagnosisApi

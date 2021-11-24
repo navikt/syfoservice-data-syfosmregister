@@ -95,3 +95,7 @@ spec:
       value: "0"
     - name: OPPGAVEBEHANDLING_URL
       value: https://oppgave.nais.adeo.no/api/v1/oppgaver
+    - name: NARMESTELEDER_URL
+      value: https://narmesteleder.intern.nav.no
+    - name: NARMESTELEDER_SCOPE
+      value: api://prod-gcp.teamsykmelding.narmesteleder/.default
