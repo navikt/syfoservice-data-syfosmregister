@@ -6,9 +6,9 @@ import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import java.time.LocalDate
 import no.nav.syfo.clients.AccessTokenClientV2
 import no.nav.syfo.log
-import java.time.LocalDate
 
 class NarmestelederClient(
     private val httpClient: HttpClient,

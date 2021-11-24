@@ -183,7 +183,17 @@ fun main() {
     )
 
     val sendtSykmeldingKafkaProducerFnr = SendtSykmeldingKafkaProducer(KafkaProducer<String, no.nav.syfo.identendring.model.SykmeldingKafkaMessage>(producerProperties), environment.sendSykmeldingTopic)
-    val narmesteLederResponseKafkaProducer = NarmesteLederResponseKafkaProducer(environment.nlResponseTopic, KafkaProducer<String, NlResponseKafkaMessage>(producerProperties))
+    val narmesteLederResponseKafkaProducer = NarmesteLederResponseKafkaProducer(
+        environment.nlResponseTopic,
+        KafkaProducer<String, NlResponseKafkaMessage>(
+            KafkaUtils
+                .getAivenKafkaConfig()
+                .toProducerConfig("macgyver-producer", JacksonNullableKafkaSerializer::class, StringSerializer::class)
+                .apply {
+                    this[ProducerConfig.ACKS_CONFIG] = "1"
+                    this[ProducerConfig.RETRIES_CONFIG] = 1000
+                })
+    )
 
     val updateFnrService = UpdateFnrService(
         pdlPersonService = httpClients.pdlService,
