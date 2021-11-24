@@ -20,6 +20,7 @@ class NarmestelederClient(
     suspend fun getNarmesteledere(fnr: String): List<NarmesteLeder> {
         try {
             val token = accessTokenClientV2.getAccessTokenV2(resource)
+            log.info(token)
             return httpClient.get<List<NarmesteLeder>>("$baseUrl/sykmeldt/narmesteledere") {
                 headers {
                     append(HttpHeaders.Authorization, token)
