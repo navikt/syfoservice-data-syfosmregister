@@ -15,7 +15,7 @@ class NarmesteLederResponseKafkaProducer(
     private val kafkaProducerNlResponse: KafkaProducer<String, NlResponseKafkaMessage>
 ) {
 
-    fun publishToKafka(nlResponse: NlResponse, nlId: String) {
+    fun publishToKafka(nlResponse: NlResponse, nlId: String? = null) {
         val kafkaMessage = NlResponseKafkaMessage(
             kafkaMetadata = KafkaMetadata(OffsetDateTime.now(ZoneOffset.UTC), "macgyver"),
             nlResponse = nlResponse
@@ -28,7 +28,7 @@ class NarmesteLederResponseKafkaProducer(
             )
         ) { metadata: RecordMetadata?, exception: Exception? ->
             if (exception != null) {
-                log.error("Noe gikk galt ved skriving av nlResponse for id $nlId til migreringstopic: ${exception.message}")
+                log.error("Noe gikk galt ved skriving av nlResponse for id $nlId: ${exception.message}")
             }
         }
     }

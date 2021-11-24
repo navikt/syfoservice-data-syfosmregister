@@ -1,0 +1,125 @@
+package no.nav.syfo.identendring
+
+import io.ktor.util.KtorExperimentalAPI
+import java.time.LocalDate
+import java.time.ZoneOffset
+import no.nav.syfo.db.DatabaseInterfacePostgres
+import no.nav.syfo.identendring.client.NarmestelederClient
+import no.nav.syfo.identendring.db.Periode
+import no.nav.syfo.identendring.db.SykmeldingDbModelUtenBehandlingsutfall
+import no.nav.syfo.identendring.db.getSykmeldingerMedFnrUtenBehandlingsutfall
+import no.nav.syfo.identendring.db.updateFnr
+import no.nav.syfo.identendring.model.SykmeldingKafkaMessage
+import no.nav.syfo.identendring.model.toEnkelSykmelding
+import no.nav.syfo.model.sykmeldingstatus.ArbeidsgiverStatusDTO
+import no.nav.syfo.model.sykmeldingstatus.KafkaMetadataDTO
+import no.nav.syfo.model.sykmeldingstatus.STATUS_SENDT
+import no.nav.syfo.model.sykmeldingstatus.ShortNameDTO
+import no.nav.syfo.model.sykmeldingstatus.SporsmalOgSvarDTO
+import no.nav.syfo.model.sykmeldingstatus.SvartypeDTO
+import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaEventDTO
+import no.nav.syfo.narmesteleder.NarmesteLederResponseKafkaProducer
+import no.nav.syfo.narmesteleder.kafkamodel.Leder
+import no.nav.syfo.narmesteleder.kafkamodel.NlResponse
+import no.nav.syfo.narmesteleder.kafkamodel.Sykmeldt
+import no.nav.syfo.pdl.service.PdlPersonService
+import org.slf4j.LoggerFactory
+
+@KtorExperimentalAPI
+class UpdateFnrService(
+    private val pdlPersonService: PdlPersonService,
+    private val syfoSmRegisterDb: DatabaseInterfacePostgres,
+    private val sendtSykmeldingKafkaProducer: SendtSykmeldingKafkaProducer,
+    private val narmesteLederResponseKafkaProducer: NarmesteLederResponseKafkaProducer,
+    private val narmestelederClient: NarmestelederClient
+) {
+
+    private val log = LoggerFactory.getLogger(UpdateFnrService::class.java)
+
+    suspend fun updateFnr(fnr: String, nyttFnr: String): Boolean {
+
+        val pdlPerson = pdlPersonService.getPdlPerson(fnr)
+
+        when {
+            pdlPerson.fnr != nyttFnr -> {
+                val msg = "Oppdatering av fnr feilet, nyttFnr står ikke som aktivt fnr for aktøren i PDL"
+                log.error(msg)
+                throw UpdateIdentException(msg)
+            }
+            !pdlPerson.harHistoriskFnr(fnr) -> {
+                val msg = "Oppdatering av fnr feilet, fnr er ikke historisk for aktør"
+                log.error(msg)
+                throw UpdateIdentException(msg)
+            }
+            else -> {
+                log.info("Oppdaterer fnr for person")
+                val sykmeldinger = syfoSmRegisterDb.getSykmeldingerMedFnrUtenBehandlingsutfall(fnr)
+                val sendteSykmeldingerSisteFireMnd = sykmeldinger.filter {
+                    it.status.statusEvent == STATUS_SENDT && finnSisteTom(it.sykmeldingsDokument.perioder).isAfter(LocalDate.now().minusMonths(4))
+                }
+                val aktiveNarmesteledere = narmestelederClient.getNarmesteledere(fnr).filter { it.aktivTom == null }
+                val updateFnr = syfoSmRegisterDb.updateFnr(nyttFnr = nyttFnr, fnr = fnr)
+                sendteSykmeldingerSisteFireMnd.forEach {
+                    sendtSykmeldingKafkaProducer.sendSykmelding(getKafkaMessage(it, nyttFnr))
+                }
+                aktiveNarmesteledere.forEach {
+                    narmesteLederResponseKafkaProducer.publishToKafka(
+                        NlResponse(
+                            orgnummer = it.orgnummer,
+                            utbetalesLonn = it.arbeidsgiverForskutterer,
+                            leder = Leder(
+                                fnr = it.narmesteLederFnr,
+                                mobil = it.narmesteLederTelefonnummer,
+                                epost = it.narmesteLederEpost,
+                                fornavn = null,
+                                etternavn = null
+                            ),
+                            sykmeldt = Sykmeldt(
+                                fnr = nyttFnr,
+                                navn = null
+                            ),
+                            aktivFom = it.aktivFom.atStartOfDay().atOffset(ZoneOffset.UTC),
+                            aktivTom = null
+                        )
+                    )
+                }
+                return updateFnr > 0
+            }
+        }
+    }
+}
+
+private fun finnSisteTom(perioder: List<Periode>): LocalDate {
+    return perioder.maxBy { it.tom }?.tom ?: throw IllegalStateException("Skal ikke kunne ha periode uten tom")
+}
+
+private fun getKafkaMessage(sykmelding: SykmeldingDbModelUtenBehandlingsutfall, nyttFnr: String): SykmeldingKafkaMessage {
+    val sendtSykmelding = sykmelding.toEnkelSykmelding()
+    val metadata = KafkaMetadataDTO(
+        sykmeldingId = sykmelding.id,
+        timestamp = sykmelding.status.statusTimestamp,
+        source = "macgyver",
+        fnr = nyttFnr
+    )
+    val sendEvent = SykmeldingStatusKafkaEventDTO(
+        metadata.sykmeldingId,
+        metadata.timestamp,
+        STATUS_SENDT,
+        ArbeidsgiverStatusDTO(
+            sykmelding.status.arbeidsgiver!!.orgnummer,
+            sykmelding.status.arbeidsgiver.juridiskOrgnummer,
+            sykmelding.status.arbeidsgiver.orgNavn
+        ),
+        listOf(
+            SporsmalOgSvarDTO(
+                tekst = "Jeg er sykmeldt fra",
+                shortName = ShortNameDTO.ARBEIDSSITUASJON,
+                svartype = SvartypeDTO.ARBEIDSSITUASJON,
+                svar = "ARBEIDSTAKER"
+            )
+        )
+    )
+    return SykmeldingKafkaMessage(sendtSykmelding, metadata, sendEvent)
+}
+
+class UpdateIdentException(override val message: String) : Exception(message)

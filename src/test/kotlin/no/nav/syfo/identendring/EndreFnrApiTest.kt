@@ -1,4 +1,4 @@
-package no.nav.syfo.sykmelding
+package no.nav.syfo.identendring
 
 import com.auth0.jwk.JwkProviderBuilder
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -25,14 +25,16 @@ import io.mockk.mockkStatic
 import java.nio.file.Paths
 import no.nav.syfo.application.setupAuth
 import no.nav.syfo.db.DatabaseInterfacePostgres
+import no.nav.syfo.identendring.api.registerFnrApi
+import no.nav.syfo.identendring.client.NarmestelederClient
+import no.nav.syfo.identendring.db.updateFnr
 import no.nav.syfo.log
+import no.nav.syfo.narmesteleder.NarmesteLederResponseKafkaProducer
 import no.nav.syfo.objectMapper
 import no.nav.syfo.pdl.client.model.IdentInformasjon
 import no.nav.syfo.pdl.model.PdlPerson
 import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.sykmelding.api.model.EndreFnr
-import no.nav.syfo.sykmelding.api.registerFnrApi
-import no.nav.syfo.sykmelding.db.updateFnr
 import no.nav.syfo.testutil.generateJWT
 import org.amshove.kluent.shouldEqual
 import org.spekframework.spek2.Spek
@@ -49,8 +51,11 @@ class EndreFnrApiTest : Spek({
             val jwkProvider = JwkProviderBuilder(uri).build()
 
             val pdlPersonService = mockk<PdlPersonService>(relaxed = true)
+            val sendtSykmeldingKafkaProducer = mockk<SendtSykmeldingKafkaProducer>(relaxed = true)
+            val narmesteLederResponseKafkaProducer = mockk<NarmesteLederResponseKafkaProducer>(relaxed = true)
+            val narmestelederClient = mockk<NarmestelederClient>()
 
-            mockkStatic("no.nav.syfo.sykmelding.db.SyfoSmRegisterKt")
+            mockkStatic("no.nav.syfo.identendring.db.SyfoSmRegisterKt")
             val db = mockk<DatabaseInterfacePostgres>(relaxed = true)
 
             start()
@@ -62,7 +67,7 @@ class EndreFnrApiTest : Spek({
                 listOf("foo", "bar")
             )
             application.routing {
-                registerFnrApi(UpdateFnrService(pdlPersonService, db))
+                registerFnrApi(UpdateFnrService(pdlPersonService, db, sendtSykmeldingKafkaProducer, narmesteLederResponseKafkaProducer, narmestelederClient))
             }
 
             application.install(ContentNegotiation) {
@@ -87,6 +92,7 @@ class EndreFnrApiTest : Spek({
                         IdentInformasjon("12345", false, "AKTORID")
                 )
             )
+            coEvery { narmestelederClient.getNarmesteledere(any()) } returns emptyList()
 
             every { db.updateFnr(any(), any()) } returns 1
 

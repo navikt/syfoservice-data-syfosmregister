@@ -59,7 +59,9 @@ data class Environment(
     val clientSecretV2: String = getEnvVar("AZURE_APP_CLIENT_SECRET"),
     val pdlScope: String = getEnvVar("PDL_SCOPE"),
     val manuellDbUrl: String = getEnvVar("SYFOSMMANUELL_BACKEND_DB_URL"),
-    val databaseNameManuell: String = "syfosmmanuell-backend"
+    val databaseNameManuell: String = "syfosmmanuell-backend",
+    val narmestelederUrl: String = getEnvVar("NARMESTELEDER_URL"),
+    val narmestelederScope: String = getEnvVar("NARMESTELEDER_SCOPE")
 ) : KafkaConfig
 
 data class VaultCredentials(

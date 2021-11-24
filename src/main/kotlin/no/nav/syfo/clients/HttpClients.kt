@@ -16,6 +16,7 @@ import java.net.ProxySelector
 import no.nav.syfo.Environment
 import no.nav.syfo.VaultServiceUser
 import no.nav.syfo.client.StsOidcClient
+import no.nav.syfo.identendring.client.NarmestelederClient
 import no.nav.syfo.oppgave.OppgaveClient
 import no.nav.syfo.pdl.client.PdlClient
 import no.nav.syfo.pdl.service.PdlPersonService
@@ -73,4 +74,6 @@ class HttpClients(environment: Environment, vaultServiceUser: VaultServiceUser) 
     val pdlService = PdlPersonService(pdlClient, accessTokenClientV2, environment.pdlScope)
 
     val oppgaveClient = OppgaveClient(environment.oppgavebehandlingUrl, stsOidcClient, httpClient)
+
+    val narmestelederClient = NarmestelederClient(httpClient, accessTokenClientV2, environment.narmestelederUrl, environment.narmestelederScope)
 }
