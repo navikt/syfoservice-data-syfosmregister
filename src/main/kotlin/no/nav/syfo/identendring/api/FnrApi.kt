@@ -40,4 +40,32 @@ fun Route.registerFnrApi(updateFnrService: UpdateFnrService) {
             }
         }
     }
+
+    post("/api/leder/fnr") {
+
+        val endreFnr = call.receive<EndreFnr>()
+        when {
+            endreFnr.fnr.length != 11 || endreFnr.fnr.any { !it.isDigit() } -> {
+                // Hvis fnr ikke er et tall på 11 tegn så er det antakeligvis noe rart som har skjedd,
+                // og vi bør undersøke ytterligere
+                call.respond(HttpStatusCode.BadRequest, "fnr må være et fnr / dnr på 11 tegn")
+            }
+            endreFnr.nyttFnr.length != 11 || endreFnr.nyttFnr.any { !it.isDigit() } -> {
+                call.respond(HttpStatusCode.BadRequest, "nyttFnr må være et fnr / dnr på 11 tegn")
+            }
+            else -> {
+                try {
+                    val updateNlKoblinger = updateFnrService.updateNlFnr(fnr = endreFnr.fnr, nyttFnr = endreFnr.nyttFnr)
+
+                    if (updateNlKoblinger) {
+                        call.respond(HttpStatusCode.OK, "Vellykket oppdatering.")
+                    } else {
+                        call.respond(HttpStatusCode.NotModified, "Ingenting ble endret.")
+                    }
+                } catch (e: UpdateIdentException) {
+                    call.respond(HttpStatusCode.InternalServerError, e.message)
+                }
+            }
+        }
+    }
 }

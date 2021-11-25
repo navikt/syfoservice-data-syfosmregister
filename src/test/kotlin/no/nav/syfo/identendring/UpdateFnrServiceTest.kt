@@ -182,6 +182,79 @@ class UpdateFnrServiceTest : Spek({
             }
         }
     }
+
+    describe("Test at UpdateFnrService fungerer som forventet for leder") {
+        it("Skal kaste feil hvis nytt og gammelt fnr ikke er knyttet til samme person") {
+            coEvery { pdlPersonService.getPdlPerson(any()) } returns PdlPerson(
+                listOf(
+                    IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
+                    IdentInformasjon("12345678912", true, "FOLKEREGISTERIDENT"),
+                    IdentInformasjon("12345", false, "AKTORID")
+                ))
+
+            runBlocking {
+                val assertFailsWith = assertFailsWith<UpdateIdentException> {
+                    updateFnrService.updateNlFnr(
+                        fnr = "12345678912",
+                        nyttFnr = "12345678914"
+                    )
+                }
+                assertFailsWith.message shouldEqual "Oppdatering av leders fnr feilet, nyttFnr står ikke som aktivt fnr for aktøren i PDL"
+            }
+        }
+        it("Skal kaste feil hvis fnr ikke er registrert som historisk for person") {
+            coEvery { pdlPersonService.getPdlPerson(any()) } returns PdlPerson(
+                listOf(
+                    IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
+                    IdentInformasjon("123", true, "FOLKEREGISTERIDENT"),
+                    IdentInformasjon("12345", false, "AKTORID")
+                ))
+
+            runBlocking {
+                val assertFailsWith = assertFailsWith<UpdateIdentException> {
+                    updateFnrService.updateNlFnr(
+                        fnr = "12345678912",
+                        nyttFnr = "12345678913"
+                    )
+                }
+                assertFailsWith.message shouldEqual "Oppdatering av leders fnr feilet, fnr er ikke historisk for aktør"
+            }
+        }
+        it("Oppdaterer aktiv NL-relasjon") {
+            coEvery { pdlPersonService.getPdlPerson(any()) } returns PdlPerson(
+                listOf(
+                    IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
+                    IdentInformasjon("12345678912", true, "FOLKEREGISTERIDENT"),
+                    IdentInformasjon("12345", false, "AKTORID")
+                ))
+            coEvery { narmestelederClient.getNarmestelederKoblingerForLeder("12345678912") } returns listOf(getNarmesteLeder().copy(fnr = "10987654321", narmesteLederFnr = "12345678912"))
+
+            runBlocking {
+                updateFnrService.updateNlFnr(
+                    fnr = "12345678912",
+                    nyttFnr = "12345678913"
+                ) shouldEqual true
+
+                coVerify(exactly = 1) { narmesteLederResponseKafkaProducer.publishToKafka(match<NlResponseKafkaMessage> { it.nlAvbrutt?.sykmeldtFnr == "10987654321" }, "9898") }
+                coVerify(exactly = 1) { narmesteLederResponseKafkaProducer.publishToKafka(match<NlResponseKafkaMessage> {
+                        it.nlResponse == NlResponse(
+                            orgnummer = "9898",
+                            utbetalesLonn = true,
+                            leder = Leder(
+                                fnr = "12345678913",
+                                mobil = "90909090",
+                                epost = "mail@nav.no",
+                                fornavn = null,
+                                etternavn = null
+                            ),
+                            sykmeldt = Sykmeldt(fnr = "10987654321", navn = null),
+                            aktivFom = LocalDate.of(2019, 2, 2).atStartOfDay().atOffset(ZoneOffset.UTC),
+                            aktivTom = null
+                        )
+                    }, "9898") }
+            }
+        }
+    }
 })
 
 fun getSendtSykmelding(periodeListe: List<Periode>? = null): SykmeldingDbModelUtenBehandlingsutfall {
@@ -255,6 +328,7 @@ fun getSendtSykmelding(periodeListe: List<Periode>? = null): SykmeldingDbModelUt
 
 fun getNarmesteLeder(): NarmesteLeder {
     return NarmesteLeder(
+        fnr = "12345678912",
         narmesteLederFnr = "12345",
         orgnummer = "9898",
         narmesteLederTelefonnummer = "90909090",
