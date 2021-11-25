@@ -12,9 +12,29 @@ paths:
     post:
       operationId: endreBrukerFnr
       summary: Endre fnr for sykmeldinger
-      description: Endrer fnr for et gitt fnr i alle sykmeldinger i SyfoSmRegister
+      description: Endrer fnr for et gitt fnr i alle sykmeldinger i SyfoSmRegister og oppdaterer aktive NL-koblinger
       tags:
-        - Sykmelding
+        - Identendring
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        $ref: '#/components/requestBodies/EndreFnrRequest'
+      responses:
+        '200':
+          description: Ok
+        '304':
+          description: Not Modified
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  /api/leder/fnr:
+    post:
+      operationId: endreLederFnr
+      summary: Endre fnr for nærmeste leder
+      description: Oppdaterer aktive NL-koblinger for leder med nytt fnr
+      tags:
+        - Identendring
       security:
         - bearerAuth: [ ]
       requestBody:

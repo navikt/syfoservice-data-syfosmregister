@@ -40,6 +40,67 @@ class UpdateFnrService(
 
     private val log = LoggerFactory.getLogger(UpdateFnrService::class.java)
 
+    suspend fun updateNlFnr(fnr: String, nyttFnr: String): Boolean {
+        val pdlPerson = pdlPersonService.getPdlPerson(fnr)
+        when {
+            pdlPerson.fnr != nyttFnr -> {
+                val msg = "Oppdatering av leders fnr feilet, nyttFnr står ikke som aktivt fnr for aktøren i PDL"
+                log.error(msg)
+                throw UpdateIdentException(msg)
+            }
+            !pdlPerson.harHistoriskFnr(fnr) -> {
+                val msg = "Oppdatering av leders fnr feilet, fnr er ikke historisk for aktør"
+                log.error(msg)
+                throw UpdateIdentException(msg)
+            }
+            else -> {
+                log.info("Oppdaterer fnr for leder")
+                val aktiveNlKoblinger = narmestelederClient.getNarmestelederKoblingerForLeder(fnr)
+                log.info("Bryter og gjenoppretter ${aktiveNlKoblinger.size} nl-koblinger")
+                aktiveNlKoblinger.forEach {
+                    narmesteLederResponseKafkaProducer.publishToKafka(
+                        NlResponseKafkaMessage(
+                            kafkaMetadata = KafkaMetadata(OffsetDateTime.now(ZoneOffset.UTC), "macgyver"),
+                            nlResponse = null,
+                            nlAvbrutt = NlAvbrutt(
+                                orgnummer = it.orgnummer,
+                                sykmeldtFnr = it.fnr,
+                                aktivTom = OffsetDateTime.now(ZoneOffset.UTC)
+                            )
+
+                        ),
+                        it.orgnummer
+                    )
+                    narmesteLederResponseKafkaProducer.publishToKafka(
+                        NlResponseKafkaMessage(
+                            kafkaMetadata = KafkaMetadata(OffsetDateTime.now(ZoneOffset.UTC), "macgyver"),
+                            nlResponse = NlResponse(
+                                orgnummer = it.orgnummer,
+                                utbetalesLonn = it.arbeidsgiverForskutterer,
+                                leder = Leder(
+                                    fnr = nyttFnr,
+                                    mobil = it.narmesteLederTelefonnummer,
+                                    epost = it.narmesteLederEpost,
+                                    fornavn = null,
+                                    etternavn = null
+                                ),
+                                sykmeldt = Sykmeldt(
+                                    fnr = it.fnr,
+                                    navn = null
+                                ),
+                                aktivFom = it.aktivFom.atStartOfDay().atOffset(ZoneOffset.UTC),
+                                aktivTom = null
+                            )
+                        ),
+                        it.orgnummer
+                    )
+                }
+                log.info("Alle aktive nl-koblinger er oppdatert")
+                return aktiveNlKoblinger.isNotEmpty()
+            }
+        }
+    }
+
     suspend fun updateFnr(fnr: String, nyttFnr: String): Boolean {
 
         val pdlPerson = pdlPersonService.getPdlPerson(fnr)

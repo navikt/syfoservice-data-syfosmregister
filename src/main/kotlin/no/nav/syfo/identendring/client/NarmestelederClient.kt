@@ -32,9 +32,26 @@ class NarmestelederClient(
             throw e
         }
     }
+
+    suspend fun getNarmestelederKoblingerForLeder(lederFnr: String): List<NarmesteLeder> {
+        try {
+            val token = accessTokenClientV2.getAccessTokenV2(resource)
+            return httpClient.get<List<NarmesteLeder>>("$baseUrl/leder/narmesteleder/aktive") {
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                    append("Narmeste-Leder-Fnr", lederFnr)
+                }
+                accept(ContentType.Application.Json)
+            }
+        } catch (e: Exception) {
+            log.error("Noe gikk galt ved henting av nærmesteleder-koblinger for leder")
+            throw e
+        }
+    }
 }
 
 data class NarmesteLeder(
+    val fnr: String,
     val narmesteLederFnr: String,
     val orgnummer: String,
     val narmesteLederTelefonnummer: String,
