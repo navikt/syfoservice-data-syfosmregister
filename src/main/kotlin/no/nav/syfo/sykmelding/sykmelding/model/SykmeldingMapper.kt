@@ -3,6 +3,7 @@ package no.nav.syfo.sykmelding.sykmelding.model
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
+import no.nav.syfo.identendring.model.periodeErInnenforKoronaregler
 import no.nav.syfo.model.ShortName
 import no.nav.syfo.model.Sporsmal
 import no.nav.syfo.model.Svar
@@ -31,7 +32,11 @@ import no.nav.syfo.sykmelding.model.SporsmalSvar
 import no.nav.syfo.sykmelding.model.StatusDbModel
 import no.nav.syfo.sykmelding.model.SvarRestriksjon
 
-fun MedisinskVurdering.getHarRedusertArbeidsgiverperiode(): Boolean {
+fun MedisinskVurdering.getHarRedusertArbeidsgiverperiode(sykmeldingsperioder: List<Periode>): Boolean {
+    val sykmeldingsperioderInnenforKoronaregler = sykmeldingsperioder.filter { periodeErInnenforKoronaregler(it.fom, it.tom) }
+    if (sykmeldingsperioderInnenforKoronaregler.isEmpty()) {
+        return false
+    }
     val diagnoserSomGirRedusertArbgiverPeriode = listOf("R991", "U071", "U072", "A23", "R992")
     if (hovedDiagnose != null && diagnoserSomGirRedusertArbgiverPeriode.contains(hovedDiagnose.kode)) {
         return true

@@ -27,7 +27,7 @@ fun EnkelSykmeldingDbModel.toEnkelSykmelding(): EnkelSykmelidng {
             prognose = sykmeldingsDokument.prognose?.toPrognoseDTO(),
             egenmeldt = sykmeldingsDokument.avsenderSystem.navn == "Egenmeldt",
             papirsykmelding = sykmeldingsDokument.avsenderSystem.navn == "Papirsykmelding",
-            harRedusertArbeidsgiverperiode = sykmeldingsDokument.medisinskVurdering.getHarRedusertArbeidsgiverperiode()
+            harRedusertArbeidsgiverperiode = sykmeldingsDokument.medisinskVurdering.getHarRedusertArbeidsgiverperiode(sykmeldingsDokument.perioder)
     )
 }
 
@@ -48,6 +48,6 @@ fun MottattSykmeldingDbModel.toEnkelSykmelding(): EnkelSykmelidng {
                 prognose = sykmeldingsDokument.prognose?.toPrognoseDTO(),
                 egenmeldt = sykmeldingsDokument.avsenderSystem.navn == "Egenmeldt",
                 papirsykmelding = sykmeldingsDokument.avsenderSystem.navn == "Papirsykmelding",
-                harRedusertArbeidsgiverperiode = sykmeldingsDokument.medisinskVurdering.getHarRedusertArbeidsgiverperiode()
+                harRedusertArbeidsgiverperiode = sykmeldingsDokument.medisinskVurdering.getHarRedusertArbeidsgiverperiode(sykmeldingsDokument.perioder)
         )
 }
