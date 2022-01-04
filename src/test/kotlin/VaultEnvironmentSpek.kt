@@ -1,6 +1,6 @@
 import no.nav.syfo.VaultServiceUser
 import no.nav.syfo.utils.getFileAsString
-import org.amshove.kluent.shouldEqual
+import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.xdescribe
 
@@ -13,8 +13,8 @@ object VaultEnvironmentSpek : Spek({
                 serviceuserUsername = getFileAsString("src/test/resources/username")
             )
 
-            vaultServiceuser.serviceuserPassword shouldEqual "1324fesdsdfsdffsfsdfds"
-            vaultServiceuser.serviceuserUsername shouldEqual "srvserviceuser"
+            vaultServiceuser.serviceuserPassword shouldBeEqualTo "1324fesdsdfsdffsfsdfds"
+            vaultServiceuser.serviceuserUsername shouldBeEqualTo "srvserviceuser"
         }
     }
 })

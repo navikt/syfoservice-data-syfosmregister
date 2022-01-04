@@ -1,10 +1,10 @@
 package no.nav.syfo.identendring.model
 
-import java.time.LocalDate
-import java.time.Month
 import no.nav.syfo.identendring.db.Periode
 import no.nav.syfo.model.AnnenFraverGrunn
 import no.nav.syfo.model.MedisinskVurdering
+import java.time.LocalDate
+import java.time.Month
 
 typealias MedisinskVurderingDB = no.nav.syfo.identendring.db.MedisinskVurdering
 typealias DiagnoseDB = no.nav.syfo.identendring.db.Diagnose
@@ -30,7 +30,7 @@ fun MedisinskVurderingDB.getHarRedusertArbeidsgiverperiode(sykmeldingsperioder: 
 }
 
 private fun MedisinskVurderingDB.checkSmittefare() =
-        annenFraversArsak?.grunn?.any { annenFraverGrunn -> annenFraverGrunn == no.nav.syfo.identendring.db.AnnenFraverGrunn.SMITTEFARE } == true
+    annenFraversArsak?.grunn?.any { annenFraverGrunn -> annenFraverGrunn == no.nav.syfo.identendring.db.AnnenFraverGrunn.SMITTEFARE } == true
 
 fun MedisinskVurdering.getHarRedusertArbeidsgiverperiode(sykmeldingsperioder: List<no.nav.syfo.model.Periode>): Boolean {
     val sykmeldingsperioderInnenforKoronaregler = sykmeldingsperioder.filter { periodeErInnenforKoronaregler(it.fom, it.tom) }
@@ -46,7 +46,7 @@ fun MedisinskVurdering.getHarRedusertArbeidsgiverperiode(sykmeldingsperioder: Li
 }
 
 private fun MedisinskVurdering.checkSmittefare() =
-        annenFraversArsak?.grunn?.any { annenFraverGrunn -> annenFraverGrunn == AnnenFraverGrunn.SMITTEFARE } == true
+    annenFraversArsak?.grunn?.any { annenFraverGrunn -> annenFraverGrunn == AnnenFraverGrunn.SMITTEFARE } == true
 
 fun periodeErInnenforKoronaregler(fom: LocalDate, tom: LocalDate): Boolean {
     return (fom.isAfter(koronaAndreFraDato) && fom.isBefore(koronaAndreTilDato)) || (fom.isBefore(koronaForsteTilDato) && tom.isAfter(koronaForsteFraDato))

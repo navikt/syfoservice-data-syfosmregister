@@ -2,15 +2,15 @@ package no.nav.syfo.utils
 
 import com.migesok.jaxb.adapter.javatime.LocalDateTimeXmlAdapter
 import com.migesok.jaxb.adapter.javatime.LocalDateXmlAdapter
-import java.io.StringWriter
-import javax.xml.bind.JAXBContext
-import javax.xml.bind.Marshaller
-import javax.xml.bind.Unmarshaller
 import no.nav.helse.eiFellesformat.XMLEIFellesformat
 import no.nav.helse.eiFellesformat.XMLMottakenhetBlokk
 import no.nav.helse.legeerklaering.Legeerklaring
 import no.nav.helse.msgHead.XMLMsgHead
 import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
+import java.io.StringWriter
+import javax.xml.bind.JAXBContext
+import javax.xml.bind.Marshaller
+import javax.xml.bind.Unmarshaller
 
 val fellesformatJaxBContext: JAXBContext = JAXBContext.newInstance(
     XMLEIFellesformat::class.java,

@@ -1,9 +1,6 @@
 package no.nav.syfo.service
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import java.time.Duration
-import java.time.LocalDateTime
-import java.time.Month
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -19,6 +16,9 @@ import no.nav.syfo.persistering.db.postgres.hentSykmeldingListeMedBehandlingsutf
 import no.nav.syfo.persistering.db.postgres.lagreBehandlingsutfallAndCommit
 import no.nav.syfo.persistering.db.postgres.slettSykmeldingOgStatus
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import java.time.Duration
+import java.time.LocalDateTime
+import java.time.Month
 
 class RyddDuplikateSykmeldingerService(
     private val kafkaConsumer: KafkaConsumer<String, String>,
@@ -77,8 +77,10 @@ class RyddDuplikateSykmeldingerService(
                         val sykmeldingFraRegister: SykmeldingBehandlingsutfallDbModel? = sykmeldingDb.find { it.sykmeldingsopplysninger.id != update.sykmeldingId }
 
                         if (sykmeldingFraSS == null || sykmeldingFraRegister == null) {
-                            log.error("Ingen av sykmeldingene matcher id fra syfoservice for mottakId {}, går videre...",
-                                sykmeldingDb[0].sykmeldingsopplysninger.mottakId)
+                            log.error(
+                                "Ingen av sykmeldingene matcher id fra syfoservice for mottakId {}, går videre...",
+                                sykmeldingDb[0].sykmeldingsopplysninger.mottakId
+                            )
                             continue
                         }
 

@@ -1,7 +1,5 @@
 package no.nav.syfo.papirsykmelding.api
 
-import java.time.ZoneId
-import java.time.ZoneOffset
 import no.nav.helse.sm2013.ArsakType
 import no.nav.helse.sm2013.CS
 import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
@@ -34,6 +32,8 @@ import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
 import no.nav.syfo.sykmelding.kafka.model.toArbeidsgiverSykmelding
 import no.nav.syfo.sykmelding.model.EnkelSykmeldingDbModel
 import no.nav.syfo.sykmelding.model.Periode
+import java.time.ZoneId
+import java.time.ZoneOffset
 
 class UpdatePeriodeService(
     private val databaseoracle: DatabaseOracle,
@@ -54,7 +54,7 @@ class UpdatePeriodeService(
             if (document != null) {
                 log.info(
                     "Endrer perioder fra ${objectMapper.writeValueAsString(sykmeldingsdokument.sykmelding.perioder)}" +
-                            " til ${objectMapper.writeValueAsString(periodeliste)} for id $sykmeldingId"
+                        " til ${objectMapper.writeValueAsString(periodeliste)} for id $sykmeldingId"
                 )
                 sykmeldingEndringsloggKafkaProducer.publishToKafka(sykmeldingsdokument)
 
@@ -208,12 +208,14 @@ class UpdatePeriodeService(
                     medisinskeArsaker = if (periode.aktivitetIkkeMulig.medisinskArsak != null) {
                         ArsakType().apply {
                             beskriv = periode.aktivitetIkkeMulig.medisinskArsak.beskrivelse
-                            arsakskode.addAll(periode.aktivitetIkkeMulig.medisinskArsak.arsak.map {
-                                CS().apply {
-                                    v = it.codeValue
-                                    dn = it.name
+                            arsakskode.addAll(
+                                periode.aktivitetIkkeMulig.medisinskArsak.arsak.map {
+                                    CS().apply {
+                                        v = it.codeValue
+                                        dn = it.name
+                                    }
                                 }
-                            })
+                            )
                         }
                     } else {
                         null
@@ -221,12 +223,14 @@ class UpdatePeriodeService(
                     arbeidsplassen = if (periode.aktivitetIkkeMulig.arbeidsrelatertArsak != null) {
                         ArsakType().apply {
                             beskriv = periode.aktivitetIkkeMulig.arbeidsrelatertArsak.beskrivelse
-                            arsakskode.addAll(periode.aktivitetIkkeMulig.arbeidsrelatertArsak.arsak.map {
-                                CS().apply {
-                                    v = it.codeValue
-                                    dn = it.name
+                            arsakskode.addAll(
+                                periode.aktivitetIkkeMulig.arbeidsrelatertArsak.arsak.map {
+                                    CS().apply {
+                                        v = it.codeValue
+                                        dn = it.name
+                                    }
                                 }
-                            })
+                            )
                         }
                     } else {
                         null

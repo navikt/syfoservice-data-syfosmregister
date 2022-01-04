@@ -1,9 +1,6 @@
 package no.nav.syfo.service
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import java.time.Duration
-import java.time.LocalDateTime
-import java.time.Month
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -22,6 +19,9 @@ import no.nav.syfo.objectMapper
 import no.nav.syfo.persistering.db.postgres.hentArbeidsgiverStatus
 import no.nav.syfo.persistering.db.postgres.slettOgInsertArbeidsgiver
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import java.time.Duration
+import java.time.LocalDateTime
+import java.time.Month
 
 class UpdateArbeidsgiverWhenSendtService(
     val kafkaConsumer: KafkaConsumer<String, String>,
@@ -52,10 +52,10 @@ class UpdateArbeidsgiverWhenSendtService(
         while (applicationState.ready) {
             val sykmeldingStatusTopicEvents = kafkaConsumer.poll(Duration.ofMillis(100))
                 .asSequence().map {
-                val map = objectMapper.readValue<Map<String, Any?>>(it.value())
-                searchCounter++
-                mapToSykmeldingStatusTopicEvent(map, null)
-            }.filter { it.sykmeldingId == "f480577d-0585-4cf8-bbaf-3d5ed40cfcdd" }
+                    val map = objectMapper.readValue<Map<String, Any?>>(it.value())
+                    searchCounter++
+                    mapToSykmeldingStatusTopicEvent(map, null)
+                }.filter { it.sykmeldingId == "f480577d-0585-4cf8-bbaf-3d5ed40cfcdd" }
                 .filter { it.status == StatusEvent.SENDT }
                 .filter { it.created.isAfter(LocalDateTime.of(2019, Month.AUGUST, 1, 0, 0)) }
 

@@ -1,7 +1,6 @@
 package no.nav.syfo.service
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import java.time.Duration
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.log
@@ -14,6 +13,7 @@ import no.nav.syfo.objectMapper
 import no.nav.syfo.persistering.db.postgres.hentSykmeldingMedId
 import no.nav.syfo.persistering.db.postgres.opprettBehandlingsutfall
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import java.time.Duration
 
 class SkrivBehandlingsutfallTilSyfosmRegisterService(
     private val kafkaConsumer: KafkaConsumer<String, String>,

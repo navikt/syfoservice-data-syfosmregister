@@ -1,12 +1,12 @@
 package no.nav.syfo.manuell
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import java.sql.ResultSet
 import no.nav.syfo.db.DatabasePostgresManuell
 import no.nav.syfo.db.toList
 import no.nav.syfo.model.ValidationResult
 import no.nav.syfo.model.toPGObject
 import no.nav.syfo.objectMapper
+import java.sql.ResultSet
 
 fun DatabasePostgresManuell.oppdaterManuellOppgave(manuellOppgave: ManuellOppgave) {
     connection.use { connection ->

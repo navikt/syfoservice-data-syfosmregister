@@ -6,12 +6,10 @@ import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.post
-import io.ktor.util.KtorExperimentalAPI
 import no.nav.syfo.identendring.UpdateFnrService
 import no.nav.syfo.identendring.UpdateIdentException
 import no.nav.syfo.sykmelding.api.model.EndreFnr
 
-@KtorExperimentalAPI
 fun Route.registerFnrApi(updateFnrService: UpdateFnrService) {
     post("/api/sykmelding/fnr") {
 

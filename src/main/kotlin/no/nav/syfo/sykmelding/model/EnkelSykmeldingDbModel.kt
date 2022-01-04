@@ -1,17 +1,18 @@
 package no.nav.syfo.sykmelding.model
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.syfo.identendring.db.Merknad
+import no.nav.syfo.model.ValidationResult
+import no.nav.syfo.objectMapper
 import java.sql.ResultSet
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
-import no.nav.syfo.identendring.db.Merknad
-import no.nav.syfo.model.ValidationResult
-import no.nav.syfo.objectMapper
 
 fun ResultSet.toSendtSykmeldingDbModel(): EnkelSykmeldingDbModel {
-    return EnkelSykmeldingDbModel(sykmeldingsDokument = objectMapper.readValue(getString("sykmelding"), Sykmelding::class.java),
+    return EnkelSykmeldingDbModel(
+        sykmeldingsDokument = objectMapper.readValue(getString("sykmelding"), Sykmelding::class.java),
         id = getString("id"),
         mottattTidspunkt = getTimestamp("mottatt_tidspunkt").toLocalDateTime(),
         legekontorOrgNr = getString("legekontor_org_nr"),
@@ -23,7 +24,8 @@ fun ResultSet.toSendtSykmeldingDbModel(): EnkelSykmeldingDbModel {
 }
 
 fun ResultSet.toEnkelSykmeldingDbModel(): EnkelSykmeldingDbModel {
-    return EnkelSykmeldingDbModel(sykmeldingsDokument = objectMapper.readValue(getString("sykmelding"), Sykmelding::class.java),
+    return EnkelSykmeldingDbModel(
+        sykmeldingsDokument = objectMapper.readValue(getString("sykmelding"), Sykmelding::class.java),
         id = getString("id"),
         mottattTidspunkt = getTimestamp("mottatt_tidspunkt").toLocalDateTime(),
         legekontorOrgNr = getString("legekontor_org_nr"),
@@ -35,7 +37,8 @@ fun ResultSet.toEnkelSykmeldingDbModel(): EnkelSykmeldingDbModel {
 }
 
 fun ResultSet.toEnkelSykmeldingDbModelUtenStatus(): EnkelSykmeldingDbModel {
-    return EnkelSykmeldingDbModel(sykmeldingsDokument = objectMapper.readValue(getString("sykmelding"), Sykmelding::class.java),
+    return EnkelSykmeldingDbModel(
+        sykmeldingsDokument = objectMapper.readValue(getString("sykmelding"), Sykmelding::class.java),
         id = getString("id"),
         mottattTidspunkt = getTimestamp("mottatt_tidspunkt").toLocalDateTime(),
         legekontorOrgNr = getString("legekontor_org_nr"),

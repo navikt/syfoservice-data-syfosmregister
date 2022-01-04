@@ -1,9 +1,6 @@
 package no.nav.syfo.legeerklaring
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import java.time.Duration
-import java.time.LocalDateTime
-import java.time.ZoneOffset
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
@@ -34,6 +31,9 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
+import java.time.Duration
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 class LegeerklaringService(private val environment: Environment, private val applicationState: ApplicationState) {
 
@@ -119,8 +119,12 @@ class LegeerklaringService(private val environment: Environment, private val app
                         duplicateCounter++
                     } else {
                         hashSet.add(sha256String)
-                        log.info("found missing publishing to rerun topic, received at {}", receiverBlock.mottattDatotid?.toGregorianCalendar()?.toInstant()?.atZone(
-                            ZoneOffset.UTC))
+                        log.info(
+                            "found missing publishing to rerun topic, received at {}",
+                            receiverBlock.mottattDatotid?.toGregorianCalendar()?.toInstant()?.atZone(
+                                ZoneOffset.UTC
+                            )
+                        )
                         missingCounter++
                         legeerklaringProducer.send(ProducerRecord(environment.pale2RerunTopic, stringToTopic)).get()
                     }

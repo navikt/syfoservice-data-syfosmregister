@@ -11,11 +11,13 @@ class SykmeldingSyfoserviceKafkaProducer(private val kafkaProducer: KafkaProduce
         syfoserviceKafkaMessage: SykmeldingSyfoserviceKafkaMessage
     ) {
         try {
-            kafkaProducer.send(ProducerRecord(
-                topic,
-                sykmeldingId,
-                syfoserviceKafkaMessage
-            )).get()
+            kafkaProducer.send(
+                ProducerRecord(
+                    topic,
+                    sykmeldingId,
+                    syfoserviceKafkaMessage
+                )
+            ).get()
         } catch (e: Exception) {
             log.error("Noe gikk galt ved skriving til syfoservice-topic: {}", e.cause)
             throw e

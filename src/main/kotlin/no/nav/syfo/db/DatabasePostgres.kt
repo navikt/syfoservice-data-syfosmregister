@@ -2,8 +2,8 @@ package no.nav.syfo.db
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import java.sql.Connection
 import no.nav.syfo.Environment
+import java.sql.Connection
 
 enum class Role {
     ADMIN, USER, READONLY;
@@ -28,16 +28,18 @@ class DatabasePostgres(
             databaseName = env.databaseName,
             role = Role.USER
         )
-        dataSource = HikariDataSource(HikariConfig().apply {
-            jdbcUrl = env.syfosmregisterDBURL
-            username = initialCredentials.username
-            password = initialCredentials.password
-            maximumPoolSize = 1
-            isAutoCommit = false
-            transactionIsolation = "TRANSACTION_REPEATABLE_READ"
-            driverClassName = "org.postgresql.Driver"
-            validate()
-        })
+        dataSource = HikariDataSource(
+            HikariConfig().apply {
+                jdbcUrl = env.syfosmregisterDBURL
+                username = initialCredentials.username
+                password = initialCredentials.password
+                maximumPoolSize = 1
+                isAutoCommit = false
+                transactionIsolation = "TRANSACTION_REPEATABLE_READ"
+                driverClassName = "org.postgresql.Driver"
+                validate()
+            }
+        )
 
         vaultCredentialService.renewCredentialsTaskData = RenewCredentialsTaskData(
             dataSource = dataSource,

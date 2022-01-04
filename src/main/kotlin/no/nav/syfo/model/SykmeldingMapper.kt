@@ -1,8 +1,5 @@
 package no.nav.syfo.model
 
-import java.io.StringReader
-import java.sql.Timestamp
-import java.time.LocalDateTime
 import no.nav.helse.sm2013.Address
 import no.nav.helse.sm2013.ArsakType
 import no.nav.helse.sm2013.CS
@@ -11,6 +8,9 @@ import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.syfo.persistering.db.postgres.SykmeldingDbModel
 import no.nav.syfo.service.convertToMottakid
 import no.nav.syfo.utils.fellesformatUnmarshaller
+import java.io.StringReader
+import java.sql.Timestamp
+import java.time.LocalDateTime
 
 fun unmarshallerToHealthInformation(healthInformation: String): HelseOpplysningerArbeidsuforhet =
     fellesformatUnmarshaller.unmarshal(StringReader(healthInformation)) as HelseOpplysningerArbeidsuforhet
@@ -63,7 +63,9 @@ fun toReceivedSykmelding(sykmeldingDbModel: SykmeldingDbModel): ReceivedSykmeldi
         rulesetVersion = null,
         tlfPasient = null,
         merknader = null,
-        partnerreferanse = null
+        partnerreferanse = null,
+        legeHprNr = null,
+        legeHelsepersonellkategori = null
     )
 }
 
@@ -93,7 +95,9 @@ fun toReceivedSykmelding(jsonMap: Map<String, Any?>): ReceivedSykmelding {
         fellesformat = "",
         tssid = "",
         merknader = null,
-        partnerreferanse = null
+        partnerreferanse = null,
+        legeHelsepersonellkategori = null,
+        legeHprNr = null
     )
 }
 

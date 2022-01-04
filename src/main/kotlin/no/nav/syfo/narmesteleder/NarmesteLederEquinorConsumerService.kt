@@ -1,7 +1,5 @@
 package no.nav.syfo.narmesteleder
 
-import io.ktor.util.KtorExperimentalAPI
-import java.time.Duration
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -9,8 +7,8 @@ import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.log
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import java.time.Duration
 
-@KtorExperimentalAPI
 class NarmesteLederEquinorConsumerService(
     private val kafkaConsumer: KafkaConsumer<String, SyfoServiceNarmesteLeder>,
     private val applicationState: ApplicationState,

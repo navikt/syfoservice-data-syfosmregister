@@ -1,7 +1,6 @@
 package no.nav.syfo.service
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import java.time.Duration
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -14,6 +13,7 @@ import no.nav.syfo.model.toReceivedSykmelding
 import no.nav.syfo.objectMapper
 import no.nav.syfo.persistering.db.postgres.hentSykmeldingMedId
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import java.time.Duration
 
 class WriteReceivedSykmeldingService(
     private val applicationState: ApplicationState,

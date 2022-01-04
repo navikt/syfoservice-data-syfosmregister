@@ -1,10 +1,10 @@
 package no.nav.syfo.aksessering.db.oracle
 
-import java.sql.ResultSet
 import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.db.toList
 import no.nav.syfo.log
 import no.nav.syfo.model.Eia
+import java.sql.ResultSet
 
 fun DatabaseInterfaceOracle.hentSykmeldingerEia(lastIndex: Int, limit: Int): DatabaseResult<Eia> =
     connection.use { connection ->

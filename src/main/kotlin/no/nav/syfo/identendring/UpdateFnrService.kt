@@ -1,9 +1,5 @@
 package no.nav.syfo.identendring
 
-import io.ktor.util.KtorExperimentalAPI
-import java.time.LocalDate
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.identendring.client.NarmestelederClient
 import no.nav.syfo.identendring.db.Periode
@@ -29,8 +25,10 @@ import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaMessage
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
-@KtorExperimentalAPI
 class UpdateFnrService(
     private val pdlPersonService: PdlPersonService,
     private val syfoSmRegisterDb: DatabaseInterfacePostgres,
@@ -181,7 +179,7 @@ class UpdateFnrService(
 }
 
 private fun finnSisteTom(perioder: List<Periode>): LocalDate {
-    return perioder.maxBy { it.tom }?.tom ?: throw IllegalStateException("Skal ikke kunne ha periode uten tom")
+    return perioder.maxByOrNull { it.tom }?.tom ?: throw IllegalStateException("Skal ikke kunne ha periode uten tom")
 }
 
 private fun getKafkaMessage(sykmelding: SykmeldingDbModelUtenBehandlingsutfall, nyttFnr: String): SykmeldingV2KafkaMessage {

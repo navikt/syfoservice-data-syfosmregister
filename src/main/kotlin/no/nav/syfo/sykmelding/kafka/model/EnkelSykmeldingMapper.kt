@@ -29,135 +29,135 @@ import no.nav.syfo.sykmelding.sykmelding.model.getUtcTime
 
 fun EnkelSykmeldingDbModel.toArbeidsgiverSykmelding(): ArbeidsgiverSykmelding {
     return ArbeidsgiverSykmelding(
-            id = id,
-            mottattTidspunkt = getUtcTime(mottattTidspunkt),
-            behandletTidspunkt = getUtcTime(sykmeldingsDokument.behandletTidspunkt),
-            meldingTilArbeidsgiver = sykmeldingsDokument.meldingTilArbeidsgiver,
-            tiltakArbeidsplassen = sykmeldingsDokument.tiltakArbeidsplassen,
-            syketilfelleStartDato = sykmeldingsDokument.syketilfelleStartDato,
-            behandler = sykmeldingsDokument.behandler.toBehandlerAGDTO(),
-            sykmeldingsperioder = sykmeldingsDokument.perioder.map { it.toSykmeldingsperiodeAGDTO(id) },
-            arbeidsgiver = sykmeldingsDokument.arbeidsgiver.toArbeidsgiverAGDTO(),
-            kontaktMedPasient = sykmeldingsDokument.kontaktMedPasient.toKontaktMedPasientAGDTO(),
-            prognose = sykmeldingsDokument.prognose?.toPrognoseAGDTO(),
-            egenmeldt = sykmeldingsDokument.avsenderSystem.navn == "Egenmeldt",
-            papirsykmelding = sykmeldingsDokument.avsenderSystem.navn == "Papirsykmelding",
-            harRedusertArbeidsgiverperiode = sykmeldingsDokument.medisinskVurdering.getHarRedusertArbeidsgiverperiode(sykmeldingsDokument.perioder),
-            merknader = merknader?.map { Merknad(type = it.type, beskrivelse = it.beskrivelse) }
+        id = id,
+        mottattTidspunkt = getUtcTime(mottattTidspunkt),
+        behandletTidspunkt = getUtcTime(sykmeldingsDokument.behandletTidspunkt),
+        meldingTilArbeidsgiver = sykmeldingsDokument.meldingTilArbeidsgiver,
+        tiltakArbeidsplassen = sykmeldingsDokument.tiltakArbeidsplassen,
+        syketilfelleStartDato = sykmeldingsDokument.syketilfelleStartDato,
+        behandler = sykmeldingsDokument.behandler.toBehandlerAGDTO(),
+        sykmeldingsperioder = sykmeldingsDokument.perioder.map { it.toSykmeldingsperiodeAGDTO(id) },
+        arbeidsgiver = sykmeldingsDokument.arbeidsgiver.toArbeidsgiverAGDTO(),
+        kontaktMedPasient = sykmeldingsDokument.kontaktMedPasient.toKontaktMedPasientAGDTO(),
+        prognose = sykmeldingsDokument.prognose?.toPrognoseAGDTO(),
+        egenmeldt = sykmeldingsDokument.avsenderSystem.navn == "Egenmeldt",
+        papirsykmelding = sykmeldingsDokument.avsenderSystem.navn == "Papirsykmelding",
+        harRedusertArbeidsgiverperiode = sykmeldingsDokument.medisinskVurdering.getHarRedusertArbeidsgiverperiode(sykmeldingsDokument.perioder),
+        merknader = merknader?.map { Merknad(type = it.type, beskrivelse = it.beskrivelse) }
     )
 }
 
 fun MottattSykmeldingDbModel.toArbeidsgiverSykmelding(): ArbeidsgiverSykmelding {
-        return ArbeidsgiverSykmelding(
-                id = id,
-                mottattTidspunkt = getUtcTime(mottattTidspunkt),
-                behandletTidspunkt = getUtcTime(sykmeldingsDokument.behandletTidspunkt),
-                meldingTilArbeidsgiver = sykmeldingsDokument.meldingTilArbeidsgiver,
-                tiltakArbeidsplassen = sykmeldingsDokument.tiltakArbeidsplassen,
-                syketilfelleStartDato = sykmeldingsDokument.syketilfelleStartDato,
-                behandler = sykmeldingsDokument.behandler.toBehandlerAGDTO(),
-                sykmeldingsperioder = sykmeldingsDokument.perioder.map { it.toSykmeldingsperiodeAGDTO(id) },
-                arbeidsgiver = sykmeldingsDokument.arbeidsgiver.toArbeidsgiverAGDTO(),
-                kontaktMedPasient = sykmeldingsDokument.kontaktMedPasient.toKontaktMedPasientAGDTO(),
-                prognose = sykmeldingsDokument.prognose?.toPrognoseAGDTO(),
-                egenmeldt = sykmeldingsDokument.avsenderSystem.navn == "Egenmeldt",
-                papirsykmelding = sykmeldingsDokument.avsenderSystem.navn == "Papirsykmelding",
-                harRedusertArbeidsgiverperiode = sykmeldingsDokument.medisinskVurdering.getHarRedusertArbeidsgiverperiode(sykmeldingsDokument.perioder),
-                merknader = merknader?.map { Merknad(type = it.type, beskrivelse = it.beskrivelse) }
-        )
+    return ArbeidsgiverSykmelding(
+        id = id,
+        mottattTidspunkt = getUtcTime(mottattTidspunkt),
+        behandletTidspunkt = getUtcTime(sykmeldingsDokument.behandletTidspunkt),
+        meldingTilArbeidsgiver = sykmeldingsDokument.meldingTilArbeidsgiver,
+        tiltakArbeidsplassen = sykmeldingsDokument.tiltakArbeidsplassen,
+        syketilfelleStartDato = sykmeldingsDokument.syketilfelleStartDato,
+        behandler = sykmeldingsDokument.behandler.toBehandlerAGDTO(),
+        sykmeldingsperioder = sykmeldingsDokument.perioder.map { it.toSykmeldingsperiodeAGDTO(id) },
+        arbeidsgiver = sykmeldingsDokument.arbeidsgiver.toArbeidsgiverAGDTO(),
+        kontaktMedPasient = sykmeldingsDokument.kontaktMedPasient.toKontaktMedPasientAGDTO(),
+        prognose = sykmeldingsDokument.prognose?.toPrognoseAGDTO(),
+        egenmeldt = sykmeldingsDokument.avsenderSystem.navn == "Egenmeldt",
+        papirsykmelding = sykmeldingsDokument.avsenderSystem.navn == "Papirsykmelding",
+        harRedusertArbeidsgiverperiode = sykmeldingsDokument.medisinskVurdering.getHarRedusertArbeidsgiverperiode(sykmeldingsDokument.perioder),
+        merknader = merknader?.map { Merknad(type = it.type, beskrivelse = it.beskrivelse) }
+    )
 }
 
 private fun Behandler.toBehandlerAGDTO(): BehandlerAGDTO {
-        return BehandlerAGDTO(
-                fornavn = fornavn,
-                mellomnavn = mellomnavn,
-                hpr = hpr,
-                tlf = tlf,
-                etternavn = etternavn,
-                adresse = AdresseDTO(adresse.gate, adresse.postnummer, adresse.kommune, adresse.postboks, adresse.land)
-        )
+    return BehandlerAGDTO(
+        fornavn = fornavn,
+        mellomnavn = mellomnavn,
+        hpr = hpr,
+        tlf = tlf,
+        etternavn = etternavn,
+        adresse = AdresseDTO(adresse.gate, adresse.postnummer, adresse.kommune, adresse.postboks, adresse.land)
+    )
 }
 
 fun Periode.toSykmeldingsperiodeAGDTO(sykmeldingId: String): SykmeldingsperiodeAGDTO {
-        return SykmeldingsperiodeAGDTO(
-                fom = fom,
-                tom = tom,
-                behandlingsdager = behandlingsdager,
-                gradert = gradert?.toGradertDTO(),
-                innspillTilArbeidsgiver = avventendeInnspillTilArbeidsgiver,
-                type = finnPeriodetype(this, sykmeldingId),
-                aktivitetIkkeMulig = aktivitetIkkeMulig?.toAktivitetIkkeMuligAGDTO(),
-                reisetilskudd = reisetilskudd
-        )
+    return SykmeldingsperiodeAGDTO(
+        fom = fom,
+        tom = tom,
+        behandlingsdager = behandlingsdager,
+        gradert = gradert?.toGradertDTO(),
+        innspillTilArbeidsgiver = avventendeInnspillTilArbeidsgiver,
+        type = finnPeriodetype(this, sykmeldingId),
+        aktivitetIkkeMulig = aktivitetIkkeMulig?.toAktivitetIkkeMuligAGDTO(),
+        reisetilskudd = reisetilskudd
+    )
 }
 
 private fun finnPeriodetype(periode: Periode, sykmeldingId: String): PeriodetypeDTO =
-        when {
-                periode.aktivitetIkkeMulig != null -> PeriodetypeDTO.AKTIVITET_IKKE_MULIG
-                periode.avventendeInnspillTilArbeidsgiver != null -> PeriodetypeDTO.AVVENTENDE
-                periode.behandlingsdager != null -> PeriodetypeDTO.BEHANDLINGSDAGER
-                periode.gradert != null -> PeriodetypeDTO.GRADERT
-                periode.reisetilskudd -> PeriodetypeDTO.REISETILSKUDD
-                else -> throw RuntimeException("Kunne ikke bestemme typen til periode: $periode for sykmeldingId $sykmeldingId")
-        }
+    when {
+        periode.aktivitetIkkeMulig != null -> PeriodetypeDTO.AKTIVITET_IKKE_MULIG
+        periode.avventendeInnspillTilArbeidsgiver != null -> PeriodetypeDTO.AVVENTENDE
+        periode.behandlingsdager != null -> PeriodetypeDTO.BEHANDLINGSDAGER
+        periode.gradert != null -> PeriodetypeDTO.GRADERT
+        periode.reisetilskudd -> PeriodetypeDTO.REISETILSKUDD
+        else -> throw RuntimeException("Kunne ikke bestemme typen til periode: $periode for sykmeldingId $sykmeldingId")
+    }
 
 private fun AktivitetIkkeMulig?.toAktivitetIkkeMuligAGDTO(): AktivitetIkkeMuligAGDTO? {
-        return when (this) {
-                null -> null
-                else -> AktivitetIkkeMuligAGDTO(
-                        arbeidsrelatertArsak = arbeidsrelatertArsak.toArbeidsRelatertArsakDTO()
-                )
-        }
+    return when (this) {
+        null -> null
+        else -> AktivitetIkkeMuligAGDTO(
+            arbeidsrelatertArsak = arbeidsrelatertArsak.toArbeidsRelatertArsakDTO()
+        )
+    }
 }
 
 private fun ArbeidsrelatertArsak?.toArbeidsRelatertArsakDTO(): ArbeidsrelatertArsakDTO? {
-        return when (this) {
-                null -> null
-                else -> ArbeidsrelatertArsakDTO(
-                        beskrivelse = beskrivelse,
-                        arsak = arsak.map { toArbeidsrelatertArsakTypeDTO(it) }
-                )
-        }
+    return when (this) {
+        null -> null
+        else -> ArbeidsrelatertArsakDTO(
+            beskrivelse = beskrivelse,
+            arsak = arsak.map { toArbeidsrelatertArsakTypeDTO(it) }
+        )
+    }
 }
 
 private fun toArbeidsrelatertArsakTypeDTO(arbeidsrelatertArsakType: ArbeidsrelatertArsakType): ArbeidsrelatertArsakTypeDTO {
-        return when (arbeidsrelatertArsakType) {
-                ArbeidsrelatertArsakType.MANGLENDE_TILRETTELEGGING -> ArbeidsrelatertArsakTypeDTO.MANGLENDE_TILRETTELEGGING
-                ArbeidsrelatertArsakType.ANNET -> ArbeidsrelatertArsakTypeDTO.ANNET
-        }
+    return when (arbeidsrelatertArsakType) {
+        ArbeidsrelatertArsakType.MANGLENDE_TILRETTELEGGING -> ArbeidsrelatertArsakTypeDTO.MANGLENDE_TILRETTELEGGING
+        ArbeidsrelatertArsakType.ANNET -> ArbeidsrelatertArsakTypeDTO.ANNET
+    }
 }
 
 private fun Gradert?.toGradertDTO(): GradertDTO? {
-        return when (this) {
-                null -> null
-                else -> GradertDTO(
-                        grad = grad,
-                        reisetilskudd = reisetilskudd
-                )
-        }
+    return when (this) {
+        null -> null
+        else -> GradertDTO(
+            grad = grad,
+            reisetilskudd = reisetilskudd
+        )
+    }
 }
 
 private fun Arbeidsgiver.toArbeidsgiverAGDTO(): ArbeidsgiverAGDTO {
-        return ArbeidsgiverAGDTO(
-                navn = navn,
-                yrkesbetegnelse = yrkesbetegnelse
-        )
+    return ArbeidsgiverAGDTO(
+        navn = navn,
+        yrkesbetegnelse = yrkesbetegnelse
+    )
 }
 
 private fun KontaktMedPasient.toKontaktMedPasientAGDTO(): KontaktMedPasientAGDTO {
-        return KontaktMedPasientAGDTO(
-                kontaktDato = kontaktDato
-        )
+    return KontaktMedPasientAGDTO(
+        kontaktDato = kontaktDato
+    )
 }
 
 private fun Prognose?.toPrognoseAGDTO(): PrognoseAGDTO? {
-        return when (this) {
-                null -> null
-                else -> {
-                        PrognoseAGDTO(
-                                arbeidsforEtterPeriode = arbeidsforEtterPeriode,
-                                hensynArbeidsplassen = hensynArbeidsplassen
-                        )
-                }
+    return when (this) {
+        null -> null
+        else -> {
+            PrognoseAGDTO(
+                arbeidsforEtterPeriode = arbeidsforEtterPeriode,
+                hensynArbeidsplassen = hensynArbeidsplassen
+            )
         }
+    }
 }

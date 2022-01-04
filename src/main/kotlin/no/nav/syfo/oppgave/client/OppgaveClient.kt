@@ -1,4 +1,4 @@
-package no.nav.syfo.oppgave
+package no.nav.syfo.oppgave.client
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
@@ -8,11 +8,9 @@ import io.ktor.client.statement.HttpStatement
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.util.KtorExperimentalAPI
-import java.time.LocalDate
 import no.nav.syfo.client.StsOidcClient
+import java.time.LocalDate
 
-@KtorExperimentalAPI
 class OppgaveClient(
     private val url: String,
     private val oidcClient: StsOidcClient,

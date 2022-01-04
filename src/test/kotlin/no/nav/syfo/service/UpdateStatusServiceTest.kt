@@ -5,10 +5,6 @@ import io.mockk.every
 import io.mockk.mockkClass
 import io.mockk.mockkStatic
 import io.mockk.verify
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.util.UUID
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.model.ArbeidsgiverStatus
 import no.nav.syfo.model.ShortName
@@ -25,6 +21,10 @@ import no.nav.syfo.persistering.db.postgres.oppdaterSykmeldingStatus
 import no.nav.syfo.persistering.db.postgres.svarFinnesFraFor
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.xdescribe
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.util.UUID
 
 class UpdateStatusServiceTest : Spek({
 
@@ -138,7 +138,8 @@ class UpdateStatusServiceTest : Spek({
                     sykmeldingId,
                     kafkaTimestamp.plusMinutes(
                         10
-                    ), StatusEvent.UTGATT
+                    ),
+                    StatusEvent.UTGATT
                 )
             )
 
@@ -195,7 +196,8 @@ class UpdateStatusServiceTest : Spek({
                             sykmeldingId,
                             createdDateTime,
                             StatusEvent.APEN
-                        ), SykmeldingStatusEvent(sykmeldingId, sendtTilArbeidsgiverDato, StatusEvent.SENDT)
+                        ),
+                        SykmeldingStatusEvent(sykmeldingId, sendtTilArbeidsgiverDato, StatusEvent.SENDT)
                     )
                 )
             }
@@ -242,7 +244,8 @@ class UpdateStatusServiceTest : Spek({
                                 sporsmalId = null
                             )
                         )
-                    ), sykmeldingStatusTopicEvent.arbeidsgiver
+                    ),
+                    sykmeldingStatusTopicEvent.arbeidsgiver
                 )
             }
             verify(exactly = 1) { database.svarFinnesFraFor(sykmeldingId) }
@@ -279,7 +282,8 @@ class UpdateStatusServiceTest : Spek({
                             sykmeldingId,
                             createdDateTime,
                             StatusEvent.APEN
-                        ), SykmeldingStatusEvent(sykmeldingId, sendtTilArbeidsgiverDato, StatusEvent.BEKREFTET)
+                        ),
+                        SykmeldingStatusEvent(sykmeldingId, sendtTilArbeidsgiverDato, StatusEvent.BEKREFTET)
                     )
                 )
             }
@@ -296,7 +300,8 @@ class UpdateStatusServiceTest : Spek({
                                 svar = sykmeldingStatusTopicEvent.arbeidssituasjon!!,
                                 sporsmalId = null
                             )
-                        ), Sporsmal(
+                        ),
+                        Sporsmal(
                             "Har du forsikring som gjelder de første 16 dagene av sykefraværet?",
                             ShortName.FORSIKRING,
                             Svar(
@@ -316,7 +321,8 @@ class UpdateStatusServiceTest : Spek({
                                 "NEI"
                             )
                         )
-                    ), null
+                    ),
+                    null
                 )
             }
         }
@@ -352,7 +358,8 @@ class UpdateStatusServiceTest : Spek({
                             sykmeldingId,
                             createdDateTime,
                             StatusEvent.APEN
-                        ), SykmeldingStatusEvent(sykmeldingId, sendtTilArbeidsgiverDato, StatusEvent.BEKREFTET)
+                        ),
+                        SykmeldingStatusEvent(sykmeldingId, sendtTilArbeidsgiverDato, StatusEvent.BEKREFTET)
                     )
                 )
             }

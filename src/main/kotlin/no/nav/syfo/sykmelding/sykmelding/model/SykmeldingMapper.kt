@@ -1,8 +1,5 @@
 package no.nav.syfo.sykmelding.sykmelding.model
 
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import no.nav.syfo.identendring.model.periodeErInnenforKoronaregler
 import no.nav.syfo.model.ShortName
 import no.nav.syfo.model.Sporsmal
@@ -31,6 +28,9 @@ import no.nav.syfo.sykmelding.model.Prognose
 import no.nav.syfo.sykmelding.model.SporsmalSvar
 import no.nav.syfo.sykmelding.model.StatusDbModel
 import no.nav.syfo.sykmelding.model.SvarRestriksjon
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 fun MedisinskVurdering.getHarRedusertArbeidsgiverperiode(sykmeldingsperioder: List<Periode>): Boolean {
     val sykmeldingsperioderInnenforKoronaregler = sykmeldingsperioder.filter { periodeErInnenforKoronaregler(it.fom, it.tom) }
@@ -47,13 +47,13 @@ fun MedisinskVurdering.getHarRedusertArbeidsgiverperiode(sykmeldingsperioder: Li
 }
 
 private fun MedisinskVurdering.checkSmittefare() =
-        annenFraversArsak?.grunn?.any { annenFraverGrunn -> annenFraverGrunn == AnnenFraverGrunn.SMITTEFARE } == true
+    annenFraversArsak?.grunn?.any { annenFraverGrunn -> annenFraverGrunn == AnnenFraverGrunn.SMITTEFARE } == true
 
 fun Sporsmal.toSporsmalDTO(): SporsmalDTO {
     return SporsmalDTO(
-            tekst = tekst,
-            svar = svar.toDTO(),
-            shortName = shortName.toDTO()
+        tekst = tekst,
+        svar = svar.toDTO(),
+        shortName = shortName.toDTO()
     )
 }
 
@@ -69,8 +69,8 @@ private fun ShortName.toDTO(): ShortNameDTO {
 
 private fun Svar.toDTO(): SvarDTO {
     return SvarDTO(
-            svar = svar,
-            svarType = svartype.toDTO()
+        svar = svar,
+        svarType = svartype.toDTO()
     )
 }
 
@@ -97,15 +97,15 @@ private fun ArbeidsgiverDbModel.toArbeidsgiverStatusDTO(): ArbeidsgiverStatusDTO
 fun toUtdypendeOpplysninger(utdypendeOpplysninger: Map<String, Map<String, SporsmalSvar>>): Map<String, Map<String, SporsmalSvarDTO>> {
     return utdypendeOpplysninger.mapValues {
         it.value.mapValues { entry -> entry.value.toSporsmalSvarDTO() }
-                .filterValues { sporsmalSvar -> !sporsmalSvar.restriksjoner.contains(SvarRestriksjonDTO.SKJERMET_FOR_NAV) }
+            .filterValues { sporsmalSvar -> !sporsmalSvar.restriksjoner.contains(SvarRestriksjonDTO.SKJERMET_FOR_NAV) }
     }
 }
 
 fun SporsmalSvar.toSporsmalSvarDTO(): SporsmalSvarDTO {
     return SporsmalSvarDTO(
-            sporsmal = sporsmal,
-            svar = svar,
-            restriksjoner = restriksjoner.map { it.toSvarRestriksjonDTO() }
+        sporsmal = sporsmal,
+        svar = svar,
+        restriksjoner = restriksjoner.map { it.toSvarRestriksjonDTO() }
 
     )
 }
@@ -120,41 +120,41 @@ private fun SvarRestriksjon.toSvarRestriksjonDTO(): SvarRestriksjonDTO {
 
 fun Prognose.toPrognoseDTO(): PrognoseDTO {
     return PrognoseDTO(
-            arbeidsforEtterPeriode = arbeidsforEtterPeriode,
-            erIArbeid = erIArbeid?.toErIArbeidDTO(),
-            erIkkeIArbeid = erIkkeIArbeid?.toErIkkeIArbeidDTO(),
-            hensynArbeidsplassen = hensynArbeidsplassen
+        arbeidsforEtterPeriode = arbeidsforEtterPeriode,
+        erIArbeid = erIArbeid?.toErIArbeidDTO(),
+        erIkkeIArbeid = erIkkeIArbeid?.toErIkkeIArbeidDTO(),
+        hensynArbeidsplassen = hensynArbeidsplassen
     )
 }
 
 private fun ErIkkeIArbeid.toErIkkeIArbeidDTO(): ErIkkeIArbeidDTO {
     return ErIkkeIArbeidDTO(
-            arbeidsforPaSikt = arbeidsforPaSikt,
-            arbeidsforFOM = arbeidsforFOM,
-            vurderingsdato = vurderingsdato
+        arbeidsforPaSikt = arbeidsforPaSikt,
+        arbeidsforFOM = arbeidsforFOM,
+        vurderingsdato = vurderingsdato
     )
 }
 
 private fun ErIArbeid.toErIArbeidDTO(): ErIArbeidDTO {
     return ErIArbeidDTO(
-            egetArbeidPaSikt = egetArbeidPaSikt,
-            annetArbeidPaSikt = annetArbeidPaSikt,
-            arbeidFOM = arbeidFOM,
-            vurderingsdato = vurderingsdato
+        egetArbeidPaSikt = egetArbeidPaSikt,
+        annetArbeidPaSikt = annetArbeidPaSikt,
+        arbeidFOM = arbeidFOM,
+        vurderingsdato = vurderingsdato
     )
 }
 
 private fun MeldingTilNAV.toMeldingTilNavDTO(): MeldingTilNavDTO? {
     return MeldingTilNavDTO(
-            bistandUmiddelbart = bistandUmiddelbart,
-            beskrivBistand = beskrivBistand
+        bistandUmiddelbart = bistandUmiddelbart,
+        beskrivBistand = beskrivBistand
     )
 }
 
 fun KontaktMedPasient.toKontaktMedPasientDTO(): KontaktMedPasientDTO {
     return KontaktMedPasientDTO(
-            kontaktDato = kontaktDato,
-            begrunnelseIkkeKontakt = begrunnelseIkkeKontakt
+        kontaktDato = kontaktDato,
+        begrunnelseIkkeKontakt = begrunnelseIkkeKontakt
     )
 }
 
@@ -164,26 +164,28 @@ fun Arbeidsgiver.toArbeidsgiverDTO(): ArbeidsgiverDTO {
 
 fun Periode.toSykmeldingsperiodeDTO(): SykmeldingsperiodeDTO {
     return SykmeldingsperiodeDTO(
-            fom = fom,
-            tom = tom,
-            behandlingsdager = behandlingsdager,
-            gradert = gradert?.toGradertDTO(),
-            innspillTilArbeidsgiver = avventendeInnspillTilArbeidsgiver,
-            type = finnPeriodetype(this).toDTO(),
-            aktivitetIkkeMulig = aktivitetIkkeMulig?.toDto(),
-            reisetilskudd = reisetilskudd
+        fom = fom,
+        tom = tom,
+        behandlingsdager = behandlingsdager,
+        gradert = gradert?.toGradertDTO(),
+        innspillTilArbeidsgiver = avventendeInnspillTilArbeidsgiver,
+        type = finnPeriodetype(this).toDTO(),
+        aktivitetIkkeMulig = aktivitetIkkeMulig?.toDto(),
+        reisetilskudd = reisetilskudd
     )
 }
 
 private fun AktivitetIkkeMulig.toDto(): AktivitetIkkeMuligDTO {
-    return AktivitetIkkeMuligDTO(medisinskArsak = medisinskArsak?.toMedisinskArsakDto(),
-            arbeidsrelatertArsak = arbeidsrelatertArsak?.toArbeidsrelatertArsakDto())
+    return AktivitetIkkeMuligDTO(
+        medisinskArsak = medisinskArsak?.toMedisinskArsakDto(),
+        arbeidsrelatertArsak = arbeidsrelatertArsak?.toArbeidsrelatertArsakDto()
+    )
 }
 
 private fun ArbeidsrelatertArsak.toArbeidsrelatertArsakDto(): ArbeidsrelatertArsakDTO {
     return ArbeidsrelatertArsakDTO(
-            beskrivelse = beskrivelse,
-            arsak = arsak.map { toArbeidsrelatertArsakTypeDto(it) }
+        beskrivelse = beskrivelse,
+        arsak = arsak.map { toArbeidsrelatertArsakTypeDto(it) }
     )
 }
 
@@ -196,8 +198,8 @@ fun toArbeidsrelatertArsakTypeDto(arbeidsrelatertArsakType: ArbeidsrelatertArsak
 
 private fun MedisinskArsak.toMedisinskArsakDto(): MedisinskArsakDTO {
     return MedisinskArsakDTO(
-            beskrivelse = beskrivelse,
-            arsak = arsak.map { toMedisinskArsakTypeDto(it) }
+        beskrivelse = beskrivelse,
+        arsak = arsak.map { toMedisinskArsakTypeDto(it) }
     )
 }
 
@@ -216,8 +218,8 @@ private fun Gradert.toGradertDTO(): GradertDTO {
 
 private fun AnnenFraversArsak.toDTO(): AnnenFraversArsakDTO {
     return AnnenFraversArsakDTO(
-            beskrivelse = beskrivelse,
-            grunn = grunn.map { it.toDTO() }
+        beskrivelse = beskrivelse,
+        grunn = grunn.map { it.toDTO() }
     )
 }
 
@@ -238,37 +240,37 @@ private fun AnnenFraverGrunn.toDTO(): AnnenFraverGrunnDTO {
 
 fun Behandler.toBehandlerDTO(): BehandlerDTO {
     return BehandlerDTO(
-            fornavn = fornavn,
-            mellomnavn = mellomnavn,
-            etternavn = etternavn,
-            aktoerId = aktoerId,
-            fnr = fnr,
-            her = her,
-            hpr = hpr,
-            tlf = tlf,
-            adresse = adresse.toAdresseDTO()
+        fornavn = fornavn,
+        mellomnavn = mellomnavn,
+        etternavn = etternavn,
+        aktoerId = aktoerId,
+        fnr = fnr,
+        her = her,
+        hpr = hpr,
+        tlf = tlf,
+        adresse = adresse.toAdresseDTO()
     )
 }
 
 private fun Adresse.toAdresseDTO(): AdresseDTO {
     return AdresseDTO(
-            gate = gate,
-            kommune = kommune,
-            land = land,
-            postboks = postboks,
-            postnummer = postnummer
+        gate = gate,
+        kommune = kommune,
+        land = land,
+        postboks = postboks,
+        postnummer = postnummer
     )
 }
 
 fun finnPeriodetype(periode: Periode): Periodetype =
-        when {
-            periode.aktivitetIkkeMulig != null -> Periodetype.AKTIVITET_IKKE_MULIG
-            periode.avventendeInnspillTilArbeidsgiver != null -> Periodetype.AVVENTENDE
-            periode.behandlingsdager != null -> Periodetype.BEHANDLINGSDAGER
-            periode.gradert != null -> Periodetype.GRADERT
-            periode.reisetilskudd -> Periodetype.REISETILSKUDD
-            else -> throw RuntimeException("Kunne ikke bestemme typen til periode: $periode")
-        }
+    when {
+        periode.aktivitetIkkeMulig != null -> Periodetype.AKTIVITET_IKKE_MULIG
+        periode.avventendeInnspillTilArbeidsgiver != null -> Periodetype.AVVENTENDE
+        periode.behandlingsdager != null -> Periodetype.BEHANDLINGSDAGER
+        periode.gradert != null -> Periodetype.GRADERT
+        periode.reisetilskudd -> Periodetype.REISETILSKUDD
+        else -> throw RuntimeException("Kunne ikke bestemme typen til periode: $periode")
+    }
 
 fun Periodetype.toDTO(): PeriodetypeDTO =
     PeriodetypeDTO.valueOf(this.name)

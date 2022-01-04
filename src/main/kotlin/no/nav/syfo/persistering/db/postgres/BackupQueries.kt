@@ -1,10 +1,10 @@
 package no.nav.syfo.persistering.db.postgres
 
+import no.nav.syfo.db.DatabaseInterfacePostgresUtenVault
+import no.nav.syfo.db.toList
 import java.sql.ResultSet
 import java.sql.Timestamp
 import java.time.LocalDate
-import no.nav.syfo.db.DatabaseInterfacePostgresUtenVault
-import no.nav.syfo.db.toList
 
 fun DatabaseInterfacePostgresUtenVault.hentAntallSykmeldinger(): List<AntallSykmeldingerBackup> =
     connection.use { connection ->

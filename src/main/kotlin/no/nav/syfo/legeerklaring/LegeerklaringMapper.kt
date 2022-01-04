@@ -2,8 +2,6 @@ package no.nav.syfo.legeerklaring
 
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.readValue
-import java.io.StringReader
-import javax.xml.namespace.QName
 import no.nav.helse.eiFellesformat.XMLEIFellesformat
 import no.nav.helse.eiFellesformat.XMLMottakenhetBlokk
 import no.nav.helse.legeerklaering.Legeerklaring
@@ -16,6 +14,8 @@ import no.nav.syfo.legeerklaringObjectMapper
 import no.nav.syfo.objectMapper
 import no.nav.syfo.utils.fellesformatUnmarshaller
 import no.nav.syfo.utils.get
+import java.io.StringReader
+import javax.xml.namespace.QName
 
 data class CustomeX509Cert(val value: String)
 data class CustomeX509DataType(val x509IssuerSerialOrX509SKIOrX509SubjectName: List<CustomeX509Cert>)

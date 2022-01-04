@@ -1,9 +1,9 @@
 package no.nav.syfo.narmesteleder
 
-import java.sql.ResultSet
 import no.nav.syfo.aksessering.db.oracle.DatabaseResult
 import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.db.toList
+import java.sql.ResultSet
 
 fun DatabaseInterfaceOracle.hentNarmesteLederSyfoService(
     lastIndex: Int,
@@ -33,7 +33,8 @@ fun DatabaseInterfaceOracle.hentNarmesteLederSyfoService(
             val resultSet = it.executeQuery()
             return DatabaseResult(
                 lastIndex = limit + lastIndex,
-                rows = resultSet.toList { mapToSyfoServiceNarmesteLeder() })
+                rows = resultSet.toList { mapToSyfoServiceNarmesteLeder() }
+            )
         }
     }
 

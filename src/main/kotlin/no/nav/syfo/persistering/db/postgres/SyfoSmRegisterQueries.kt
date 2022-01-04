@@ -1,13 +1,6 @@
 package no.nav.syfo.persistering.db.postgres
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import java.sql.Connection
-import java.sql.ResultSet
-import java.sql.Statement
-import java.sql.Timestamp
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZoneOffset
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.db.toList
@@ -44,6 +37,13 @@ import no.nav.syfo.sykmelding.model.toEnkelSykmeldingDbModel
 import no.nav.syfo.sykmelding.model.toEnkelSykmeldingDbModelUtenStatus
 import no.nav.syfo.sykmelding.model.toMotattSykmeldingDbModel
 import no.nav.syfo.sykmelding.model.toSendtSykmeldingDbModel
+import java.sql.Connection
+import java.sql.ResultSet
+import java.sql.Statement
+import java.sql.Timestamp
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 data class DatabaseResult(
     val lastIndex: Int,
@@ -760,8 +760,10 @@ fun Connection.deleteAndInsertSykmelding(
         insertSykmeldingsopplysninger(connection, sykmeldingDb.sykmeldingsopplysninger)
         insertSykmeldingsdokument(connection, sykmeldingDb.sykmeldingsdokument!!)
         lagreBehandlingsutfall(
-            connection, Behandlingsutfall(
-                sykmeldingDb.sykmeldingsopplysninger.id, ValidationResult(
+            connection,
+            Behandlingsutfall(
+                sykmeldingDb.sykmeldingsopplysninger.id,
+                ValidationResult(
                     Status.OK, emptyList()
                 )
             )
