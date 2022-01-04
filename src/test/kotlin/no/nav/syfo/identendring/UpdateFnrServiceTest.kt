@@ -44,6 +44,7 @@ import no.nav.syfo.pdl.client.model.IdentInformasjon
 import no.nav.syfo.pdl.model.PdlPerson
 import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.sm.Diagnosekoder
+import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
 import org.amshove.kluent.shouldEqual
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -53,11 +54,11 @@ class UpdateFnrServiceTest : Spek({
     val pdlPersonService = mockk<PdlPersonService>(relaxed = true)
     mockkStatic("no.nav.syfo.identendring.db.SyfoSmRegisterKt")
     val db = mockk<DatabaseInterfacePostgres>(relaxed = true)
-    val sendtSykmeldingKafkaProducer = mockk<SendtSykmeldingKafkaProducer>(relaxed = true)
+    val sendtSykmeldingKafkaProducer = mockk<SykmeldingV2KafkaProducer>(relaxed = true)
     val narmesteLederResponseKafkaProducer = mockk<NarmesteLederResponseKafkaProducer>(relaxed = true)
     val narmestelederClient = mockk<NarmestelederClient>()
 
-    val updateFnrService = UpdateFnrService(pdlPersonService, db, sendtSykmeldingKafkaProducer, narmesteLederResponseKafkaProducer, narmestelederClient)
+    val updateFnrService = UpdateFnrService(pdlPersonService, db, sendtSykmeldingKafkaProducer, narmesteLederResponseKafkaProducer, narmestelederClient, "topic")
 
     beforeEachTest {
         clearMocks(sendtSykmeldingKafkaProducer, narmesteLederResponseKafkaProducer)
@@ -139,7 +140,7 @@ class UpdateFnrServiceTest : Spek({
                     fnr = "12345678912",
                     nyttFnr = "12345678913") shouldEqual true
 
-                coVerify { sendtSykmeldingKafkaProducer.sendSykmelding(match { it.kafkaMetadata.fnr == "12345678913" }) }
+                coVerify { sendtSykmeldingKafkaProducer.sendSykmelding(match { it.kafkaMetadata.fnr == "12345678913" }, any(), any()) }
                 coVerify(exactly = 1) { narmesteLederResponseKafkaProducer.publishToKafka(match<NlResponseKafkaMessage> { it.nlAvbrutt?.sykmeldtFnr == "12345678912" }, "9898") }
                 coVerify(exactly = 1) { narmesteLederResponseKafkaProducer.publishToKafka(match<NlResponseKafkaMessage> { it.nlResponse == getExpectedNarmestelederResponse() }, "9898") }
             }
@@ -176,7 +177,7 @@ class UpdateFnrServiceTest : Spek({
                     fnr = "12345678912",
                     nyttFnr = "12345678913") shouldEqual true
 
-                coVerify(exactly = 1) { sendtSykmeldingKafkaProducer.sendSykmelding(match { it.kafkaMetadata.fnr == "12345678913" }) }
+                coVerify(exactly = 1) { sendtSykmeldingKafkaProducer.sendSykmelding(match { it.kafkaMetadata.fnr == "12345678913" }, any(), any()) }
                 coVerify(exactly = 1) { narmesteLederResponseKafkaProducer.publishToKafka(match<NlResponseKafkaMessage> { it.nlAvbrutt?.sykmeldtFnr == "12345678912" }, "9898") }
                 coVerify(exactly = 1) { narmesteLederResponseKafkaProducer.publishToKafka(match<NlResponseKafkaMessage> { it.nlResponse == getExpectedNarmestelederResponse() }, "9898") }
             }

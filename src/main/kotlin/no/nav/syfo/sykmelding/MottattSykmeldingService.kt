@@ -11,15 +11,17 @@ import no.nav.syfo.log
 import no.nav.syfo.model.Status
 import no.nav.syfo.model.sykmeldingstatus.KafkaMetadataDTO
 import no.nav.syfo.persistering.db.postgres.getMottattSykmelding
-import no.nav.syfo.sykmelding.kafka.model.MottattSykmeldingKafkaMessage
-import no.nav.syfo.sykmelding.kafka.model.toEnkelSykmelding
+import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaMessage
+import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
+import no.nav.syfo.sykmelding.kafka.model.toArbeidsgiverSykmelding
 import no.nav.syfo.sykmelding.model.MottattSykmeldingDbModel
 
 class MottattSykmeldingService(
     private val applicationState: ApplicationState,
     private val databasePostgres: DatabasePostgres,
-    private val mottattSykmeldingProudcer: MottattSykmeldingKafkaProducer,
-    private val lastMottattDato: LocalDate
+    private val mottattSykmeldingProudcer: SykmeldingV2KafkaProducer,
+    private val lastMottattDato: LocalDate,
+    private val mottattSykmeldingTopic: String
 ) {
     suspend fun run() {
         var counter = 0
@@ -42,7 +44,7 @@ class MottattSykmeldingService(
                 }
                 .map {
                     try {
-                        mapTilMottattSykmelding(it)
+                        mapSykmelding(it)
                     } catch (ex: Exception) {
                         log.error(
                             "noe gikk galt med sykmelidng {}, på dato {}",
@@ -52,7 +54,11 @@ class MottattSykmeldingService(
                         throw ex
                     }
                 }.forEach {
-                    mottattSykmeldingProudcer.sendSykmelding(it)
+                    mottattSykmeldingProudcer.sendSykmelding(
+                        sykmeldingKafkaMessage = it,
+                        sykmeldingId = it.kafkaMetadata.sykmeldingId,
+                        topic = mottattSykmeldingTopic
+                    )
                     counter++
                 }
             lastMottattDato = lastMottattDato.plusDays(1)
@@ -65,16 +71,16 @@ class MottattSykmeldingService(
         )
     }
 
-    private fun mapTilMottattSykmelding(mottattSykmeldingDbModel: MottattSykmeldingDbModel): MottattSykmeldingKafkaMessage {
-        return MottattSykmeldingKafkaMessage(
-            sykmelding = mottattSykmeldingDbModel.toEnkelSykmelding(),
+    private fun mapSykmelding(mottattSykmeldingDbModel: MottattSykmeldingDbModel): SykmeldingV2KafkaMessage {
+        return SykmeldingV2KafkaMessage(
+            sykmelding = mottattSykmeldingDbModel.toArbeidsgiverSykmelding(),
             kafkaMetadata = KafkaMetadataDTO(
                 sykmeldingId = mottattSykmeldingDbModel.id,
                 timestamp = mottattSykmeldingDbModel.mottattTidspunkt.atOffset(ZoneOffset.UTC),
                 fnr = mottattSykmeldingDbModel.fnr,
                 source = "syfosmregister"
-
-            )
+            ),
+            event = null
         )
     }
 }

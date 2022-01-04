@@ -20,19 +20,21 @@ import no.nav.syfo.model.sykmeldingstatus.SvartypeDTO
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaEventDTO
 import no.nav.syfo.persistering.db.postgres.getSendtSykmeldingMedSisteStatus
 import no.nav.syfo.persistering.db.postgres.getSykmeldingMedSisteStatus
-import no.nav.syfo.sykmelding.kafka.model.SykmeldingKafkaMessage
-import no.nav.syfo.sykmelding.kafka.model.toEnkelSykmelding
+import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaMessage
+import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
+import no.nav.syfo.sykmelding.kafka.model.toArbeidsgiverSykmelding
 import no.nav.syfo.sykmelding.model.EnkelSykmeldingDbModel
 
 class SendtSykmeldingService(
     private val applicationState: ApplicationState,
     private val databasePostgres: DatabasePostgres,
-    private val sendtSykmeldingProducer: EnkelSykmeldingKafkaProducer,
-    private val lastMottattDato: LocalDate
+    private val sendtSykmeldingProducer: SykmeldingV2KafkaProducer,
+    private val lastMottattDato: LocalDate,
+    private val sendtSykmeldingTopic: String
 ) {
 
     fun republishSendtSykmelding() {
-        val sykmeldingsid = "fdf5065c-4fc2-4456-b643-30500e8b6f9e"
+        val sykmeldingsid = ""
         val dbmodels = databasePostgres.connection.getSendtSykmeldingMedSisteStatus(sykmeldingsid)
         if (dbmodels.size > 1) {
             log.error("Fant flere sykmeldinger")
@@ -40,7 +42,11 @@ class SendtSykmeldingService(
         }
         try {
             val mapped = mapSykmelding(dbmodels.first())
-            sendtSykmeldingProducer.sendSykmelding(mapped)
+            sendtSykmeldingProducer.sendSykmelding(
+                sykmeldingKafkaMessage = mapped,
+                sykmeldingId = mapped.kafkaMetadata.sykmeldingId,
+                topic = sendtSykmeldingTopic
+            )
             log.info("Resendt sykmelding til topic")
         } catch (ex: Exception) {
             log.error("noe gikk galt med sykmelding", ex)
@@ -72,7 +78,11 @@ class SendtSykmeldingService(
                         throw ex
                     }
                 }.forEach {
-                    sendtSykmeldingProducer.sendSykmelding(it)
+                    sendtSykmeldingProducer.sendSykmelding(
+                        sykmeldingKafkaMessage = it,
+                        sykmeldingId = it.kafkaMetadata.sykmeldingId,
+                        topic = sendtSykmeldingTopic
+                    )
                     counterSendtSykmeldinger++
                 }
             lastMottattDato = lastMottattDato.plusDays(1)
@@ -84,8 +94,8 @@ class SendtSykmeldingService(
         }
     }
 
-    private fun mapSykmelding(it: EnkelSykmeldingDbModel): SykmeldingKafkaMessage {
-        val sykmelding = it.toEnkelSykmelding()
+    private fun mapSykmelding(it: EnkelSykmeldingDbModel): SykmeldingV2KafkaMessage {
+        val sykmelding = it.toArbeidsgiverSykmelding()
         val metadata = KafkaMetadataDTO(
             sykmeldingId = it.id,
             timestamp = it.status.statusTimestamp.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime(),
@@ -110,7 +120,7 @@ class SendtSykmeldingService(
                 )
             )
         )
-        return SykmeldingKafkaMessage(
+        return SykmeldingV2KafkaMessage(
             sykmelding = sykmelding,
             kafkaMetadata = metadata,
             event = sykmeldingStatusKafkaEventDTO

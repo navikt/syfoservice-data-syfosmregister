@@ -1,10 +1,12 @@
 package no.nav.syfo.sykmelding.model
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import java.sql.ResultSet
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
+import no.nav.syfo.identendring.db.Merknad
 import no.nav.syfo.model.ValidationResult
 import no.nav.syfo.objectMapper
 
@@ -15,7 +17,8 @@ fun ResultSet.toSendtSykmeldingDbModel(): EnkelSykmeldingDbModel {
         legekontorOrgNr = getString("legekontor_org_nr"),
         behandlingsutfall = objectMapper.readValue(getString("behandlingsutfall"), ValidationResult::class.java),
         status = getStatus(),
-        fnr = getString("pasient_fnr")
+        fnr = getString("pasient_fnr"),
+        merknader = getString("merknader")?.let { objectMapper.readValue<List<Merknad>>(it) }
     )
 }
 
@@ -26,7 +29,8 @@ fun ResultSet.toEnkelSykmeldingDbModel(): EnkelSykmeldingDbModel {
         legekontorOrgNr = getString("legekontor_org_nr"),
         behandlingsutfall = objectMapper.readValue(getString("behandlingsutfall"), ValidationResult::class.java),
         status = getSimpleStatus(),
-        fnr = getString("pasient_fnr")
+        fnr = getString("pasient_fnr"),
+        merknader = getString("merknader")?.let { objectMapper.readValue<List<Merknad>>(it) }
     )
 }
 
@@ -37,7 +41,8 @@ fun ResultSet.toEnkelSykmeldingDbModelUtenStatus(): EnkelSykmeldingDbModel {
         legekontorOrgNr = getString("legekontor_org_nr"),
         behandlingsutfall = objectMapper.readValue(getString("behandlingsutfall"), ValidationResult::class.java),
         status = StatusDbModel(StatusEvent.APEN.name, OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime(), null),
-        fnr = getString("pasient_fnr")
+        fnr = getString("pasient_fnr"),
+        merknader = getString("merknader")?.let { objectMapper.readValue<List<Merknad>>(it) }
     )
 }
 
@@ -48,7 +53,8 @@ fun ResultSet.toMotattSykmeldingDbModel(): MottattSykmeldingDbModel {
         mottattTidspunkt = getTimestamp("mottatt_tidspunkt").toLocalDateTime(),
         legekontorOrgNr = getString("legekontor_org_nr"),
         behandlingsutfall = objectMapper.readValue(getString("behandlingsutfall"), ValidationResult::class.java),
-        fnr = getString("pasient_fnr")
+        fnr = getString("pasient_fnr"),
+        merknader = getString("merknader")?.let { objectMapper.readValue<List<Merknad>>(it) }
     )
 }
 enum class StatusEvent {
@@ -97,7 +103,8 @@ data class EnkelSykmeldingDbModel(
     val behandlingsutfall: ValidationResult,
     val sykmeldingsDokument: Sykmelding,
     val status: StatusDbModel,
-    val fnr: String
+    val fnr: String,
+    val merknader: List<Merknad>?
 )
 
 data class MottattSykmeldingDbModel(
@@ -106,7 +113,8 @@ data class MottattSykmeldingDbModel(
     val legekontorOrgNr: String?,
     val behandlingsutfall: ValidationResult,
     val sykmeldingsDokument: Sykmelding,
-    val fnr: String
+    val fnr: String,
+    val merknader: List<Merknad>?
 )
 
 data class Sykmelding(

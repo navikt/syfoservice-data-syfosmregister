@@ -29,7 +29,6 @@ import no.nav.syfo.db.DatabasePostgresManuell
 import no.nav.syfo.db.DatabasePostgresUtenVault
 import no.nav.syfo.db.DatabaseSparenaproxyPostgres
 import no.nav.syfo.db.VaultCredentialService
-import no.nav.syfo.identendring.SendtSykmeldingKafkaProducer
 import no.nav.syfo.identendring.UpdateFnrService
 import no.nav.syfo.kafka.EiaSykmeldingKafkaProducer
 import no.nav.syfo.kafka.ReceivedSykmeldingKafkaProducer
@@ -86,18 +85,13 @@ import no.nav.syfo.service.WriteReceivedSykmeldingService
 import no.nav.syfo.sparenaproxy.Arena4UkerService
 import no.nav.syfo.sykmelding.BekreftSykmeldingService
 import no.nav.syfo.sykmelding.DeleteSykmeldingService
-import no.nav.syfo.sykmelding.EnkelSykmeldingKafkaProducer
-import no.nav.syfo.sykmelding.MottattSykmeldingKafkaProducer
 import no.nav.syfo.sykmelding.MottattSykmeldingService
-import no.nav.syfo.sykmelding.PubliserNySykmeldingStatusService
 import no.nav.syfo.sykmelding.SendtSykmeldingService
 import no.nav.syfo.sykmelding.SykmeldingStatusKafkaProducer
 import no.nav.syfo.sykmelding.aivenmigrering.AivenMigreringService
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV1KafkaMessage
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaMessage
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
-import no.nav.syfo.sykmelding.kafka.model.MottattSykmeldingKafkaMessage
-import no.nav.syfo.sykmelding.kafka.model.SykmeldingKafkaMessage
 import no.nav.syfo.utils.JacksonKafkaDeserializer
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.JacksonNullableKafkaSerializer
@@ -163,18 +157,25 @@ fun main() {
             environment.applicationName,
             valueSerializer = JacksonKafkaSerializer::class
         )
+    val kafkaAivenProducer = KafkaProducer<String, SykmeldingV2KafkaMessage?>(
+        KafkaUtils
+            .getAivenKafkaConfig()
+            .toProducerConfig("macgyver-producer", JacksonNullableKafkaSerializer::class, StringSerializer::class).apply {
+                this[ProducerConfig.ACKS_CONFIG] = "1"
+                this[ProducerConfig.RETRIES_CONFIG] = 1000
+                this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
+            }
+    )
     val sykmeldingEndringsloggKafkaProducer = SykmeldingEndringsloggKafkaProducer(environment.endringsloggTopic, KafkaProducer<String, Sykmeldingsdokument>(producerProperties))
-    val mottattSykmeldingKafkaProducer = MottattSykmeldingKafkaProducer(KafkaProducer<String, MottattSykmeldingKafkaMessage>(producerProperties), environment.mottattSykmeldingTopic)
-    val sendtSykmeldingKafkaProducer = EnkelSykmeldingKafkaProducer(KafkaProducer<String, SykmeldingKafkaMessage>(producerProperties), environment.sendSykmeldingTopic)
-    val bekreftetSykmeldingKafkaProducer = EnkelSykmeldingKafkaProducer(KafkaProducer<String, SykmeldingKafkaMessage>(producerProperties), environment.bekreftSykmeldingKafkaTopic)
     val statusKafkaProducer = SykmeldingStatusKafkaProducer(KafkaProducer(producerProperties), environment.sykmeldingStatusTopic)
     val updatePeriodeService = UpdatePeriodeService(
         databaseoracle = databaseOracle,
         databasePostgres = databasePostgres,
         sykmeldingEndringsloggKafkaProducer = sykmeldingEndringsloggKafkaProducer,
-        mottattSykmeldingProudcer = mottattSykmeldingKafkaProducer,
-        sendtSykmeldingProducer = sendtSykmeldingKafkaProducer,
-        bekreftetSykmeldingKafkaProducer = bekreftetSykmeldingKafkaProducer
+        sykmeldingProducer = SykmeldingV2KafkaProducer(kafkaAivenProducer),
+        mottattSykmeldingTopic = environment.mottattSykmeldingV2Topic,
+        sendtSykmeldingTopic = environment.sendSykmeldingV2Topic,
+        bekreftetSykmeldingTopic = environment.bekreftSykmeldingV2KafkaTopic
     )
     val updateBehandletDatoService = UpdateBehandletDatoService(
         databaseoracle = databaseOracle,
@@ -182,7 +183,7 @@ fun main() {
         sykmeldingEndringsloggKafkaProducer = sykmeldingEndringsloggKafkaProducer
     )
 
-    val sendtSykmeldingKafkaProducerFnr = SendtSykmeldingKafkaProducer(KafkaProducer<String, no.nav.syfo.identendring.model.SykmeldingKafkaMessage>(producerProperties), environment.sendSykmeldingTopic)
+    val sendtSykmeldingKafkaProducerFnr = SykmeldingV2KafkaProducer(kafkaAivenProducer)
     val narmesteLederResponseKafkaProducer = NarmesteLederResponseKafkaProducer(
         environment.nlResponseTopic,
         KafkaProducer<String, NlResponseKafkaMessage>(
@@ -197,7 +198,8 @@ fun main() {
         syfoSmRegisterDb = databasePostgres,
         sendtSykmeldingKafkaProducer = sendtSykmeldingKafkaProducerFnr,
         narmesteLederResponseKafkaProducer = narmesteLederResponseKafkaProducer,
-        narmestelederClient = httpClients.narmestelederClient
+        narmestelederClient = httpClients.narmestelederClient,
+        sendtSykmeldingTopic = environment.sendSykmeldingV2Topic
     )
 
     val deleteSykmeldingService = DeleteSykmeldingService(environment, databasePostgres, databaseOracle, statusKafkaProducer, sykmeldingEndringsloggKafkaProducer)
@@ -206,8 +208,6 @@ fun main() {
         "${environment.applicationName}-producer", valueSerializer = StringSerializer::class
     )
     val rerunKafkaService = RerunKafkaService(databasePostgres, RerunKafkaProducer(KafkaProducer(producerConfigRerun), environment))
-
-    val publiserNySykmeldingStatusService = PubliserNySykmeldingStatusService(sykmeldingStatusKafkaProducer = statusKafkaProducer, mottattSykmeldingProudcer = mottattSykmeldingKafkaProducer, databasePostgres = databasePostgres)
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
         "macgyver-sykmeldingv1",
@@ -218,15 +218,7 @@ fun main() {
     val kafkaSykmeldingV1ConsumerMottatt = KafkaConsumer<String, SykmeldingV1KafkaMessage>(consumerProperties, StringDeserializer(), JacksonKafkaDeserializer(SykmeldingV1KafkaMessage::class))
     val kafkaSykmeldingV1ConsumerBekreftet = KafkaConsumer<String, SykmeldingV1KafkaMessage>(consumerProperties, StringDeserializer(), JacksonKafkaDeserializer(SykmeldingV1KafkaMessage::class))
     val kafkaSykmeldingV1ConsumerSendt = KafkaConsumer<String, SykmeldingV1KafkaMessage>(consumerProperties, StringDeserializer(), JacksonKafkaDeserializer(SykmeldingV1KafkaMessage::class))
-    val kafkaAivenProducer = KafkaProducer<String, SykmeldingV2KafkaMessage?>(
-        KafkaUtils
-            .getAivenKafkaConfig()
-            .toProducerConfig("macgyver-producer", JacksonNullableKafkaSerializer::class, StringSerializer::class).apply {
-                this[ProducerConfig.ACKS_CONFIG] = "1"
-                this[ProducerConfig.RETRIES_CONFIG] = 1000
-                this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
-            }
-    )
+
     val topicsMottatt = mapOf(
         environment.mottattSykmeldingTopic to environment.mottattSykmeldingV2Topic
     )
@@ -450,20 +442,22 @@ suspend fun sendtMottattSykmeldinger(applicationState: ApplicationState, environ
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
 
     val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
-    val producerProperties =
-        kafkaBaseConfig.toProducerConfig(
-            environment.applicationName,
-            valueSerializer = JacksonKafkaSerializer::class
-        )
-    val kafkaProducer = KafkaProducer<String, MottattSykmeldingKafkaMessage>(producerProperties)
-    val mottatSykmeldingKafkaProducer =
-        MottattSykmeldingKafkaProducer(kafkaProducer, environment.mottattSykmeldingTopic)
+    val kafkaAivenProducer = KafkaProducer<String, SykmeldingV2KafkaMessage?>(
+        KafkaUtils
+            .getAivenKafkaConfig()
+            .toProducerConfig("macgyver-producer", JacksonNullableKafkaSerializer::class, StringSerializer::class).apply {
+                this[ProducerConfig.ACKS_CONFIG] = "1"
+                this[ProducerConfig.RETRIES_CONFIG] = 1000
+                this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
+            }
+    )
     delay(1000)
     val service = MottattSykmeldingService(
         applicationState,
         databasePostgres,
-        mottatSykmeldingKafkaProducer,
-        LocalDate.parse(environment.lastIndexSyfosmregister)
+        SykmeldingV2KafkaProducer(kafkaAivenProducer),
+        LocalDate.parse(environment.lastIndexSyfosmregister),
+        environment.mottattSykmeldingV2Topic
     )
     service.run()
 }
@@ -508,19 +502,21 @@ fun sendBekreftetSykmeldinger(applicationState: ApplicationState, environment: E
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
 
     val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
-    val producerProperties =
-        kafkaBaseConfig.toProducerConfig(
-            environment.applicationName,
-            valueSerializer = JacksonKafkaSerializer::class
-        )
-    val kafkaProducer = KafkaProducer<String, SykmeldingKafkaMessage>(producerProperties)
-    val sendSykmeldingKafkaProducer =
-        EnkelSykmeldingKafkaProducer(kafkaProducer, environment.bekreftSykmeldingKafkaTopic)
+    val kafkaAivenProducer = KafkaProducer<String, SykmeldingV2KafkaMessage?>(
+        KafkaUtils
+            .getAivenKafkaConfig()
+            .toProducerConfig("macgyver-producer", JacksonNullableKafkaSerializer::class, StringSerializer::class).apply {
+                this[ProducerConfig.ACKS_CONFIG] = "1"
+                this[ProducerConfig.RETRIES_CONFIG] = 1000
+                this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
+            }
+    )
     val service = BekreftSykmeldingService(
         applicationState,
         databasePostgres,
-        sendSykmeldingKafkaProducer,
-        LocalDate.parse(environment.lastIndexSyfosmregister)
+        SykmeldingV2KafkaProducer(kafkaAivenProducer),
+        LocalDate.parse(environment.lastIndexSyfosmregister),
+        environment.bekreftSykmeldingV2KafkaTopic
     )
     service.run()
 }
@@ -533,19 +529,21 @@ fun sendSendtSykmeldinger(applicationState: ApplicationState, environment: Envir
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
 
     val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
-    val producerProperties =
-        kafkaBaseConfig.toProducerConfig(
-            environment.applicationName,
-            valueSerializer = JacksonKafkaSerializer::class
-        )
-    val kafkaProducer = KafkaProducer<String, SykmeldingKafkaMessage>(producerProperties)
-    val sendSykmeldingKafkaProducer =
-        EnkelSykmeldingKafkaProducer(kafkaProducer, environment.sendSykmeldingTopic)
+    val kafkaAivenProducer = KafkaProducer<String, SykmeldingV2KafkaMessage?>(
+        KafkaUtils
+            .getAivenKafkaConfig()
+            .toProducerConfig("macgyver-producer", JacksonNullableKafkaSerializer::class, StringSerializer::class).apply {
+                this[ProducerConfig.ACKS_CONFIG] = "1"
+                this[ProducerConfig.RETRIES_CONFIG] = 1000
+                this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
+            }
+    )
     val service = SendtSykmeldingService(
         applicationState,
         databasePostgres,
-        sendSykmeldingKafkaProducer,
-        LocalDate.parse(environment.lastIndexSyfosmregister)
+        SykmeldingV2KafkaProducer(kafkaAivenProducer),
+        LocalDate.parse(environment.lastIndexSyfosmregister),
+        environment.sendSykmeldingV2Topic
     )
     service.republishSendtSykmelding()
 }
