@@ -102,7 +102,8 @@ fun Connection.getMottattSykmelding(lastMottattTidspunkt: LocalDate): List<Motta
                     mottatt_tidspunkt,
                     behandlingsutfall,
                     legekontor_org_nr,
-                    sykmelding
+                    sykmelding,
+                    merknader
                     FROM sykmeldingsopplysninger AS opplysninger
                         INNER JOIN sykmeldingsdokument AS dokument ON opplysninger.id = dokument.id
                         INNER JOIN behandlingsutfall AS utfall ON opplysninger.id = utfall.id
@@ -126,7 +127,8 @@ fun Connection.getMottattSykmelding(sykmeldingId: String): MottattSykmeldingDbMo
                     mottatt_tidspunkt,
                     behandlingsutfall,
                     legekontor_org_nr,
-                    sykmelding
+                    sykmelding,
+                    merknader
                     FROM sykmeldingsopplysninger AS opplysninger
                         INNER JOIN sykmeldingsdokument AS dokument ON opplysninger.id = dokument.id
                         INNER JOIN behandlingsutfall AS utfall ON opplysninger.id = utfall.id
@@ -177,7 +179,8 @@ fun Connection.getEnkelSykmeldingUtenStatus(sykmeldingId: String): EnkelSykmeldi
                     mottatt_tidspunkt,
                     behandlingsutfall,
                     legekontor_org_nr,
-                    sykmelding
+                    sykmelding,
+                    merknader
                     FROM sykmeldingsopplysninger AS opplysninger
                         INNER JOIN sykmeldingsdokument AS dokument ON opplysninger.id = dokument.id
                         INNER JOIN behandlingsutfall AS utfall ON opplysninger.id = utfall.id
@@ -203,7 +206,8 @@ fun Connection.getSykmeldingMedSisteStatus(lastMottattTidspunkt: LocalDate): Lis
                     status.event_timestamp,
                     arbeidsgiver.orgnummer,
                     arbeidsgiver.juridisk_orgnummer,
-                    arbeidsgiver.navn
+                    arbeidsgiver.navn,
+                    merknader
                     FROM sykmeldingsopplysninger AS opplysninger
                         INNER JOIN sykmeldingsdokument AS dokument ON opplysninger.id = dokument.id
                         INNER JOIN behandlingsutfall AS utfall ON opplysninger.id = utfall.id
@@ -233,7 +237,8 @@ fun Connection.getSendtSykmeldingMedSisteStatus(sykmeldingId: String): List<Enke
                     status.timestamp,
                     arbeidsgiver.orgnummer,
                     arbeidsgiver.juridisk_orgnummer,
-                    arbeidsgiver.navn
+                    arbeidsgiver.navn,
+                    merknader
                     FROM sykmeldingsopplysninger AS opplysninger
                         INNER JOIN sykmeldingsdokument AS dokument ON opplysninger.id = dokument.id
                         INNER JOIN behandlingsutfall AS utfall ON opplysninger.id = utfall.id
@@ -258,7 +263,8 @@ fun Connection.getSykmeldingMedSisteStatusBekreftet(lastMottattTidspunkt: LocalD
                     legekontor_org_nr,
                     sykmelding,
                     status.event,
-                    status.event_timestamp
+                    status.event_timestamp,
+                    merknader
                     FROM sykmeldingsopplysninger AS opplysninger
                         INNER JOIN sykmeldingsdokument AS dokument ON opplysninger.id = dokument.id
                         INNER JOIN behandlingsutfall AS utfall ON opplysninger.id = utfall.id
@@ -290,7 +296,8 @@ fun Connection.getSykmeldingMedSisteStatusBekreftet(sykmeldingId: String): Enkel
                     legekontor_org_nr,
                     sykmelding,
                     status.event,
-                    status.timestamp
+                    status.timestamp,
+                    merknader
                     FROM sykmeldingsopplysninger AS opplysninger
                         INNER JOIN sykmeldingsdokument AS dokument ON opplysninger.id = dokument.id
                         INNER JOIN behandlingsutfall AS utfall ON opplysninger.id = utfall.id
