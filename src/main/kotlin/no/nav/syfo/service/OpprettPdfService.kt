@@ -1,7 +1,6 @@
 package no.nav.syfo.service
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import java.time.Duration
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -16,6 +15,7 @@ import no.nav.syfo.objectMapper
 import no.nav.syfo.persistering.db.postgres.SykmeldingDbModel
 import no.nav.syfo.persistering.db.postgres.hentSykmeldingMedBehandlingsutfallForId
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import java.time.Duration
 
 class OpprettPdfService(
     private val applicationState: ApplicationState,
@@ -50,19 +50,23 @@ class OpprettPdfService(
         while (applicationState.ready) {
             val iderFraBackup: List<String> =
                 kafkaConsumer.poll(Duration.ofMillis(100))
-                .map {
-                    objectMapper.readValue<String>(it.value())
-                }
+                    .map {
+                        objectMapper.readValue<String>(it.value())
+                    }
             for (id in iderFraBackup) {
                 lastId = id
                 counterAll++
                 try {
                     val sykmeldingMedBehandlingsutfall = databaseInterfacePostgres.connection.hentSykmeldingMedBehandlingsutfallForId(id).firstOrNull()
                     if (sykmeldingMedBehandlingsutfall?.behandlingsutfall != null &&
-                        sykmeldingMedBehandlingsutfall.behandlingsutfall.behandlingsutfall.status == Status.OK) {
-                        val rerunKafkaMessage = RerunKafkaMessage(toReceivedSykmelding(
-                            SykmeldingDbModel(sykmeldingMedBehandlingsutfall.sykmeldingsopplysninger, sykmeldingMedBehandlingsutfall.sykmeldingsdokument)),
-                            sykmeldingMedBehandlingsutfall.behandlingsutfall.behandlingsutfall)
+                        sykmeldingMedBehandlingsutfall.behandlingsutfall.behandlingsutfall.status == Status.OK
+                    ) {
+                        val rerunKafkaMessage = RerunKafkaMessage(
+                            toReceivedSykmelding(
+                                SykmeldingDbModel(sykmeldingMedBehandlingsutfall.sykmeldingsopplysninger, sykmeldingMedBehandlingsutfall.sykmeldingsdokument)
+                            ),
+                            sykmeldingMedBehandlingsutfall.behandlingsutfall.behandlingsutfall
+                        )
                         kafkaProducer.publishToKafka(rerunKafkaMessage)
                         counterOpprettPdf++
                     }

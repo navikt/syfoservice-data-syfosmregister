@@ -2,7 +2,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.syfo.model.Status
 import no.nav.syfo.model.ValidationResult
 import no.nav.syfo.objectMapper
-import org.amshove.kluent.shouldEqual
+import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.xdescribe
 
@@ -14,11 +14,11 @@ object BehandlingsutfallMapperTest : Spek({
 
             val validationResult: ValidationResult = objectMapper.readValue(behandlingsutfallJson)
 
-            validationResult.status shouldEqual Status.INVALID
-            validationResult.ruleHits.size shouldEqual 1
-            validationResult.ruleHits[0].ruleName shouldEqual "TILBAKEDATERT_MER_ENN_8_DAGER_FORSTE_SYKMELDING"
-            validationResult.ruleHits[0].messageForUser shouldEqual "Sykmeldingen er tilbakedatert uten at det er begrunnet."
-            validationResult.ruleHits[0].messageForSender shouldEqual "Første sykmelding er tilbakedatert mer enn det som er tillatt."
+            validationResult.status shouldBeEqualTo Status.INVALID
+            validationResult.ruleHits.size shouldBeEqualTo 1
+            validationResult.ruleHits[0].ruleName shouldBeEqualTo "TILBAKEDATERT_MER_ENN_8_DAGER_FORSTE_SYKMELDING"
+            validationResult.ruleHits[0].messageForUser shouldBeEqualTo "Sykmeldingen er tilbakedatert uten at det er begrunnet."
+            validationResult.ruleHits[0].messageForSender shouldBeEqualTo "Første sykmelding er tilbakedatert mer enn det som er tillatt."
         }
     }
 })

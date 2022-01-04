@@ -1,8 +1,5 @@
 package no.nav.syfo.sykmelding
 
-import java.time.LocalDate
-import java.time.ZoneId
-import java.time.ZoneOffset
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
@@ -24,6 +21,9 @@ import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaMessage
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
 import no.nav.syfo.sykmelding.kafka.model.toArbeidsgiverSykmelding
 import no.nav.syfo.sykmelding.model.EnkelSykmeldingDbModel
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZoneOffset
 
 class SendtSykmeldingService(
     private val applicationState: ApplicationState,

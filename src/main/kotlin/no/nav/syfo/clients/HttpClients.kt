@@ -13,16 +13,16 @@ import io.ktor.client.features.HttpResponseValidator
 import io.ktor.client.features.json.JacksonSerializer
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.network.sockets.SocketTimeoutException
-import java.net.ProxySelector
 import no.nav.syfo.Environment
 import no.nav.syfo.VaultServiceUser
-import no.nav.syfo.clients.exception.ServiceUnavailableException
 import no.nav.syfo.client.StsOidcClient
+import no.nav.syfo.clients.exception.ServiceUnavailableException
 import no.nav.syfo.identendring.client.NarmestelederClient
 import no.nav.syfo.oppgave.client.OppgaveClient
 import no.nav.syfo.pdl.client.PdlClient
 import no.nav.syfo.pdl.service.PdlPersonService
 import org.apache.http.impl.conn.SystemDefaultRoutePlanner
+import java.net.ProxySelector
 
 class HttpClients(environment: Environment, vaultServiceUser: VaultServiceUser) {
     private val config: HttpClientConfig<ApacheEngineConfig>.() -> Unit = {

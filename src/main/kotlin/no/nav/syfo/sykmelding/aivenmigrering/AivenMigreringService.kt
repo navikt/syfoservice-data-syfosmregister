@@ -1,6 +1,5 @@
 package no.nav.syfo.sykmelding.aivenmigrering
 
-import java.time.Duration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -17,6 +16,7 @@ import no.nav.syfo.model.sykmelding.arbeidsgiver.PrognoseAGDTO
 import no.nav.syfo.model.sykmelding.arbeidsgiver.SykmeldingsperiodeAGDTO
 import no.nav.syfo.model.sykmelding.model.SykmeldingsperiodeDTO
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import java.time.Duration
 
 class AivenMigreringService(
     private val sykmeldingKafkaConsumer: KafkaConsumer<String, SykmeldingV1KafkaMessage>,

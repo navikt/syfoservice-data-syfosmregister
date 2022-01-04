@@ -1,7 +1,6 @@
 package no.nav.syfo.service
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import java.time.Duration
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.log
 import no.nav.syfo.model.ReceivedSykmelding
@@ -10,6 +9,7 @@ import no.nav.syfo.objectMapper
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
+import java.time.Duration
 
 class MapSykmeldingerFraTopicService(
     private val kafkaconsumerStringSykmelding: KafkaConsumer<String, String>,

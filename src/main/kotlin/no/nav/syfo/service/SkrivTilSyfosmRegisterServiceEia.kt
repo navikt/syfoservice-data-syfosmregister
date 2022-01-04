@@ -1,7 +1,6 @@
 package no.nav.syfo.service
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import java.time.Duration
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.log
@@ -9,6 +8,7 @@ import no.nav.syfo.model.Eia
 import no.nav.syfo.objectMapper
 import no.nav.syfo.persistering.db.postgres.oppdaterSykmeldingsopplysninger
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import java.time.Duration
 
 class SkrivTilSyfosmRegisterServiceEia(
     private val kafkaconsumerEia: KafkaConsumer<String, String>,

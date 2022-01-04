@@ -1,6 +1,5 @@
 package no.nav.syfo.pdl.service
 
-import io.ktor.util.KtorExperimentalAPI
 import no.nav.syfo.clients.AccessTokenClientV2
 import no.nav.syfo.log
 import no.nav.syfo.pdl.client.PdlClient

@@ -1,9 +1,5 @@
 package no.nav.syfo.sykmelding.status
 
-import java.time.LocalDate
-import java.time.OffsetDateTime
-import java.time.ZoneId
-import java.time.ZoneOffset
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
@@ -46,6 +42,10 @@ import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.vault.RenewVaultService
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
+import java.time.LocalDate
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
 
 class SykmeldingStatusService(
     private val applicationState: ApplicationState,

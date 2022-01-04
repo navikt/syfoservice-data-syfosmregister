@@ -1,18 +1,11 @@
 package no.nav.syfo.identendring
 
-import io.ktor.util.KtorExperimentalAPI
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
-import java.util.UUID
-import kotlin.test.assertFailsWith
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.identendring.client.NarmesteLeder
@@ -45,9 +38,15 @@ import no.nav.syfo.pdl.model.PdlPerson
 import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.sm.Diagnosekoder
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
-import org.amshove.kluent.shouldEqual
+import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
+import java.util.UUID
+import kotlin.test.assertFailsWith
 
 class UpdateFnrServiceTest : Spek({
     val pdlPersonService = mockk<PdlPersonService>(relaxed = true)
@@ -66,59 +65,65 @@ class UpdateFnrServiceTest : Spek({
     describe("Test at UpdateFnrService fungerer som forventet") {
         it("Skal oppdatere OK hvis nytt og gammelt fnr er knyttet til samme person") {
             coEvery { pdlPersonService.getPdlPerson(any()) } returns PdlPerson(
-                    listOf(
-                            IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
-                            IdentInformasjon("12345678912", true, "FOLKEREGISTERIDENT"),
-                            IdentInformasjon("12345", false, "AKTORID")
-                    ))
+                listOf(
+                    IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
+                    IdentInformasjon("12345678912", true, "FOLKEREGISTERIDENT"),
+                    IdentInformasjon("12345", false, "AKTORID")
+                )
+            )
             coEvery { narmestelederClient.getNarmesteledere(any()) } returns emptyList()
 
             every { db.updateFnr(any(), any()) } returns 1
 
             runBlocking {
                 updateFnrService.updateFnr(
-                        fnr = "12345678912",
-                        nyttFnr = "12345678913") shouldEqual true
+                    fnr = "12345678912",
+                    nyttFnr = "12345678913"
+                ) shouldBeEqualTo true
             }
         }
 
         it("Skal kaste feil hvis nytt og gammelt fnr ikke er knyttet til samme person") {
             coEvery { pdlPersonService.getPdlPerson(any()) } returns PdlPerson(
-                    listOf(
-                            IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
-                            IdentInformasjon("12345678912", true, "FOLKEREGISTERIDENT"),
-                            IdentInformasjon("12345", false, "AKTORID")
-                    ))
+                listOf(
+                    IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
+                    IdentInformasjon("12345678912", true, "FOLKEREGISTERIDENT"),
+                    IdentInformasjon("12345", false, "AKTORID")
+                )
+            )
 
             every { db.updateFnr(any(), any()) } returns 1
 
             runBlocking {
                 val assertFailsWith = assertFailsWith<UpdateIdentException> {
                     updateFnrService.updateFnr(
-                            fnr = "12345678912",
-                            nyttFnr = "12345678914")
+                        fnr = "12345678912",
+                        nyttFnr = "12345678914"
+                    )
                 }
-                assertFailsWith.message shouldEqual "Oppdatering av fnr feilet, nyttFnr står ikke som aktivt fnr for aktøren i PDL"
+                assertFailsWith.message shouldBeEqualTo "Oppdatering av fnr feilet, nyttFnr står ikke som aktivt fnr for aktøren i PDL"
             }
         }
 
         it("Skal kaste feil hvis fnr ikke er registrert som historisk for person") {
             coEvery { pdlPersonService.getPdlPerson(any()) } returns PdlPerson(
-                    listOf(
-                            IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
-                            IdentInformasjon("123", true, "FOLKEREGISTERIDENT"),
-                            IdentInformasjon("12345", false, "AKTORID")
-                    ))
+                listOf(
+                    IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
+                    IdentInformasjon("123", true, "FOLKEREGISTERIDENT"),
+                    IdentInformasjon("12345", false, "AKTORID")
+                )
+            )
 
             every { db.updateFnr(any(), any()) } returns 1
 
             runBlocking {
                 val assertFailsWith = assertFailsWith<UpdateIdentException> {
                     updateFnrService.updateFnr(
-                            fnr = "12345678912",
-                            nyttFnr = "12345678913")
+                        fnr = "12345678912",
+                        nyttFnr = "12345678913"
+                    )
                 }
-                assertFailsWith.message shouldEqual "Oppdatering av fnr feilet, fnr er ikke historisk for aktør"
+                assertFailsWith.message shouldBeEqualTo "Oppdatering av fnr feilet, fnr er ikke historisk for aktør"
             }
         }
 
@@ -128,7 +133,8 @@ class UpdateFnrServiceTest : Spek({
                     IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345678912", true, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345", false, "AKTORID")
-                ))
+                )
+            )
             every { db.getSykmeldingerMedFnrUtenBehandlingsutfall("12345678912") } returns listOf(getSendtSykmelding())
             coEvery { narmestelederClient.getNarmesteledere(any()) } returns listOf(getNarmesteLeder())
 
@@ -137,11 +143,28 @@ class UpdateFnrServiceTest : Spek({
             runBlocking {
                 updateFnrService.updateFnr(
                     fnr = "12345678912",
-                    nyttFnr = "12345678913") shouldEqual true
+                    nyttFnr = "12345678913"
+                ) shouldBeEqualTo true
 
-                coVerify { sendtSykmeldingKafkaProducer.sendSykmelding(match { it.kafkaMetadata.fnr == "12345678913" }, any(), any()) }
-                coVerify(exactly = 1) { narmesteLederResponseKafkaProducer.publishToKafka(match<NlResponseKafkaMessage> { it.nlAvbrutt?.sykmeldtFnr == "12345678912" }, "9898") }
-                coVerify(exactly = 1) { narmesteLederResponseKafkaProducer.publishToKafka(match<NlResponseKafkaMessage> { it.nlResponse == getExpectedNarmestelederResponse() }, "9898") }
+                coVerify {
+                    sendtSykmeldingKafkaProducer.sendSykmelding(
+                        match { it.kafkaMetadata.fnr == "12345678913" },
+                        any(),
+                        any()
+                    )
+                }
+                coVerify(exactly = 1) {
+                    narmesteLederResponseKafkaProducer.publishToKafka(
+                        match<NlResponseKafkaMessage> { it.nlAvbrutt?.sykmeldtFnr == "12345678912" },
+                        "9898"
+                    )
+                }
+                coVerify(exactly = 1) {
+                    narmesteLederResponseKafkaProducer.publishToKafka(
+                        match<NlResponseKafkaMessage> { it.nlResponse == getExpectedNarmestelederResponse() },
+                        "9898"
+                    )
+                }
             }
         }
 
@@ -151,34 +174,57 @@ class UpdateFnrServiceTest : Spek({
                     IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345678912", true, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345", false, "AKTORID")
-                ))
+                )
+            )
             every { db.getSykmeldingerMedFnrUtenBehandlingsutfall("12345678912") } returns listOf(
                 getSendtSykmelding(),
                 getSendtSykmelding().copy(status = StatusDbModel("APEN", OffsetDateTime.now(ZoneOffset.UTC), null)),
-                getSendtSykmelding(listOf(Periode(
-                    fom = LocalDate.now().minusMonths(6),
-                    tom = LocalDate.now().minusMonths(5),
-                    aktivitetIkkeMulig = AktivitetIkkeMulig(MedisinskArsak(null, emptyList()), null),
-                    avventendeInnspillTilArbeidsgiver = null,
-                    behandlingsdager = 0,
-                    gradert = null,
-                    reisetilskudd = false
-                )))
+                getSendtSykmelding(
+                    listOf(
+                        Periode(
+                            fom = LocalDate.now().minusMonths(6),
+                            tom = LocalDate.now().minusMonths(5),
+                            aktivitetIkkeMulig = AktivitetIkkeMulig(MedisinskArsak(null, emptyList()), null),
+                            avventendeInnspillTilArbeidsgiver = null,
+                            behandlingsdager = 0,
+                            gradert = null,
+                            reisetilskudd = false
+                        )
+                    )
+                )
             )
             coEvery { narmestelederClient.getNarmesteledere(any()) } returns listOf(
                 getNarmesteLeder(),
-                getNarmesteLeder().copy(narmesteLederFnr = "987", orgnummer = "9999", aktivTom = LocalDate.now()))
+                getNarmesteLeder().copy(narmesteLederFnr = "987", orgnummer = "9999", aktivTom = LocalDate.now())
+            )
 
             every { db.updateFnr(any(), any()) } returns 1
 
             runBlocking {
                 updateFnrService.updateFnr(
                     fnr = "12345678912",
-                    nyttFnr = "12345678913") shouldEqual true
+                    nyttFnr = "12345678913"
+                ) shouldBeEqualTo true
 
-                coVerify(exactly = 1) { sendtSykmeldingKafkaProducer.sendSykmelding(match { it.kafkaMetadata.fnr == "12345678913" }, any(), any()) }
-                coVerify(exactly = 1) { narmesteLederResponseKafkaProducer.publishToKafka(match<NlResponseKafkaMessage> { it.nlAvbrutt?.sykmeldtFnr == "12345678912" }, "9898") }
-                coVerify(exactly = 1) { narmesteLederResponseKafkaProducer.publishToKafka(match<NlResponseKafkaMessage> { it.nlResponse == getExpectedNarmestelederResponse() }, "9898") }
+                coVerify(exactly = 1) {
+                    sendtSykmeldingKafkaProducer.sendSykmelding(
+                        match { it.kafkaMetadata.fnr == "12345678913" },
+                        any(),
+                        any()
+                    )
+                }
+                coVerify(exactly = 1) {
+                    narmesteLederResponseKafkaProducer.publishToKafka(
+                        match<NlResponseKafkaMessage> { it.nlAvbrutt?.sykmeldtFnr == "12345678912" },
+                        "9898"
+                    )
+                }
+                coVerify(exactly = 1) {
+                    narmesteLederResponseKafkaProducer.publishToKafka(
+                        match<NlResponseKafkaMessage> { it.nlResponse == getExpectedNarmestelederResponse() },
+                        "9898"
+                    )
+                }
             }
         }
     }
@@ -190,7 +236,8 @@ class UpdateFnrServiceTest : Spek({
                     IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345678912", true, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345", false, "AKTORID")
-                ))
+                )
+            )
 
             runBlocking {
                 val assertFailsWith = assertFailsWith<UpdateIdentException> {
@@ -199,7 +246,7 @@ class UpdateFnrServiceTest : Spek({
                         nyttFnr = "12345678914"
                     )
                 }
-                assertFailsWith.message shouldEqual "Oppdatering av leders fnr feilet, nyttFnr står ikke som aktivt fnr for aktøren i PDL"
+                assertFailsWith.message shouldBeEqualTo "Oppdatering av leders fnr feilet, nyttFnr står ikke som aktivt fnr for aktøren i PDL"
             }
         }
         it("Skal kaste feil hvis fnr ikke er registrert som historisk for person") {
@@ -208,7 +255,8 @@ class UpdateFnrServiceTest : Spek({
                     IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("123", true, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345", false, "AKTORID")
-                ))
+                )
+            )
 
             runBlocking {
                 val assertFailsWith = assertFailsWith<UpdateIdentException> {
@@ -217,7 +265,7 @@ class UpdateFnrServiceTest : Spek({
                         nyttFnr = "12345678913"
                     )
                 }
-                assertFailsWith.message shouldEqual "Oppdatering av leders fnr feilet, fnr er ikke historisk for aktør"
+                assertFailsWith.message shouldBeEqualTo "Oppdatering av leders fnr feilet, fnr er ikke historisk for aktør"
             }
         }
         it("Oppdaterer aktiv NL-relasjon") {
@@ -226,32 +274,43 @@ class UpdateFnrServiceTest : Spek({
                     IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345678912", true, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345", false, "AKTORID")
-                ))
+                )
+            )
             coEvery { narmestelederClient.getNarmestelederKoblingerForLeder("12345678912") } returns listOf(getNarmesteLeder().copy(fnr = "10987654321", narmesteLederFnr = "12345678912"))
 
             runBlocking {
                 updateFnrService.updateNlFnr(
                     fnr = "12345678912",
                     nyttFnr = "12345678913"
-                ) shouldEqual true
+                ) shouldBeEqualTo true
 
-                coVerify(exactly = 1) { narmesteLederResponseKafkaProducer.publishToKafka(match<NlResponseKafkaMessage> { it.nlAvbrutt?.sykmeldtFnr == "10987654321" }, "9898") }
-                coVerify(exactly = 1) { narmesteLederResponseKafkaProducer.publishToKafka(match<NlResponseKafkaMessage> {
-                        it.nlResponse == NlResponse(
-                            orgnummer = "9898",
-                            utbetalesLonn = true,
-                            leder = Leder(
-                                fnr = "12345678913",
-                                mobil = "90909090",
-                                epost = "mail@nav.no",
-                                fornavn = null,
-                                etternavn = null
-                            ),
-                            sykmeldt = Sykmeldt(fnr = "10987654321", navn = null),
-                            aktivFom = LocalDate.of(2019, 2, 2).atStartOfDay().atOffset(ZoneOffset.UTC),
-                            aktivTom = null
-                        )
-                    }, "9898") }
+                coVerify(exactly = 1) {
+                    narmesteLederResponseKafkaProducer.publishToKafka(
+                        match<NlResponseKafkaMessage> { it.nlAvbrutt?.sykmeldtFnr == "10987654321" },
+                        "9898"
+                    )
+                }
+                coVerify(exactly = 1) {
+                    narmesteLederResponseKafkaProducer.publishToKafka(
+                        match<NlResponseKafkaMessage> {
+                            it.nlResponse == NlResponse(
+                                orgnummer = "9898",
+                                utbetalesLonn = true,
+                                leder = Leder(
+                                    fnr = "12345678913",
+                                    mobil = "90909090",
+                                    epost = "mail@nav.no",
+                                    fornavn = null,
+                                    etternavn = null
+                                ),
+                                sykmeldt = Sykmeldt(fnr = "10987654321", navn = null),
+                                aktivFom = LocalDate.of(2019, 2, 2).atStartOfDay().atOffset(ZoneOffset.UTC),
+                                aktivTom = null
+                            )
+                        },
+                        "9898"
+                    )
+                }
             }
         }
     }
@@ -269,7 +328,8 @@ fun getSendtSykmelding(periodeListe: List<Periode>? = null): SykmeldingDbModelUt
                 harArbeidsgiver = HarArbeidsgiver.EN_ARBEIDSGIVER,
                 navn = "navn",
                 stillingsprosent = null,
-                yrkesbetegnelse = null),
+                yrkesbetegnelse = null
+            ),
             medisinskVurdering = MedisinskVurdering(
                 hovedDiagnose = Diagnose(Diagnosekoder.ICPC2_CODE, "L87", null),
                 biDiagnoser = emptyList(),
@@ -297,7 +357,8 @@ fun getSendtSykmelding(periodeListe: List<Periode>? = null): SykmeldingDbModelUt
                 null,
                 null,
                 Adresse(null, null, null, null, null),
-                null),
+                null
+            ),
             kontaktMedPasient = KontaktMedPasient(
                 LocalDate.now(),
                 "Begrunnelse"
@@ -306,15 +367,17 @@ fun getSendtSykmelding(periodeListe: List<Periode>? = null): SykmeldingDbModelUt
             msgId = "msgid",
             pasientAktoerId = "aktorId",
             avsenderSystem = AvsenderSystem("Navn", "verjosn"),
-            perioder = periodeListe ?: listOf(Periode(
-                fom = LocalDate.now().minusMonths(1),
-                tom = LocalDate.now().minusWeeks(3),
-                aktivitetIkkeMulig = AktivitetIkkeMulig(MedisinskArsak(null, emptyList()), null),
-                avventendeInnspillTilArbeidsgiver = null,
-                behandlingsdager = 0,
-                gradert = null,
-                reisetilskudd = false
-            )),
+            perioder = periodeListe ?: listOf(
+                Periode(
+                    fom = LocalDate.now().minusMonths(1),
+                    tom = LocalDate.now().minusWeeks(3),
+                    aktivitetIkkeMulig = AktivitetIkkeMulig(MedisinskArsak(null, emptyList()), null),
+                    avventendeInnspillTilArbeidsgiver = null,
+                    behandlingsdager = 0,
+                    gradert = null,
+                    reisetilskudd = false
+                )
+            ),
             signaturDato = LocalDateTime.now()
         ),
         status = StatusDbModel(

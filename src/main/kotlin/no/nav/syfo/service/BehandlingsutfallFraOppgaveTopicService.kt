@@ -1,10 +1,5 @@
 package no.nav.syfo.service
 
-import java.time.Duration
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.Month
-import java.time.ZoneId
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -20,6 +15,11 @@ import no.nav.syfo.persistering.db.postgres.lagreBehandlingsutfallAndCommit
 import no.nav.syfo.sak.avro.ProduceTask
 import no.nav.syfo.sak.avro.RegisterTask
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.Month
+import java.time.ZoneId
 
 class BehandlingsutfallFraOppgaveTopicService(
     private val kafkaConsumer: KafkaConsumer<String, RegisterTask>,

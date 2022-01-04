@@ -1,9 +1,5 @@
 package no.nav.syfo.identendring
 
-import io.ktor.util.KtorExperimentalAPI
-import java.time.LocalDate
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.identendring.client.NarmestelederClient
 import no.nav.syfo.identendring.db.Periode
@@ -29,6 +25,9 @@ import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaMessage
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 class UpdateFnrService(
     private val pdlPersonService: PdlPersonService,

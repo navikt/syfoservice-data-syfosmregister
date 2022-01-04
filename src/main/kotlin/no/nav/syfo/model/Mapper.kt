@@ -1,9 +1,9 @@
 package no.nav.syfo.model
 
-import java.time.LocalDate
-import java.time.LocalDateTime
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 class Mapper private constructor() {
     companion object {

@@ -1,7 +1,5 @@
 package no.nav.syfo.sykmelding
 
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import no.nav.syfo.Environment
 import no.nav.syfo.aksessering.db.oracle.settTilSlettet
 import no.nav.syfo.db.DatabaseOracle
@@ -11,6 +9,8 @@ import no.nav.syfo.log
 import no.nav.syfo.model.sykmeldingstatus.STATUS_SLETTET
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaEventDTO
 import no.nav.syfo.persistering.db.postgres.hentSykmeldingMedId
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 class DeleteSykmeldingService(
     val environment: Environment,

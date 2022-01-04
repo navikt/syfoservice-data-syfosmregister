@@ -6,7 +6,7 @@ import no.nav.syfo.model.Status
 import no.nav.syfo.model.ValidationResult
 import no.nav.syfo.objectMapper
 import no.nav.syfo.utils.getFileAsString
-import org.amshove.kluent.shouldEqual
+import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.xdescribe
 
@@ -34,15 +34,18 @@ class OppgaveTilReglerTest : Spek({
                 )
             )
             val regelliste = mapOppgaveTilRegler(
-                "Manuell behandling av sykmelding grunnet følgende regler: ${results.ruleHits.joinToString(
+                "Manuell behandling av sykmelding grunnet følgende regler: ${
+                results.ruleHits.joinToString(
                     ", ",
                     "(",
                     ")"
-                ) { it.messageForSender }}", ruleMap
+                ) { it.messageForSender }
+                }",
+                ruleMap
             )
 
-            regelliste.size shouldEqual 1
-            regelliste[0] shouldEqual RuleInfo(
+            regelliste.size shouldBeEqualTo 1
+            regelliste[0] shouldBeEqualTo RuleInfo(
                 "PERIOD_FOR_AA_ENDED",
                 "Hvis perioden er avsluttet (AA)",
                 "Hvis perioden er avsluttet (AA)",

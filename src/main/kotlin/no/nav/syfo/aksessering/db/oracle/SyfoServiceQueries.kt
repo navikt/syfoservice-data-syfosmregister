@@ -1,5 +1,9 @@
 package no.nav.syfo.aksessering.db.oracle
 
+import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
+import no.nav.syfo.db.DatabaseInterfaceOracle
+import no.nav.syfo.db.toList
+import no.nav.syfo.log
 import java.io.StringReader
 import java.io.StringWriter
 import java.lang.Boolean.TRUE
@@ -12,10 +16,6 @@ import javax.xml.bind.Marshaller.JAXB_ENCODING
 import javax.xml.bind.Marshaller.JAXB_FORMATTED_OUTPUT
 import javax.xml.bind.Marshaller.JAXB_FRAGMENT
 import javax.xml.transform.stream.StreamResult
-import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
-import no.nav.syfo.db.DatabaseInterfaceOracle
-import no.nav.syfo.db.toList
-import no.nav.syfo.log
 
 data class DatabaseResult<T>(
     val lastIndex: Int,

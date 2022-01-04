@@ -1,7 +1,5 @@
 package no.nav.syfo.service
 
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import no.nav.syfo.aksessering.db.oracle.settTilNy
 import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.db.DatabasePostgres
@@ -10,6 +8,8 @@ import no.nav.syfo.model.sykmeldingstatus.STATUS_APEN
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaEventDTO
 import no.nav.syfo.persistering.db.postgres.hentSykmeldingMedId
 import no.nav.syfo.sykmelding.SykmeldingStatusKafkaProducer
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 class OppdaterStatusService(
     private val databaseoracle: DatabaseOracle,

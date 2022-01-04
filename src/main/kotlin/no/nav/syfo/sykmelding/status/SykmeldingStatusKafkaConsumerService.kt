@@ -1,8 +1,6 @@
 package no.nav.syfo.sykmelding.status
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import java.time.Duration
-import java.time.OffsetDateTime
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -18,6 +16,8 @@ import org.apache.kafka.clients.consumer.ConsumerRebalanceListener
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.StringDeserializer
+import java.time.Duration
+import java.time.OffsetDateTime
 
 class SykmeldingStatusKafkaConsumerService(private val env: Environment, credentials: KafkaCredentials) {
     val kafkaConsumer: KafkaConsumer<String, String>
@@ -49,7 +49,8 @@ class SykmeldingStatusKafkaConsumerService(private val env: Environment, credent
             }
         }
         kafkaConsumer.subscribe(
-            listOf(env.sykmeldingStatusTopic), object : ConsumerRebalanceListener {
+            listOf(env.sykmeldingStatusTopic),
+            object : ConsumerRebalanceListener {
                 override fun onPartitionsRevoked(partitions: MutableCollection<TopicPartition>?) {
                 }
 

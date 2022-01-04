@@ -1,11 +1,11 @@
 package no.nav.syfo.legeerklaring.util
 
-import java.security.MessageDigest
 import no.nav.helse.eiFellesformat.XMLEIFellesformat
 import no.nav.helse.legeerklaering.Legeerklaring
 import no.nav.helse.msgHead.XMLIdent
 import no.nav.helse.msgHead.XMLMsgHead
 import no.nav.syfo.objectMapper
+import java.security.MessageDigest
 
 fun sha256hashstring(legeerklaring: Legeerklaring): String =
     MessageDigest.getInstance("SHA-256")

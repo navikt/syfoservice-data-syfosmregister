@@ -18,8 +18,8 @@ import no.nav.syfo.application.api.registerNaisApi
 import no.nav.syfo.application.api.setupSwaggerDocApi
 import no.nav.syfo.identendring.UpdateFnrService
 import no.nav.syfo.identendring.api.registerFnrApi
-import no.nav.syfo.oppgave.client.OppgaveClient
 import no.nav.syfo.oppgave.api.registerHentOppgaverApi
+import no.nav.syfo.oppgave.client.OppgaveClient
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.api.UpdateBehandletDatoService
 import no.nav.syfo.papirsykmelding.api.UpdatePeriodeService
@@ -50,35 +50,36 @@ fun createApplicationEngine(
     deleteSykmeldingService: DeleteSykmeldingService,
     rerunKafkaService: RerunKafkaService
 ): ApplicationEngine =
-        embeddedServer(Netty, env.applicationPort) {
-            install(ContentNegotiation) {
-                jackson {
-                    registerKotlinModule()
-                    registerModule(JavaTimeModule())
-                    configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-                    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                }
-            }
-            setupAuth(
-                jwkProviderInternal = jwkProviderInternal,
-                issuerServiceuser = issuerServiceuser,
-                clientId = clientId,
-                appIds = appIds)
-
-            routing {
-                registerNaisApi(applicationState)
-                setupSwaggerDocApi()
-
-                authenticate("jwtserviceuser") {
-                    registrerPeriodeApi(updatePeriodeService)
-                    registrerBehandletDatoApi(updateBehandletDatoService)
-                    registerFnrApi(updateFnrService)
-                    registerSendToSyfoserviceApi(sendTilSyfoserviceService)
-                    registerUpdateDiagnosisApi(diagnoseService)
-                    registerDeleteSykmeldingApi(deleteSykmeldingService)
-                    registerUpdateBiDiagnosisApi(diagnoseService)
-                    registerRerunKafkaApi(rerunKafkaService)
-                    registerHentOppgaverApi(oppgaveClient)
-                }
+    embeddedServer(Netty, env.applicationPort) {
+        install(ContentNegotiation) {
+            jackson {
+                registerKotlinModule()
+                registerModule(JavaTimeModule())
+                configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+                configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             }
         }
+        setupAuth(
+            jwkProviderInternal = jwkProviderInternal,
+            issuerServiceuser = issuerServiceuser,
+            clientId = clientId,
+            appIds = appIds
+        )
+
+        routing {
+            registerNaisApi(applicationState)
+            setupSwaggerDocApi()
+
+            authenticate("jwtserviceuser") {
+                registrerPeriodeApi(updatePeriodeService)
+                registrerBehandletDatoApi(updateBehandletDatoService)
+                registerFnrApi(updateFnrService)
+                registerSendToSyfoserviceApi(sendTilSyfoserviceService)
+                registerUpdateDiagnosisApi(diagnoseService)
+                registerDeleteSykmeldingApi(deleteSykmeldingService)
+                registerUpdateBiDiagnosisApi(diagnoseService)
+                registerRerunKafkaApi(rerunKafkaService)
+                registerHentOppgaverApi(oppgaveClient)
+            }
+        }
+    }

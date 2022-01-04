@@ -17,12 +17,10 @@ import io.ktor.routing.routing
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
-import io.ktor.util.KtorExperimentalAPI
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
-import java.nio.file.Paths
 import no.nav.syfo.application.setupAuth
 import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.identendring.api.registerFnrApi
@@ -37,9 +35,10 @@ import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
 import no.nav.syfo.sykmelding.api.model.EndreFnr
 import no.nav.syfo.testutil.generateJWT
-import org.amshove.kluent.shouldEqual
+import org.amshove.kluent.shouldBeEqualTo
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import java.nio.file.Paths
 
 class EndreFnrApiTest : Spek({
     describe("Test endre fnr") {
@@ -86,10 +85,10 @@ class EndreFnrApiTest : Spek({
             }
 
             coEvery { pdlPersonService.getPdlPerson(any()) } returns PdlPerson(
-                    listOf(
-                        IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
-                        IdentInformasjon("12345678912", true, "FOLKEREGISTERIDENT"),
-                        IdentInformasjon("12345", false, "AKTORID")
+                listOf(
+                    IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
+                    IdentInformasjon("12345678912", true, "FOLKEREGISTERIDENT"),
+                    IdentInformasjon("12345", false, "AKTORID")
                 )
             )
             coEvery { narmestelederClient.getNarmesteledere(any()) } returns emptyList()
@@ -98,13 +97,15 @@ class EndreFnrApiTest : Spek({
 
             val endreFnr = EndreFnr(fnr = "12345678912", nyttFnr = "12345678913")
 
-            with(handleRequest(HttpMethod.Post, "/api/sykmelding/fnr") {
-                addHeader("Content-Type", "application/json")
-                addHeader(HttpHeaders.Authorization, "Bearer ${generateJWT("2", "clientId")}")
-                setBody(objectMapper.writeValueAsString(endreFnr))
-            }) {
-                response.status() shouldEqual HttpStatusCode.OK
-                response.content shouldEqual "Vellykket oppdatering."
+            with(
+                handleRequest(HttpMethod.Post, "/api/sykmelding/fnr") {
+                    addHeader("Content-Type", "application/json")
+                    addHeader(HttpHeaders.Authorization, "Bearer ${generateJWT("2", "clientId")}")
+                    setBody(objectMapper.writeValueAsString(endreFnr))
+                }
+            ) {
+                response.status() shouldBeEqualTo HttpStatusCode.OK
+                response.content shouldBeEqualTo "Vellykket oppdatering."
             }
         }
     }

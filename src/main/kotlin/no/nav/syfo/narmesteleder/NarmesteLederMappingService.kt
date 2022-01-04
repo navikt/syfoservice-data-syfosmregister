@@ -1,13 +1,12 @@
 package no.nav.syfo.narmesteleder
 
-import io.ktor.util.KtorExperimentalAPI
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import no.nav.syfo.log
 import no.nav.syfo.narmesteleder.kafkamodel.Leder
 import no.nav.syfo.narmesteleder.kafkamodel.NlResponse
 import no.nav.syfo.narmesteleder.kafkamodel.Sykmeldt
 import no.nav.syfo.pdl.service.PdlPersonService
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 class NarmesteLederMappingService(private val pdlPersonService: PdlPersonService) {
     suspend fun mapSyfoServiceNarmesteLederTilNlResponse(syfoServiceNarmesteLeder: SyfoServiceNarmesteLeder): NlResponse {

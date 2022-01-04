@@ -8,8 +8,8 @@ import io.ktor.client.statement.HttpStatement
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import java.time.LocalDate
 import no.nav.syfo.client.StsOidcClient
+import java.time.LocalDate
 
 class OppgaveClient(
     private val url: String,

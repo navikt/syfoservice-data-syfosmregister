@@ -1,10 +1,10 @@
 package no.nav.syfo.sparenaproxy
 
+import no.nav.syfo.db.DatabaseSparenaproxyPostgres
+import no.nav.syfo.db.toList
 import java.sql.Timestamp
 import java.time.LocalDate
 import java.time.OffsetDateTime
-import no.nav.syfo.db.DatabaseSparenaproxyPostgres
-import no.nav.syfo.db.toList
 
 fun DatabaseSparenaproxyPostgres.getPlanlagte8Ukersmeldinger(lastOpprettetTidspunkt: OffsetDateTime): List<PlanlagtMeldingDbModel> =
     connection.use { connection ->

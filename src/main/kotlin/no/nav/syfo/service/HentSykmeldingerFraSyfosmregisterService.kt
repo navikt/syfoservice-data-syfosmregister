@@ -1,6 +1,5 @@
 package no.nav.syfo.service
 
-import java.time.LocalDate
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
@@ -19,6 +18,7 @@ import no.nav.syfo.persistering.db.postgres.getSykmeldingIds
 import no.nav.syfo.persistering.db.postgres.hentAntallSykmeldinger
 import no.nav.syfo.persistering.db.postgres.hentSykmeldingerDokumentOgBehandlingsutfall
 import no.nav.syfo.persistering.db.postgres.oppdaterBehandlingsutfall
+import java.time.LocalDate
 
 class HentSykmeldingerFraSyfosmregisterService(
     private val receivedSykmeldingKafkaProducer: ReceivedSykmeldingKafkaProducer,

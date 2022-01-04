@@ -1,7 +1,5 @@
 package no.nav.syfo.service
 
-import java.time.Duration
-import java.time.LocalDateTime
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
@@ -9,6 +7,8 @@ import kotlinx.coroutines.launch
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.log
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import java.time.Duration
+import java.time.LocalDateTime
 
 class CheckTombstoneService(val tombstoneConsumer: KafkaConsumer<String, String?>, val applicationState: ApplicationState) {
     suspend fun run() {
