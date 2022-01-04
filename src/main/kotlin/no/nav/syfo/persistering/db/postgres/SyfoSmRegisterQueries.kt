@@ -149,7 +149,7 @@ fun Connection.getEnkelSykmelding(sykmeldingId: String): EnkelSykmeldingDbModel?
                     legekontor_org_nr,
                     sykmelding,
                     status.event,
-                    status.timestamp
+                    status.timestamp,
                     merknader
                     FROM sykmeldingsopplysninger AS opplysninger
                         INNER JOIN sykmeldingsdokument AS dokument ON opplysninger.id = dokument.id
