@@ -22,15 +22,17 @@ import no.nav.syfo.model.sykmeldingstatus.SvartypeDTO
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaEventDTO
 import no.nav.syfo.persistering.db.postgres.getSykmeldingMedSisteStatusBekreftet
 import no.nav.syfo.persistering.db.postgres.hentSporsmalOgSvar
-import no.nav.syfo.sykmelding.kafka.model.SykmeldingKafkaMessage
-import no.nav.syfo.sykmelding.kafka.model.toEnkelSykmelding
+import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaMessage
+import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
+import no.nav.syfo.sykmelding.kafka.model.toArbeidsgiverSykmelding
 import no.nav.syfo.sykmelding.model.EnkelSykmeldingDbModel
 
 class BekreftSykmeldingService(
     private val applicationState: ApplicationState,
     private val databasePostgres: DatabasePostgres,
-    private val enkelSykmeldingKafkaProducer: EnkelSykmeldingKafkaProducer,
-    private val lastMottattDato: LocalDate
+    private val sykmeldingKafkaProducer: SykmeldingV2KafkaProducer,
+    private val lastMottattDato: LocalDate,
+    private val bekreftetSykmeldingTopic: String
 ) {
 
     fun run() {
@@ -63,7 +65,11 @@ class BekreftSykmeldingService(
                         throw ex
                     }
                 }.forEach {
-                    enkelSykmeldingKafkaProducer.sendSykmelding(it)
+                    sykmeldingKafkaProducer.sendSykmelding(
+                        sykmeldingKafkaMessage = it,
+                        sykmeldingId = it.kafkaMetadata.sykmeldingId,
+                        topic = bekreftetSykmeldingTopic
+                    )
                     counterBekreftetSykmeldinger++
                 }
             lastMottattDato = lastMottattDato.plusDays(1)
@@ -82,8 +88,8 @@ class BekreftSykmeldingService(
     private fun mapTilSykmelding(
         it: EnkelSykmeldingDbModel,
         sporsmals: List<Sporsmal>
-    ): SykmeldingKafkaMessage {
-        val sykmelding = it.toEnkelSykmelding()
+    ): SykmeldingV2KafkaMessage {
+        val sykmelding = it.toArbeidsgiverSykmelding()
         val sporsmalDto = sporsmals.map {
             SporsmalOgSvarDTO(
                 it.tekst,
@@ -106,7 +112,7 @@ class BekreftSykmeldingService(
             null,
             sporsmalDto
         )
-        return SykmeldingKafkaMessage(
+        return SykmeldingV2KafkaMessage(
             sykmelding = sykmelding,
             kafkaMetadata = metadata,
             event = sykmeldingStatusKafkaEventDTO

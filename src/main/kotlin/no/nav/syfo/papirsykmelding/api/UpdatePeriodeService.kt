@@ -29,11 +29,9 @@ import no.nav.syfo.persistering.db.postgres.getSykmeldingMedSisteStatusBekreftet
 import no.nav.syfo.persistering.db.postgres.hentSporsmalOgSvar
 import no.nav.syfo.persistering.db.postgres.hentSykmeldingsdokument
 import no.nav.syfo.persistering.db.postgres.updatePeriode
-import no.nav.syfo.sykmelding.EnkelSykmeldingKafkaProducer
-import no.nav.syfo.sykmelding.MottattSykmeldingKafkaProducer
-import no.nav.syfo.sykmelding.kafka.model.MottattSykmeldingKafkaMessage
-import no.nav.syfo.sykmelding.kafka.model.SykmeldingKafkaMessage
-import no.nav.syfo.sykmelding.kafka.model.toEnkelSykmelding
+import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaMessage
+import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
+import no.nav.syfo.sykmelding.kafka.model.toArbeidsgiverSykmelding
 import no.nav.syfo.sykmelding.model.EnkelSykmeldingDbModel
 import no.nav.syfo.sykmelding.model.Periode
 
@@ -41,9 +39,10 @@ class UpdatePeriodeService(
     private val databaseoracle: DatabaseOracle,
     private val databasePostgres: DatabasePostgres,
     private val sykmeldingEndringsloggKafkaProducer: SykmeldingEndringsloggKafkaProducer,
-    private val mottattSykmeldingProudcer: MottattSykmeldingKafkaProducer,
-    private val sendtSykmeldingProducer: EnkelSykmeldingKafkaProducer,
-    private val bekreftetSykmeldingKafkaProducer: EnkelSykmeldingKafkaProducer
+    private val sykmeldingProducer: SykmeldingV2KafkaProducer,
+    private val mottattSykmeldingTopic: String,
+    private val sendtSykmeldingTopic: String,
+    private val bekreftetSykmeldingTopic: String
 ) {
     fun updatePeriode(sykmeldingId: String, periodeliste: List<Periode>) {
         val result = databaseoracle.getSykmeldingsDokument(sykmeldingId)
@@ -71,18 +70,30 @@ class UpdatePeriodeService(
                     throw RuntimeException("Fant ikke sykmeldingen vi nettopp endret")
                 }
 
-                mottattSykmeldingProudcer.sendSykmelding(mapTilMottattSykmelding(sykmelding))
+                sykmeldingProducer.sendSykmelding(
+                    sykmeldingKafkaMessage = mapTilMottattSykmelding(sykmelding),
+                    sykmeldingId = sykmeldingId,
+                    topic = mottattSykmeldingTopic
+                )
 
                 if (sykmelding.status.statusEvent == "SENDT") {
                     log.info("Sykmelding er sendt")
                     val sendtSykmelding = databasePostgres.connection.getSendtSykmeldingMedSisteStatus(sykmeldingId).firstOrNull()
-                    sendtSykmeldingProducer.sendSykmelding(mapTilSendtSykmelding(sendtSykmelding!!))
+                    sykmeldingProducer.sendSykmelding(
+                        sykmeldingKafkaMessage = mapTilSendtSykmelding(sendtSykmelding!!),
+                        sykmeldingId = sykmeldingId,
+                        topic = sendtSykmeldingTopic
+                    )
                     log.info("Sendt sykmelding til SENDT-topic")
                 } else if (sykmelding.status.statusEvent == "BEKREFTET") {
                     log.info("Sykmelding er bekreftet")
                     val bekreftetSykmelding = databasePostgres.connection.getSykmeldingMedSisteStatusBekreftet(sykmeldingId)
                     val sporsmals = databasePostgres.connection.hentSporsmalOgSvar(sykmeldingId)
-                    bekreftetSykmeldingKafkaProducer.sendSykmelding(mapTilBekreftetSykmelding(bekreftetSykmelding!!, sporsmals))
+                    sykmeldingProducer.sendSykmelding(
+                        sykmeldingKafkaMessage = mapTilBekreftetSykmelding(bekreftetSykmelding!!, sporsmals),
+                        sykmeldingId = sykmeldingId,
+                        topic = bekreftetSykmeldingTopic
+                    )
                     log.info("Sendt sykmelding til BEKREFTET-topic")
                 }
             }
@@ -92,21 +103,21 @@ class UpdatePeriodeService(
         }
     }
 
-    private fun mapTilMottattSykmelding(enkelSykmeldingDbModel: EnkelSykmeldingDbModel): MottattSykmeldingKafkaMessage {
-        return MottattSykmeldingKafkaMessage(
-            sykmelding = enkelSykmeldingDbModel.toEnkelSykmelding(),
+    private fun mapTilMottattSykmelding(enkelSykmeldingDbModel: EnkelSykmeldingDbModel): SykmeldingV2KafkaMessage {
+        return SykmeldingV2KafkaMessage(
+            sykmelding = enkelSykmeldingDbModel.toArbeidsgiverSykmelding(),
             kafkaMetadata = KafkaMetadataDTO(
                 sykmeldingId = enkelSykmeldingDbModel.id,
                 timestamp = enkelSykmeldingDbModel.mottattTidspunkt.atOffset(ZoneOffset.UTC),
                 fnr = enkelSykmeldingDbModel.fnr,
                 source = "macgyver"
-
-            )
+            ),
+            event = null
         )
     }
 
-    private fun mapTilSendtSykmelding(enkelSykmeldingDbModel: EnkelSykmeldingDbModel): SykmeldingKafkaMessage {
-        val sykmelding = enkelSykmeldingDbModel.toEnkelSykmelding()
+    private fun mapTilSendtSykmelding(enkelSykmeldingDbModel: EnkelSykmeldingDbModel): SykmeldingV2KafkaMessage {
+        val sykmelding = enkelSykmeldingDbModel.toArbeidsgiverSykmelding()
         val metadata = KafkaMetadataDTO(
             sykmeldingId = enkelSykmeldingDbModel.id,
             timestamp = enkelSykmeldingDbModel.status.statusTimestamp.atZone(ZoneId.systemDefault())
@@ -132,15 +143,15 @@ class UpdatePeriodeService(
                 )
             )
         )
-        return SykmeldingKafkaMessage(
+        return SykmeldingV2KafkaMessage(
             sykmelding = sykmelding,
             kafkaMetadata = metadata,
             event = sykmeldingStatusKafkaEventDTO
         )
     }
 
-    private fun mapTilBekreftetSykmelding(enkelSykmeldingDbModel: EnkelSykmeldingDbModel, sporsmals: List<Sporsmal>): SykmeldingKafkaMessage {
-        val sykmelding = enkelSykmeldingDbModel.toEnkelSykmelding()
+    private fun mapTilBekreftetSykmelding(enkelSykmeldingDbModel: EnkelSykmeldingDbModel, sporsmals: List<Sporsmal>): SykmeldingV2KafkaMessage {
+        val sykmelding = enkelSykmeldingDbModel.toArbeidsgiverSykmelding()
         val sporsmalDto = sporsmals.map {
             SporsmalOgSvarDTO(
                 it.tekst,
@@ -163,7 +174,7 @@ class UpdatePeriodeService(
             null,
             sporsmalDto
         )
-        return SykmeldingKafkaMessage(
+        return SykmeldingV2KafkaMessage(
             sykmelding = sykmelding,
             kafkaMetadata = metadata,
             event = sykmeldingStatusKafkaEventDTO

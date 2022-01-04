@@ -10,8 +10,7 @@ import no.nav.syfo.identendring.db.Periode
 import no.nav.syfo.identendring.db.SykmeldingDbModelUtenBehandlingsutfall
 import no.nav.syfo.identendring.db.getSykmeldingerMedFnrUtenBehandlingsutfall
 import no.nav.syfo.identendring.db.updateFnr
-import no.nav.syfo.identendring.model.SykmeldingKafkaMessage
-import no.nav.syfo.identendring.model.toEnkelSykmelding
+import no.nav.syfo.identendring.model.toArbeidsgiverSykmelding
 import no.nav.syfo.model.sykmeldingstatus.ArbeidsgiverStatusDTO
 import no.nav.syfo.model.sykmeldingstatus.KafkaMetadataDTO
 import no.nav.syfo.model.sykmeldingstatus.STATUS_SENDT
@@ -27,15 +26,18 @@ import no.nav.syfo.narmesteleder.kafkamodel.NlResponse
 import no.nav.syfo.narmesteleder.kafkamodel.NlResponseKafkaMessage
 import no.nav.syfo.narmesteleder.kafkamodel.Sykmeldt
 import no.nav.syfo.pdl.service.PdlPersonService
+import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaMessage
+import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
 import org.slf4j.LoggerFactory
 
 @KtorExperimentalAPI
 class UpdateFnrService(
     private val pdlPersonService: PdlPersonService,
     private val syfoSmRegisterDb: DatabaseInterfacePostgres,
-    private val sendtSykmeldingKafkaProducer: SendtSykmeldingKafkaProducer,
+    private val sendtSykmeldingKafkaProducer: SykmeldingV2KafkaProducer,
     private val narmesteLederResponseKafkaProducer: NarmesteLederResponseKafkaProducer,
-    private val narmestelederClient: NarmestelederClient
+    private val narmestelederClient: NarmestelederClient,
+    private val sendtSykmeldingTopic: String
 ) {
 
     private val log = LoggerFactory.getLogger(UpdateFnrService::class.java)
@@ -125,7 +127,11 @@ class UpdateFnrService(
                 val aktiveNarmesteledere = narmestelederClient.getNarmesteledere(fnr).filter { it.aktivTom == null }
                 log.info("Resender ${sendteSykmeldingerSisteFireMnd.size} sendte sykmeldinger")
                 sendteSykmeldingerSisteFireMnd.forEach {
-                    sendtSykmeldingKafkaProducer.sendSykmelding(getKafkaMessage(it, nyttFnr))
+                    sendtSykmeldingKafkaProducer.sendSykmelding(
+                        sykmeldingKafkaMessage = getKafkaMessage(it, nyttFnr),
+                        sykmeldingId = it.id,
+                        topic = sendtSykmeldingTopic
+                    )
                 }
                 log.info("Bryter og gjenoppretter ${aktiveNarmesteledere.size} nl-koblinger")
                 aktiveNarmesteledere.forEach {
@@ -178,8 +184,8 @@ private fun finnSisteTom(perioder: List<Periode>): LocalDate {
     return perioder.maxBy { it.tom }?.tom ?: throw IllegalStateException("Skal ikke kunne ha periode uten tom")
 }
 
-private fun getKafkaMessage(sykmelding: SykmeldingDbModelUtenBehandlingsutfall, nyttFnr: String): SykmeldingKafkaMessage {
-    val sendtSykmelding = sykmelding.toEnkelSykmelding()
+private fun getKafkaMessage(sykmelding: SykmeldingDbModelUtenBehandlingsutfall, nyttFnr: String): SykmeldingV2KafkaMessage {
+    val sendtSykmelding = sykmelding.toArbeidsgiverSykmelding()
     val metadata = KafkaMetadataDTO(
         sykmeldingId = sykmelding.id,
         timestamp = sykmelding.status.statusTimestamp,
@@ -204,7 +210,7 @@ private fun getKafkaMessage(sykmelding: SykmeldingDbModelUtenBehandlingsutfall, 
             )
         )
     )
-    return SykmeldingKafkaMessage(sendtSykmelding, metadata, sendEvent)
+    return SykmeldingV2KafkaMessage(sendtSykmelding, metadata, sendEvent)
 }
 
 class UpdateIdentException(override val message: String) : Exception(message)

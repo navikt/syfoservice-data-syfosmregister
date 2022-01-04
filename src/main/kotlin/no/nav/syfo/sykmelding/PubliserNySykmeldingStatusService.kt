@@ -8,14 +8,16 @@ import no.nav.syfo.model.sykmeldingstatus.KafkaMetadataDTO
 import no.nav.syfo.model.sykmeldingstatus.STATUS_APEN
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaEventDTO
 import no.nav.syfo.persistering.db.postgres.getEnkelSykmeldingUtenStatus
-import no.nav.syfo.sykmelding.kafka.model.MottattSykmeldingKafkaMessage
-import no.nav.syfo.sykmelding.kafka.model.toEnkelSykmelding
+import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaMessage
+import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
+import no.nav.syfo.sykmelding.kafka.model.toArbeidsgiverSykmelding
 import no.nav.syfo.sykmelding.model.EnkelSykmeldingDbModel
 
 class PubliserNySykmeldingStatusService(
     private val sykmeldingStatusKafkaProducer: SykmeldingStatusKafkaProducer,
-    private val mottattSykmeldingProudcer: MottattSykmeldingKafkaProducer,
-    private val databasePostgres: DatabasePostgres
+    private val mottattSykmeldingProudcer: SykmeldingV2KafkaProducer,
+    private val databasePostgres: DatabasePostgres,
+    private val mottattSykmeldingTopic: String
 ) {
     val sykmeldingId = ""
 
@@ -36,23 +38,27 @@ class PubliserNySykmeldingStatusService(
                 sykmelding.fnr
             )
             log.info("Sendt statusendring")
-            mottattSykmeldingProudcer.sendSykmelding(mapTilMottattSykmelding(sykmelding))
+            mottattSykmeldingProudcer.sendSykmelding(
+                sykmeldingKafkaMessage = mapTilMottattSykmelding(sykmelding),
+                sykmeldingId = sykmeldingId,
+                topic = mottattSykmeldingTopic
+            )
             log.info("Sendt til mottatt-topic")
         } else {
             log.info("fant ikke sykmelding med id {}", sykmeldingId)
         }
     }
 
-    private fun mapTilMottattSykmelding(enkelSykmeldingDbModel: EnkelSykmeldingDbModel): MottattSykmeldingKafkaMessage {
-        return MottattSykmeldingKafkaMessage(
-            sykmelding = enkelSykmeldingDbModel.toEnkelSykmelding(),
+    private fun mapTilMottattSykmelding(enkelSykmeldingDbModel: EnkelSykmeldingDbModel): SykmeldingV2KafkaMessage {
+        return SykmeldingV2KafkaMessage(
+            sykmelding = enkelSykmeldingDbModel.toArbeidsgiverSykmelding(),
             kafkaMetadata = KafkaMetadataDTO(
                 sykmeldingId = enkelSykmeldingDbModel.id,
                 timestamp = enkelSykmeldingDbModel.mottattTidspunkt.atOffset(ZoneOffset.UTC),
                 fnr = enkelSykmeldingDbModel.fnr,
                 source = "macgyver"
-
-            )
+            ),
+            event = null
         )
     }
 }

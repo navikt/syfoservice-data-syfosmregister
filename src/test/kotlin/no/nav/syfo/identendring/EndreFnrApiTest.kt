@@ -34,6 +34,7 @@ import no.nav.syfo.objectMapper
 import no.nav.syfo.pdl.client.model.IdentInformasjon
 import no.nav.syfo.pdl.model.PdlPerson
 import no.nav.syfo.pdl.service.PdlPersonService
+import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
 import no.nav.syfo.sykmelding.api.model.EndreFnr
 import no.nav.syfo.testutil.generateJWT
 import org.amshove.kluent.shouldEqual
@@ -51,7 +52,7 @@ class EndreFnrApiTest : Spek({
             val jwkProvider = JwkProviderBuilder(uri).build()
 
             val pdlPersonService = mockk<PdlPersonService>(relaxed = true)
-            val sendtSykmeldingKafkaProducer = mockk<SendtSykmeldingKafkaProducer>(relaxed = true)
+            val sendtSykmeldingKafkaProducer = mockk<SykmeldingV2KafkaProducer>(relaxed = true)
             val narmesteLederResponseKafkaProducer = mockk<NarmesteLederResponseKafkaProducer>(relaxed = true)
             val narmestelederClient = mockk<NarmestelederClient>()
 
@@ -67,7 +68,7 @@ class EndreFnrApiTest : Spek({
                 listOf("foo", "bar")
             )
             application.routing {
-                registerFnrApi(UpdateFnrService(pdlPersonService, db, sendtSykmeldingKafkaProducer, narmesteLederResponseKafkaProducer, narmestelederClient))
+                registerFnrApi(UpdateFnrService(pdlPersonService, db, sendtSykmeldingKafkaProducer, narmesteLederResponseKafkaProducer, narmestelederClient, "topic"))
             }
 
             application.install(ContentNegotiation) {
