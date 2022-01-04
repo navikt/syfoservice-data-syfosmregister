@@ -9,7 +9,6 @@ import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.log
 import org.apache.kafka.clients.consumer.KafkaConsumer
 
-@KtorExperimentalAPI
 class NarmesteLederConsumerService(
     private val kafkaConsumer: KafkaConsumer<String, SyfoServiceNarmesteLeder>,
     private val applicationState: ApplicationState,

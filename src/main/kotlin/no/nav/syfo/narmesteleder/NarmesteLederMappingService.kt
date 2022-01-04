@@ -9,7 +9,6 @@ import no.nav.syfo.narmesteleder.kafkamodel.NlResponse
 import no.nav.syfo.narmesteleder.kafkamodel.Sykmeldt
 import no.nav.syfo.pdl.service.PdlPersonService
 
-@KtorExperimentalAPI
 class NarmesteLederMappingService(private val pdlPersonService: PdlPersonService) {
     suspend fun mapSyfoServiceNarmesteLederTilNlResponse(syfoServiceNarmesteLeder: SyfoServiceNarmesteLeder): NlResponse {
         val fnrs = pdlPersonService.getFnrs(listOf(syfoServiceNarmesteLeder.aktorId, syfoServiceNarmesteLeder.nlAktorId), syfoServiceNarmesteLeder.id.toString())

@@ -7,7 +7,6 @@ import no.nav.syfo.pdl.client.PdlClient
 import no.nav.syfo.pdl.error.AktoerNotFoundException
 import no.nav.syfo.pdl.model.PdlPerson
 
-@KtorExperimentalAPI
 class PdlPersonService(
     private val pdlClient: PdlClient,
     private val accessTokenClientV2: AccessTokenClientV2,

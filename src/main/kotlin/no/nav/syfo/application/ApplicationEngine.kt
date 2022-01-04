@@ -18,7 +18,7 @@ import no.nav.syfo.application.api.registerNaisApi
 import no.nav.syfo.application.api.setupSwaggerDocApi
 import no.nav.syfo.identendring.UpdateFnrService
 import no.nav.syfo.identendring.api.registerFnrApi
-import no.nav.syfo.oppgave.OppgaveClient
+import no.nav.syfo.oppgave.client.OppgaveClient
 import no.nav.syfo.oppgave.api.registerHentOppgaverApi
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.api.UpdateBehandletDatoService

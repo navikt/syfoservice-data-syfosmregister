@@ -49,7 +49,6 @@ import org.amshove.kluent.shouldEqual
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
-@KtorExperimentalAPI
 class UpdateFnrServiceTest : Spek({
     val pdlPersonService = mockk<PdlPersonService>(relaxed = true)
     mockkStatic("no.nav.syfo.identendring.db.SyfoSmRegisterKt")

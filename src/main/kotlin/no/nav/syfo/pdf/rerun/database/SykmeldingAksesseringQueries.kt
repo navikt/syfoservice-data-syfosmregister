@@ -68,5 +68,12 @@ fun ResultSet.toReceivedSykmelding(): ReceivedSykmelding {
             legekontorOrgNr = getString("legekontor_org_nr"),
             legekontorHerId = getString("legekontor_her_id"),
             fellesformat = "",
-            legekontorOrgName = "", tlfPasient = null, rulesetVersion = null, merknader = null, partnerreferanse = null)
+            legekontorOrgName = "",
+            tlfPasient = null,
+            rulesetVersion = null,
+            merknader = getString("merknader")?.let { objectMapper.readValue<List<no.nav.syfo.model.Merknad>>(it) },
+            partnerreferanse = getString("partnerreferanse"),
+            legeHelsepersonellkategori = getString("lege_helsepersonellkategori"),
+            legeHprNr = getString("lege_hpr")
+    )
 }

@@ -9,20 +9,21 @@ import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.apache.Apache
 import io.ktor.client.engine.apache.ApacheEngineConfig
+import io.ktor.client.features.HttpResponseValidator
 import io.ktor.client.features.json.JacksonSerializer
 import io.ktor.client.features.json.JsonFeature
-import io.ktor.util.KtorExperimentalAPI
+import io.ktor.network.sockets.SocketTimeoutException
 import java.net.ProxySelector
 import no.nav.syfo.Environment
 import no.nav.syfo.VaultServiceUser
+import no.nav.syfo.clients.exception.ServiceUnavailableException
 import no.nav.syfo.client.StsOidcClient
 import no.nav.syfo.identendring.client.NarmestelederClient
-import no.nav.syfo.oppgave.OppgaveClient
+import no.nav.syfo.oppgave.client.OppgaveClient
 import no.nav.syfo.pdl.client.PdlClient
 import no.nav.syfo.pdl.service.PdlPersonService
 import org.apache.http.impl.conn.SystemDefaultRoutePlanner
 
-@KtorExperimentalAPI
 class HttpClients(environment: Environment, vaultServiceUser: VaultServiceUser) {
     private val config: HttpClientConfig<ApacheEngineConfig>.() -> Unit = {
         engine {
@@ -40,6 +41,13 @@ class HttpClients(environment: Environment, vaultServiceUser: VaultServiceUser) 
             }
         }
         expectSuccess = false
+        HttpResponseValidator {
+            handleResponseException { exception ->
+                when (exception) {
+                    is SocketTimeoutException -> throw ServiceUnavailableException(exception.message)
+                }
+            }
+        }
     }
 
     private val proxyConfig: HttpClientConfig<ApacheEngineConfig>.() -> Unit = {

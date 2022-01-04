@@ -11,7 +11,6 @@ import no.nav.syfo.identendring.UpdateFnrService
 import no.nav.syfo.identendring.UpdateIdentException
 import no.nav.syfo.sykmelding.api.model.EndreFnr
 
-@KtorExperimentalAPI
 fun Route.registerFnrApi(updateFnrService: UpdateFnrService) {
     post("/api/sykmelding/fnr") {
 

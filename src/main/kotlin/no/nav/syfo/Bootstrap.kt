@@ -124,7 +124,6 @@ val legeerklaringObjectMapper: ObjectMapper = ObjectMapper().apply {
 
 val log: Logger = LoggerFactory.getLogger("no.nav.syfo.syfoservicedatasyfosmregister")
 
-@KtorExperimentalAPI
 fun main() {
     val environment = Environment()
     val applicationState = ApplicationState()

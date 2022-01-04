@@ -10,7 +10,6 @@ import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.log
 import org.apache.kafka.clients.consumer.KafkaConsumer
 
-@KtorExperimentalAPI
 class NarmesteLederEquinorConsumerService(
     private val kafkaConsumer: KafkaConsumer<String, SyfoServiceNarmesteLeder>,
     private val applicationState: ApplicationState,

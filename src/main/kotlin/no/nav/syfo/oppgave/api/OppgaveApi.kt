@@ -8,7 +8,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.post
 import java.util.UUID
 import no.nav.syfo.log
-import no.nav.syfo.oppgave.OppgaveClient
+import no.nav.syfo.oppgave.client.OppgaveClient
 
 fun Route.registerHentOppgaverApi(oppgaveClient: OppgaveClient) {
     post("/api/oppgave/list") {

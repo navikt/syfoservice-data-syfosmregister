@@ -41,7 +41,6 @@ import org.amshove.kluent.shouldEqual
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
-@KtorExperimentalAPI
 class EndreFnrApiTest : Spek({
     describe("Test endre fnr") {
 

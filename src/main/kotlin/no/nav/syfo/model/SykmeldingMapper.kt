@@ -63,7 +63,9 @@ fun toReceivedSykmelding(sykmeldingDbModel: SykmeldingDbModel): ReceivedSykmeldi
         rulesetVersion = null,
         tlfPasient = null,
         merknader = null,
-        partnerreferanse = null
+        partnerreferanse = null,
+        legeHprNr = null,
+        legeHelsepersonellkategori = null
     )
 }
 
@@ -93,7 +95,9 @@ fun toReceivedSykmelding(jsonMap: Map<String, Any?>): ReceivedSykmelding {
         fellesformat = "",
         tssid = "",
         merknader = null,
-        partnerreferanse = null
+        partnerreferanse = null,
+        legeHelsepersonellkategori = null,
+        legeHprNr = null
     )
 }
 

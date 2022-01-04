@@ -30,7 +30,6 @@ import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaMessage
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
 import org.slf4j.LoggerFactory
 
-@KtorExperimentalAPI
 class UpdateFnrService(
     private val pdlPersonService: PdlPersonService,
     private val syfoSmRegisterDb: DatabaseInterfacePostgres,
@@ -181,7 +180,7 @@ class UpdateFnrService(
 }
 
 private fun finnSisteTom(perioder: List<Periode>): LocalDate {
-    return perioder.maxBy { it.tom }?.tom ?: throw IllegalStateException("Skal ikke kunne ha periode uten tom")
+    return perioder.maxByOrNull { it.tom }?.tom ?: throw IllegalStateException("Skal ikke kunne ha periode uten tom")
 }
 
 private fun getKafkaMessage(sykmelding: SykmeldingDbModelUtenBehandlingsutfall, nyttFnr: String): SykmeldingV2KafkaMessage {
