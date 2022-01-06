@@ -61,7 +61,8 @@ data class Environment(
     val manuellDbUrl: String = getEnvVar("SYFOSMMANUELL_BACKEND_DB_URL"),
     val databaseNameManuell: String = "syfosmmanuell-backend",
     val narmestelederUrl: String = getEnvVar("NARMESTELEDER_URL"),
-    val narmestelederScope: String = getEnvVar("NARMESTELEDER_SCOPE")
+    val narmestelederScope: String = getEnvVar("NARMESTELEDER_SCOPE"),
+    val aivenSykmeldingStatusTopic: String = "teamsykmelding.sykmeldingstatus-leesah"
 ) : KafkaConfig
 
 data class VaultCredentials(

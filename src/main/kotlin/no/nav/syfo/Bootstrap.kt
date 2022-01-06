@@ -208,27 +208,29 @@ fun main() {
     val rerunKafkaService = RerunKafkaService(databasePostgres, RerunKafkaProducer(KafkaProducer(producerConfigRerun), environment))
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "macgyver-sykmeldingv1",
-        valueDeserializer = JacksonKafkaDeserializer::class
+        "macgyver-sykmeldingstatus",
+        StringDeserializer::class,
+        StringDeserializer::class
     )
     consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
     consumerProperties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
-    val kafkaSykmeldingV1ConsumerMottatt = KafkaConsumer<String, SykmeldingV1KafkaMessage>(consumerProperties, StringDeserializer(), JacksonKafkaDeserializer(SykmeldingV1KafkaMessage::class))
-    val kafkaSykmeldingV1ConsumerBekreftet = KafkaConsumer<String, SykmeldingV1KafkaMessage>(consumerProperties, StringDeserializer(), JacksonKafkaDeserializer(SykmeldingV1KafkaMessage::class))
-    val kafkaSykmeldingV1ConsumerSendt = KafkaConsumer<String, SykmeldingV1KafkaMessage>(consumerProperties, StringDeserializer(), JacksonKafkaDeserializer(SykmeldingV1KafkaMessage::class))
 
-    val topicsMottatt = mapOf(
-        environment.mottattSykmeldingTopic to environment.mottattSykmeldingV2Topic
+    val kafkaSykmeldingStatusConsumer = KafkaConsumer<String, String>(consumerProperties)
+
+    val kafkaAivenSykmeldingStatusProducer = KafkaProducer<String, String>(
+        KafkaUtils
+            .getAivenKafkaConfig()
+            .toProducerConfig("macgyver-producer", StringSerializer::class, StringSerializer::class).apply {
+                this[ProducerConfig.ACKS_CONFIG] = "1"
+                this[ProducerConfig.RETRIES_CONFIG] = 1000
+                this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "true"
+            }
     )
-    val topicsSendt = mapOf(
-        environment.sendSykmeldingTopic to environment.sendSykmeldingV2Topic
+
+    val topicsSykmeldingService = mapOf(
+        environment.sykmeldingStatusTopic to environment.aivenSykmeldingStatusTopic
     )
-    val topicsBekreftet = mapOf(
-        environment.bekreftSykmeldingKafkaTopic to environment.bekreftSykmeldingV2KafkaTopic
-    )
-    val aivenMigreringServiceBekreftet = AivenMigreringService(kafkaSykmeldingV1ConsumerBekreftet, SykmeldingV2KafkaProducer(kafkaAivenProducer), topicsBekreftet, applicationState, environment)
-    val aivenMigrationServiceMottatt = AivenMigreringService(kafkaSykmeldingV1ConsumerMottatt, SykmeldingV2KafkaProducer(kafkaAivenProducer), topicsMottatt, applicationState, environment)
-    val aivenMigrationServiceSendt = AivenMigreringService(kafkaSykmeldingV1ConsumerSendt, SykmeldingV2KafkaProducer(kafkaAivenProducer), topicsSendt, applicationState, environment)
+    val aivenSykmeldingstatusMigrationService = AivenMigreringService(kafkaSykmeldingStatusConsumer, kafkaAivenSykmeldingStatusProducer, topicsSykmeldingService, applicationState)
 
     val applicationEngine = createApplicationEngine(
         env = environment,
@@ -254,13 +256,7 @@ fun main() {
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
 
     startBackgroundJob(applicationState) {
-        aivenMigreringServiceBekreftet.start()
-    }
-    startBackgroundJob(applicationState) {
-        aivenMigrationServiceMottatt.start()
-    }
-    startBackgroundJob(applicationState) {
-        aivenMigrationServiceSendt.start()
+        aivenSykmeldingstatusMigrationService.start()
     }
 }
 
