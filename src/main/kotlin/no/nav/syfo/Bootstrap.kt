@@ -223,7 +223,7 @@ fun main() {
             .toProducerConfig("macgyver-producer", StringSerializer::class, StringSerializer::class).apply {
                 this[ProducerConfig.ACKS_CONFIG] = "1"
                 this[ProducerConfig.RETRIES_CONFIG] = 1000
-                this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "true"
+                this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
             }
     )
 
