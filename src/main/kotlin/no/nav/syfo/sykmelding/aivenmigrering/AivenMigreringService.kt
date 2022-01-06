@@ -62,10 +62,11 @@ class AivenMigreringService(
                     topics[it.topic()]!!, it.key(), it.value()
                 )
                 producerRecord.headers().add("source", "on-prem".toByteArray())
-                sykmeldingStatusAivenProducer.send(producerRecord) { _, exception ->
-                    if (exception != null) {
-                        log.error("Error sending message to kafka")
-                    }
+                try {
+                    sykmeldingStatusAivenProducer.send(producerRecord).get()
+                } catch (e :Exception) {
+                    log.error("Error sending message to kafka", e)
+                    throw e
                 }
                 counter++
             }
