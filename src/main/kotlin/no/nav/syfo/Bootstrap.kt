@@ -208,11 +208,11 @@ fun main() {
     val rerunKafkaService = RerunKafkaService(databasePostgres, RerunKafkaProducer(KafkaProducer(producerConfigRerun), environment))
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "macgyver-sykmeldingstatus",
+        "macgyver-sykmeldingstatus-migrering",
         StringDeserializer::class,
         StringDeserializer::class
     )
-    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
+    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1000")
     consumerProperties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
 
     val kafkaSykmeldingStatusConsumer = KafkaConsumer<String, String>(consumerProperties)
