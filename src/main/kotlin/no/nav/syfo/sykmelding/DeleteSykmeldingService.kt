@@ -20,8 +20,6 @@ class DeleteSykmeldingService(
     val endringsloggKafkaProducer: SykmeldingEndringsloggKafkaProducer
 
 ) {
-    val topic = environment.sykmeldingStatusTopic
-
     fun deleteSykmelding(sykmeldingID: String) {
 
         val sykmelding = databasePostgres.connection.hentSykmeldingMedId(sykmeldingID)
