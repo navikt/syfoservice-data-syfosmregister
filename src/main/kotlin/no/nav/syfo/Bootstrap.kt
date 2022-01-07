@@ -82,10 +82,8 @@ import no.nav.syfo.sykmelding.MottattSykmeldingService
 import no.nav.syfo.sykmelding.SendtSykmeldingService
 import no.nav.syfo.sykmelding.SykmeldingStatusKafkaProducer
 import no.nav.syfo.sykmelding.aivenmigrering.AivenMigreringService
-import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV1KafkaMessage
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaMessage
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
-import no.nav.syfo.utils.JacksonKafkaDeserializer
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.JacksonNullableKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
@@ -164,8 +162,13 @@ fun main() {
                 this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
             }
     )
+    val aivenProducerProperties = KafkaUtils.getAivenKafkaConfig().toProducerConfig(environment.applicationName, JacksonKafkaSerializer::class, StringSerializer::class).apply {
+        this[ProducerConfig.ACKS_CONFIG] = "1"
+        this[ProducerConfig.RETRIES_CONFIG] = 1000
+        this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
+    }
     val sykmeldingEndringsloggKafkaProducer = SykmeldingEndringsloggKafkaProducer(environment.endringsloggTopic, KafkaProducer<String, Sykmeldingsdokument>(producerProperties))
-    val statusKafkaProducer = SykmeldingStatusKafkaProducer(KafkaProducer(producerProperties), environment.sykmeldingStatusTopic)
+    val statusKafkaProducer = SykmeldingStatusKafkaProducer(KafkaProducer(aivenProducerProperties), environment.aivenSykmeldingStatusTopic)
     val updatePeriodeService = UpdatePeriodeService(
         databaseoracle = databaseOracle,
         databasePostgres = databasePostgres,
@@ -379,13 +382,13 @@ fun oppdaterStatus(applicationState: ApplicationState, environment: Environment)
 
     val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
     val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
-    val producerProperties =
-        kafkaBaseConfig.toProducerConfig(
-            environment.applicationName,
-            valueSerializer = JacksonKafkaSerializer::class
-        )
-    val kafkaProducer = KafkaProducer<String, SykmeldingStatusKafkaMessageDTO>(producerProperties)
-    val statusKafkaProducer = SykmeldingStatusKafkaProducer(kafkaProducer, environment.sykmeldingStatusTopic)
+    val aivenProducerProperties = KafkaUtils.getAivenKafkaConfig().toProducerConfig(environment.applicationName, JacksonKafkaSerializer::class, StringSerializer::class).apply {
+        this[ProducerConfig.ACKS_CONFIG] = "1"
+        this[ProducerConfig.RETRIES_CONFIG] = 1000
+        this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
+    }
+    val kafkaProducer = KafkaProducer<String, SykmeldingStatusKafkaMessageDTO>(aivenProducerProperties)
+    val statusKafkaProducer = SykmeldingStatusKafkaProducer(kafkaProducer, environment.aivenSykmeldingStatusTopic)
     val oppdaterStatusService = OppdaterStatusService(databaseOracle, statusKafkaProducer, databasePostgres)
 
     oppdaterStatusService.start()
