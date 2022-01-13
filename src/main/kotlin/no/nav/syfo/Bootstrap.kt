@@ -241,7 +241,7 @@ fun main() {
         updatePeriodeService = updatePeriodeService,
         updateBehandletDatoService = updateBehandletDatoService,
         updateFnrService = updateFnrService,
-        sendTilSyfoserviceService = createSendTilSyfoservice(environment, databasePostgres, producerProperties),
+        sendTilSyfoserviceService = createSendTilSyfoservice(environment, databasePostgres, aivenProducerProperties),
         diagnoseService = DiagnoseService(databaseOracle, databasePostgres, sykmeldingEndringsloggKafkaProducer),
         oppgaveClient = httpClients.oppgaveClient,
         jwkProviderInternal = jwkProviderInternal,
