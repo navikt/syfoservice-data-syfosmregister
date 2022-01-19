@@ -99,3 +99,7 @@ spec:
       value: https://narmesteleder.intern.nav.no
     - name: NARMESTELEDER_SCOPE
       value: api://prod-gcp.teamsykmelding.narmesteleder/.default
+    - name: SYKMELDING_BUCKET_NAME
+      value: teamsykmelding-sykmelding-vedlegg-bucket-prod
+    - name: PALE_BUCKET_NAME
+      value: teamsykmelding-pale2-vedlegg-bucket-prod

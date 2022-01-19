@@ -6,8 +6,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.google.auth.Credentials
+import com.google.auth.oauth2.GoogleCredentials
+import com.google.cloud.storage.Storage
+import com.google.cloud.storage.StorageOptions
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -84,10 +89,14 @@ import no.nav.syfo.sykmelding.SykmeldingStatusKafkaProducer
 import no.nav.syfo.sykmelding.aivenmigrering.AivenMigreringService
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaMessage
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
+import no.nav.syfo.utils.JacksonKafkaDeserializer
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.JacksonNullableKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
 import no.nav.syfo.vault.RenewVaultService
+import no.nav.syfo.vedlegg.VedleggMigreringService
+import no.nav.syfo.vedlegg.google.BucketUploadService
+import no.nav.syfo.vedlegg.model.VedleggMessage
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -96,6 +105,7 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.FileInputStream
 import java.net.URL
 import java.time.LocalDate
 import java.time.ZoneId
@@ -121,6 +131,7 @@ val legeerklaringObjectMapper: ObjectMapper = ObjectMapper().apply {
 
 val log: Logger = LoggerFactory.getLogger("no.nav.syfo.syfoservicedatasyfosmregister")
 
+@DelicateCoroutinesApi
 fun main() {
     val environment = Environment()
     val applicationState = ApplicationState()
@@ -235,6 +246,31 @@ fun main() {
     )
     val aivenSykmeldingstatusMigrationService = AivenMigreringService(kafkaSykmeldingStatusConsumer, kafkaAivenSykmeldingStatusProducer, topicsSykmeldingService, applicationState)
 
+    val consumerPropertiesVedlegg = kafkaBaseConfig.toConsumerConfig(
+        "macgyver-vedlegg-migrering",
+        JacksonKafkaDeserializer::class,
+        StringDeserializer::class
+    )
+    consumerPropertiesVedlegg.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1")
+    consumerPropertiesVedlegg.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+
+    val sykmeldingStorageCredentials: Credentials = GoogleCredentials.fromStream(FileInputStream("/var/run/secrets/nais.io/vault/sykmelding-google-creds.json"))
+    val sykmeldingStorage: Storage = StorageOptions.newBuilder().setCredentials(sykmeldingStorageCredentials).build().service
+    val sykmeldingBucketUploadService = BucketUploadService(environment.sykmeldingBucketName, sykmeldingStorage)
+
+    val paleStorageCredentials: Credentials = GoogleCredentials.fromStream(FileInputStream("/var/run/secrets/nais.io/vault/pale2-google-creds.json"))
+    val paleStorage: Storage = StorageOptions.newBuilder().setCredentials(paleStorageCredentials).build().service
+    val paleBucketUploadService = BucketUploadService(environment.paleBucketName, paleStorage)
+
+    val kafkaVedleggConsumer = KafkaConsumer<String, VedleggMessage>(consumerPropertiesVedlegg)
+    val vedleggMigreringService = VedleggMigreringService(
+        vedleggOnPremConsumer = kafkaVedleggConsumer,
+        topic = environment.vedleggTopic,
+        applicationState = applicationState,
+        sykmeldingBucketUploadService = sykmeldingBucketUploadService,
+        paleBucketUploadService = paleBucketUploadService
+    )
+
     val applicationEngine = createApplicationEngine(
         env = environment,
         applicationState = applicationState,
@@ -259,10 +295,11 @@ fun main() {
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
 
     startBackgroundJob(applicationState) {
-        aivenSykmeldingstatusMigrationService.start()
+        vedleggMigreringService.start()
     }
 }
 
+@DelicateCoroutinesApi
 fun startBackgroundJob(applicationState: ApplicationState, block: suspend CoroutineScope.() -> Unit) {
     GlobalScope.launch(Dispatchers.IO) {
         try {
