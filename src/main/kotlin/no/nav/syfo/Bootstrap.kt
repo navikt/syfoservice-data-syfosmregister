@@ -262,7 +262,7 @@ fun main() {
     val paleStorage: Storage = StorageOptions.newBuilder().setCredentials(paleStorageCredentials).build().service
     val paleBucketUploadService = BucketUploadService(environment.paleBucketName, paleStorage)
 
-    val kafkaVedleggConsumer = KafkaConsumer<String, VedleggMessage>(consumerPropertiesVedlegg)
+    val kafkaVedleggConsumer = KafkaConsumer<String, VedleggMessage>(consumerPropertiesVedlegg, StringDeserializer(), JacksonKafkaDeserializer(VedleggMessage::class))
     val vedleggMigreringService = VedleggMigreringService(
         vedleggOnPremConsumer = kafkaVedleggConsumer,
         topic = environment.vedleggTopic,
