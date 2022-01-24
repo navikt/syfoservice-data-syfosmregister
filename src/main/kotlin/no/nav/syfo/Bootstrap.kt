@@ -333,7 +333,7 @@ fun main() {
         historiskMigreringService.start()
     }
 
-    startLegeerkleringKafkaConsumer(kafkaBaseConfig, environment, applicationState)
+    // startLegeerkleringKafkaConsumer(kafkaBaseConfig, environment, applicationState)
 }
 
 fun startLegeerkleringKafkaConsumer(config: Properties, environment: Environment, applicationState: ApplicationState) {
