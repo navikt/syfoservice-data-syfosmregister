@@ -279,7 +279,7 @@ fun main() {
         StringDeserializer::class,
         StringDeserializer::class
     )
-    consumerPropertiesHistorisk.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1")
+    consumerPropertiesHistorisk.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
     consumerPropertiesHistorisk.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
     val kafkaAivenHistoriskProducer = KafkaProducer<String, String?>(
         KafkaUtils
