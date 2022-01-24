@@ -308,7 +308,7 @@ fun startLegeerkleringKafkaConsumer(config: Properties, environment: Environment
         this[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = 100
     }
     val kafkaConsumer = KafkaConsumer<String, ByteArray>(kafkaConsumerProperties)
-    val legeerkleringKafkaService = LegeerkleringKafkaService(kafkaConsumer, environment.pale2okTopic, applicationState)
+    val legeerkleringKafkaService = LegeerkleringKafkaService(kafkaConsumer, environment.pale2avvistTopic, applicationState)
     startBackgroundJob(applicationState) {
         legeerkleringKafkaService.start()
     }
