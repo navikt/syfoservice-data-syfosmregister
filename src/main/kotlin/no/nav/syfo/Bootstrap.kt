@@ -89,6 +89,7 @@ import no.nav.syfo.sykmelding.SykmeldingStatusKafkaProducer
 import no.nav.syfo.sykmelding.aivenmigrering.AivenMigreringService
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaMessage
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
+import no.nav.syfo.sykmelding.historisk.HistoriskMigreringService
 import no.nav.syfo.utils.JacksonKafkaDeserializer
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.JacksonNullableKafkaSerializer
@@ -271,6 +272,38 @@ fun main() {
         paleBucketUploadService = paleBucketUploadService
     )
 
+    val consumerPropertiesHistorisk = kafkaBaseConfig.toConsumerConfig(
+        "macgyver-historisk-migrering",
+        JacksonKafkaDeserializer::class,
+        StringDeserializer::class
+    )
+    consumerPropertiesHistorisk.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1")
+    consumerPropertiesHistorisk.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+    val kafkaAivenHistoriskProducer = KafkaProducer<String, String>(
+        KafkaUtils
+            .getAivenKafkaConfig()
+            .toProducerConfig("macgyver-producer", StringSerializer::class, StringSerializer::class).apply {
+                this[ProducerConfig.ACKS_CONFIG] = "1"
+                this[ProducerConfig.RETRIES_CONFIG] = 1000
+                this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
+            }
+    )
+
+    val historiskMigreringService = HistoriskMigreringService(
+        onPremConsumer = KafkaConsumer<String, String>(consumerPropertiesHistorisk, StringDeserializer(), StringDeserializer()),
+        aivenProducer = kafkaAivenHistoriskProducer,
+        topics = listOf(
+            environment.avvistBehandlingTopic,
+            environment.automatiskBehandlingTopic,
+            environment.manuellBehandlingTopic,
+            environment.behandlingsutfallTopic,
+            environment.manuellTopic,
+            environment.smRegistreringTopic
+        ),
+        historiskTopic = environment.historiskTopic,
+        applicationState = applicationState
+    )
+
     val applicationEngine = createApplicationEngine(
         env = environment,
         applicationState = applicationState,
@@ -295,7 +328,7 @@ fun main() {
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
 
     startBackgroundJob(applicationState) {
-        vedleggMigreringService.start()
+        // historiskMigreringService.start()
     }
 }
 

@@ -64,7 +64,14 @@ data class Environment(
     val aivenSykmeldingStatusTopic: String = "teamsykmelding.sykmeldingstatus-leesah",
     val vedleggTopic: String = "privat-syfo-vedlegg",
     val sykmeldingBucketName: String = getEnvVar("SYKMELDING_BUCKET_NAME"),
-    val paleBucketName: String = getEnvVar("PALE_BUCKET_NAME")
+    val paleBucketName: String = getEnvVar("PALE_BUCKET_NAME"),
+    val historiskTopic: String = "teamsykmelding.sykmelding-historisk",
+    val avvistBehandlingTopic: String = "privat-syfo-sm2013-avvistBehandling",
+    val automatiskBehandlingTopic: String = "privat-syfo-sm2013-automatiskBehandling",
+    val manuellBehandlingTopic: String = "privat-syfo-sm2013-manuellBehandling",
+    val behandlingsutfallTopic: String = "privat-syfo-sm2013-behandlingsUtfall",
+    val manuellTopic: String = "privat-syfo-sm2013-manuell",
+    val smRegistreringTopic: String = "privat-syfo-papir-sm-registering"
 ) : KafkaConfig
 
 data class VaultCredentials(
