@@ -24,7 +24,7 @@ class LegeerkleringKafkaService(private val kafkaConsumer: KafkaConsumer<String,
                 log.info("Starting logging")
                 while (true) {
                     log.info(
-                        "Antall vedlegg som er lest. $counter"
+                        "Antall legeerkleringer som er lest. $counter"
                     )
                     delay(10_000)
                 }
