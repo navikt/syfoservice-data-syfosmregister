@@ -40,6 +40,7 @@ val legeerklaering = "2019.07.29-02-53-86b22e73f7843e422ee500b486dac387a582f2d1"
 val swaggerUiVersion = "4.1.3"
 val kotlinVersion = "1.6.0"
 val googleCloudStorageVersion = "2.3.0"
+val pale2CommonVersion = "1.a40bf1a"
 
 plugins {
     kotlin("jvm") version "1.6.0"
@@ -117,7 +118,7 @@ dependencies {
     implementation("no.nav.syfo.schemas:syfosmoppgave-avro:$syfoAvroSchemasVersion")
     implementation("no.nav.helse.xml:legeerklaering:$legeerklaering")
     implementation("com.google.cloud:google-cloud-storage:$googleCloudStorageVersion")
-
+    implementation("no.nav.syfo:pale-2-common-models:$pale2CommonVersion")
     swaggerUI( "org.webjars:swagger-ui:$swaggerUiVersion")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlinVersion")
