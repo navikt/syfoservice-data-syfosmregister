@@ -304,11 +304,11 @@ fun main() {
 }
 
 fun startLegeerkleringKafkaConsumer(config: Properties, environment: Environment, applicationState: ApplicationState) {
-    val kafkaConsumerProperties = config.toConsumerConfig("macgyver-legeerklaring-consumer", ByteArrayDeserializer::class, StringDeserializer::class).apply {
+    val kafkaConsumerProperties = config.toConsumerConfig("macgyver-legeerklaring-consumer-2", ByteArrayDeserializer::class, StringDeserializer::class).apply {
         this[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = 100
     }
     val kafkaConsumer = KafkaConsumer<String, ByteArray>(kafkaConsumerProperties)
-    val legeerkleringKafkaService = LegeerkleringKafkaService(kafkaConsumer, environment.pale2avvistTopic, applicationState)
+    val legeerkleringKafkaService = LegeerkleringKafkaService(kafkaConsumer, environment.pale2okTopic, applicationState)
     startBackgroundJob(applicationState) {
         legeerkleringKafkaService.start()
     }

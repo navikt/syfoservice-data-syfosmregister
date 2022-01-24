@@ -40,7 +40,7 @@ class LegeerkleringKafkaService(private val kafkaConsumer: KafkaConsumer<String,
                 if (it.value().size > 1_000_000) {
                     val legeerklaring = legeerklaringObjectMapper.readValue<LegeerklaringKafkaMessage>(it.value())
                     val fellesformatSize = legeerklaring.receivedLegeerklaering.fellesformat.toByteArray()
-                    log.info("Found message bigger than 1mb, key: ${it.key()}, total size: ${it.value().size}, fellesformat size: ${fellesformatSize.size}")
+                    log.info("Found message bigger than 1mb, msgId: ${legeerklaring.receivedLegeerklaering.msgId}, total size: ${it.value().size}, fellesformat size: ${fellesformatSize.size}")
                 }
             }
         }
