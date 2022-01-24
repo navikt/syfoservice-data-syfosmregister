@@ -39,6 +39,7 @@ import no.nav.syfo.kafka.aiven.KafkaUtils
 import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
+import no.nav.syfo.legeerklaring.kafka.LegeerkleringKafkaService
 import no.nav.syfo.manuell.ValidationResultService
 import no.nav.syfo.model.Eia
 import no.nav.syfo.model.ReceivedSykmelding
@@ -102,6 +103,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.Logger
@@ -125,7 +127,7 @@ val objectMapper: ObjectMapper = ObjectMapper().apply {
 val legeerklaringObjectMapper: ObjectMapper = ObjectMapper().apply {
     registerKotlinModule()
     registerModule(JavaTimeModule())
-    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true)
+    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
     configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true)
 }
@@ -329,6 +331,19 @@ fun main() {
 
     startBackgroundJob(applicationState) {
         historiskMigreringService.start()
+    }
+
+    startLegeerkleringKafkaConsumer(kafkaBaseConfig, environment, applicationState)
+}
+
+fun startLegeerkleringKafkaConsumer(config: Properties, environment: Environment, applicationState: ApplicationState) {
+    val kafkaConsumerProperties = config.toConsumerConfig("macgyver-legeerklaring-consumer-2", ByteArrayDeserializer::class, StringDeserializer::class).apply {
+        this[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = 100
+    }
+    val kafkaConsumer = KafkaConsumer<String, ByteArray>(kafkaConsumerProperties)
+    val legeerkleringKafkaService = LegeerkleringKafkaService(kafkaConsumer, environment.pale2okTopic, applicationState)
+    startBackgroundJob(applicationState) {
+        legeerkleringKafkaService.start()
     }
 }
 
