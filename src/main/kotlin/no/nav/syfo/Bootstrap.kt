@@ -274,12 +274,12 @@ fun main() {
 
     val consumerPropertiesHistorisk = kafkaBaseConfig.toConsumerConfig(
         "macgyver-historisk-migrering",
-        JacksonKafkaDeserializer::class,
+        StringDeserializer::class,
         StringDeserializer::class
     )
     consumerPropertiesHistorisk.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1")
     consumerPropertiesHistorisk.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
-    val kafkaAivenHistoriskProducer = KafkaProducer<String, String>(
+    val kafkaAivenHistoriskProducer = KafkaProducer<String, String?>(
         KafkaUtils
             .getAivenKafkaConfig()
             .toProducerConfig("macgyver-producer", StringSerializer::class, StringSerializer::class).apply {
@@ -290,7 +290,7 @@ fun main() {
     )
 
     val historiskMigreringService = HistoriskMigreringService(
-        onPremConsumer = KafkaConsumer<String, String>(consumerPropertiesHistorisk, StringDeserializer(), StringDeserializer()),
+        onPremConsumer = KafkaConsumer<String, String?>(consumerPropertiesHistorisk, StringDeserializer(), StringDeserializer()),
         aivenProducer = kafkaAivenHistoriskProducer,
         topics = listOf(
             environment.avvistBehandlingTopic,
@@ -328,7 +328,7 @@ fun main() {
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
 
     startBackgroundJob(applicationState) {
-        // historiskMigreringService.start()
+        historiskMigreringService.start()
     }
 }
 

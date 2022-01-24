@@ -13,8 +13,8 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import java.time.Duration
 
 class HistoriskMigreringService(
-    private val onPremConsumer: KafkaConsumer<String, String>,
-    private val aivenProducer: KafkaProducer<String, String>,
+    private val onPremConsumer: KafkaConsumer<String, String?>,
+    private val aivenProducer: KafkaProducer<String, String?>,
     private val topics: List<String>,
     private val historiskTopic: String,
     private val applicationState: ApplicationState
@@ -46,12 +46,11 @@ class HistoriskMigreringService(
                     historiskTopic, it.key(), it.value()
                 )
                 producerRecord.headers().add("topic", it.topic().toByteArray())
-                try {
-                    aivenProducer.send(producerRecord).get()
-                } catch (e: Exception) {
-                    log.error("Error sending message to kafka", e)
-                    throw e
+
+                aivenProducer.send(producerRecord) { _, error ->
+                    log.error("Error producing to kafka", error)
                 }
+
                 counter++
             }
         }
