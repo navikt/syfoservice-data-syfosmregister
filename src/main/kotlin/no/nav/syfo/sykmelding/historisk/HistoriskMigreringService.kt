@@ -59,8 +59,10 @@ class HistoriskMigreringService(
                 producerRecord.headers().add("topic", it.topic().toByteArray())
 
                 aivenProducer.send(producerRecord) { _, error ->
-                    log.error("Error producing to kafka: key ${it.key()}, fra topic ${it.topic()}", error)
-                    applicationState.ready = false
+                    if (error != null) {
+                        log.error("Error producing to kafka: key ${it.key()}, fra topic ${it.topic()}", error)
+                        applicationState.ready = false
+                    }
                 }
 
                 when (it.topic()) {
