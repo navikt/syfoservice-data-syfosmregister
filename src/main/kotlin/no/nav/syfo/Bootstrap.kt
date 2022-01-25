@@ -96,7 +96,6 @@ import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.JacksonNullableKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
 import no.nav.syfo.vault.RenewVaultService
-import no.nav.syfo.vedlegg.VedleggMigreringService
 import no.nav.syfo.vedlegg.google.BucketUploadService
 import no.nav.syfo.vedlegg.model.VedleggMessage
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -266,13 +265,13 @@ fun main() {
     val paleBucketUploadService = BucketUploadService(environment.paleBucketName, paleStorage)
 
     val kafkaVedleggConsumer = KafkaConsumer<String, VedleggMessage>(consumerPropertiesVedlegg, StringDeserializer(), JacksonKafkaDeserializer(VedleggMessage::class))
-    val vedleggMigreringService = VedleggMigreringService(
+    /*val vedleggMigreringService = VedleggMigreringService(
         vedleggOnPremConsumer = kafkaVedleggConsumer,
         topic = environment.vedleggTopic,
         applicationState = applicationState,
         sykmeldingBucketUploadService = sykmeldingBucketUploadService,
         paleBucketUploadService = paleBucketUploadService
-    )
+    )*/
 
     val consumerPropertiesHistorisk = kafkaBaseConfig.toConsumerConfig(
         "macgyver-historisk-migrering",
@@ -303,7 +302,8 @@ fun main() {
             environment.smRegistreringTopic
         ),
         historiskTopic = environment.historiskTopic,
-        applicationState = applicationState
+        applicationState = applicationState,
+        environment = environment
     )
 
     val applicationEngine = createApplicationEngine(
