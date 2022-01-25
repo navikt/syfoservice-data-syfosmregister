@@ -12,6 +12,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import java.time.Duration
+import java.util.UUID
 
 class HistoriskMigreringService(
     private val onPremConsumer: KafkaConsumer<String, String?>,
@@ -51,13 +52,17 @@ class HistoriskMigreringService(
         log.info("Started consuming topics")
         while (applicationState.ready) {
             onPremConsumer.poll(Duration.ofSeconds(1)).forEach {
+                val key = it.key() ?: "gen_${UUID.randomUUID()}"
                 val producerRecord = ProducerRecord(
-                    historiskTopic, it.key(), it.value()
+                    historiskTopic, key, it.value()
                 )
                 producerRecord.headers().add("topic", it.topic().toByteArray())
 
-                aivenProducer.send(producerRecord) { _, error ->
-                    log.error("Error producing to kafka: key ${it.key()}, fra topic ${it.topic()}", error)
+                try {
+                    aivenProducer.send(producerRecord).get()
+                } catch (e: Exception) {
+                    log.error("Error producing to kafka: key ${it.key()}, fra topic ${it.topic()}", e)
+                    throw e
                 }
                 when (it.topic()) {
                     environment.avvistBehandlingTopic -> {
@@ -79,7 +84,6 @@ class HistoriskMigreringService(
                         counterSmReg++
                     }
                 }
-
                 counter++
             }
         }
