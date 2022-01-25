@@ -246,7 +246,7 @@ fun main() {
     val topicsSykmeldingService = mapOf(
         environment.sykmeldingStatusTopic to environment.aivenSykmeldingStatusTopic
     )
-    val aivenSykmeldingstatusMigrationService = AivenMigreringService(kafkaSykmeldingStatusConsumer, kafkaAivenSykmeldingStatusProducer, topicsSykmeldingService, applicationState)
+    // val aivenSykmeldingstatusMigrationService = AivenMigreringService(kafkaSykmeldingStatusConsumer, kafkaAivenSykmeldingStatusProducer, topicsSykmeldingService, applicationState)
 
     val consumerPropertiesVedlegg = kafkaBaseConfig.toConsumerConfig(
         "macgyver-vedlegg-migrering",
