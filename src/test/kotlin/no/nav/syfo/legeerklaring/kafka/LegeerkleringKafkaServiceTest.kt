@@ -59,7 +59,7 @@ class LegeerkleringKafkaServiceTest : FunSpec({
                 consumerRecords
             }
 
-            legeErklaringService.start()
+            legeErklaringService.run()
 
             verify(exactly = 1) { bucketService.create(match { it.startsWith(receivedLegeerklaring.msgId) }, any(), any()) }
             verify(exactly = 1) { kafkaProducer.send(any()) }

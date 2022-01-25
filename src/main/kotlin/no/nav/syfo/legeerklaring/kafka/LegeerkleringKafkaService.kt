@@ -46,7 +46,19 @@ class LegeerkleringKafkaService(
         }
     }
 
-    fun start() {
+    suspend fun run() {
+        while (applicationState.ready) {
+            try {
+                start()
+            } catch (ex: Exception) {
+                kafkaConsumer.unsubscribe()
+                log.error("Error running pale2 consumer, waiting 10 seconds to restart", ex)
+                delay(10_000)
+            }
+        }
+    }
+
+    private fun start() {
         kafkaConsumer.subscribe(listOf(onPremTopic))
 
         while (applicationState.ready) {

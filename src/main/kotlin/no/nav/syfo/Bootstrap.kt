@@ -383,7 +383,7 @@ fun startLegeerkleringKafkaConsumer(
         environment.pale2Bucket
     )
     startBackgroundJob(applicationState) {
-        legeerkleringKafkaService.start()
+        legeerkleringKafkaService.run()
     }
 }
 
