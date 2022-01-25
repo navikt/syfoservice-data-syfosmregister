@@ -101,6 +101,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
+import org.apache.kafka.common.serialization.ByteArraySerializer
 import org.apache.kafka.common.serialization.BytesSerializer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
@@ -371,7 +372,7 @@ fun startLegeerkleringKafkaConsumer(
     val kafkaConsumer = KafkaConsumer<String, ByteArray>(kafkaConsumerProperties)
     val kafkaProducerConfig = KafkaUtils.getAivenKafkaConfig()
         .toProducerConfig("macgyver-legeerklaring-producer", BytesSerializer::class, StringSerializer::class)
-    val kafkaProducer = KafkaProducer<String, ByteArray>(kafkaProducerConfig)
+    val kafkaProducer = KafkaProducer(kafkaProducerConfig, StringSerializer(), ByteArraySerializer())
     val legeerkleringKafkaService = LegeerkleringKafkaService(
         kafkaConsumer,
         environment.pale2SakTopic,
