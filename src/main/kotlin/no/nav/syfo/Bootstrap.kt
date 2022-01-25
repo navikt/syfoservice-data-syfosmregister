@@ -87,22 +87,21 @@ import no.nav.syfo.sykmelding.DeleteSykmeldingService
 import no.nav.syfo.sykmelding.MottattSykmeldingService
 import no.nav.syfo.sykmelding.SendtSykmeldingService
 import no.nav.syfo.sykmelding.SykmeldingStatusKafkaProducer
-import no.nav.syfo.sykmelding.aivenmigrering.AivenMigreringService
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaMessage
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
-import no.nav.syfo.sykmelding.historisk.HistoriskMigreringService
 import no.nav.syfo.utils.JacksonKafkaDeserializer
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.JacksonNullableKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
 import no.nav.syfo.vault.RenewVaultService
-import no.nav.syfo.vedlegg.google.BucketUploadService
+import no.nav.syfo.vedlegg.google.BucketService
 import no.nav.syfo.vedlegg.model.VedleggMessage
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
+import org.apache.kafka.common.serialization.BytesSerializer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.Logger
@@ -169,19 +168,25 @@ fun main() {
     val kafkaAivenProducer = KafkaProducer<String, SykmeldingV2KafkaMessage?>(
         KafkaUtils
             .getAivenKafkaConfig()
-            .toProducerConfig("macgyver-producer", JacksonNullableKafkaSerializer::class, StringSerializer::class).apply {
+            .toProducerConfig("macgyver-producer", JacksonNullableKafkaSerializer::class, StringSerializer::class)
+            .apply {
                 this[ProducerConfig.ACKS_CONFIG] = "1"
                 this[ProducerConfig.RETRIES_CONFIG] = 1000
                 this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
             }
     )
-    val aivenProducerProperties = KafkaUtils.getAivenKafkaConfig().toProducerConfig(environment.applicationName, JacksonKafkaSerializer::class, StringSerializer::class).apply {
-        this[ProducerConfig.ACKS_CONFIG] = "1"
-        this[ProducerConfig.RETRIES_CONFIG] = 1000
-        this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
-    }
-    val sykmeldingEndringsloggKafkaProducer = SykmeldingEndringsloggKafkaProducer(environment.endringsloggTopic, KafkaProducer<String, Sykmeldingsdokument>(producerProperties))
-    val statusKafkaProducer = SykmeldingStatusKafkaProducer(KafkaProducer(aivenProducerProperties), environment.aivenSykmeldingStatusTopic)
+    val aivenProducerProperties = KafkaUtils.getAivenKafkaConfig()
+        .toProducerConfig(environment.applicationName, JacksonKafkaSerializer::class, StringSerializer::class).apply {
+            this[ProducerConfig.ACKS_CONFIG] = "1"
+            this[ProducerConfig.RETRIES_CONFIG] = 1000
+            this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
+        }
+    val sykmeldingEndringsloggKafkaProducer = SykmeldingEndringsloggKafkaProducer(
+        environment.endringsloggTopic,
+        KafkaProducer<String, Sykmeldingsdokument>(producerProperties)
+    )
+    val statusKafkaProducer =
+        SykmeldingStatusKafkaProducer(KafkaProducer(aivenProducerProperties), environment.aivenSykmeldingStatusTopic)
     val updatePeriodeService = UpdatePeriodeService(
         databaseoracle = databaseOracle,
         databasePostgres = databasePostgres,
@@ -216,12 +221,19 @@ fun main() {
         sendtSykmeldingTopic = environment.sendSykmeldingV2Topic
     )
 
-    val deleteSykmeldingService = DeleteSykmeldingService(environment, databasePostgres, databaseOracle, statusKafkaProducer, sykmeldingEndringsloggKafkaProducer)
+    val deleteSykmeldingService = DeleteSykmeldingService(
+        environment,
+        databasePostgres,
+        databaseOracle,
+        statusKafkaProducer,
+        sykmeldingEndringsloggKafkaProducer
+    )
 
     val producerConfigRerun = kafkaBaseConfig.toProducerConfig(
         "${environment.applicationName}-producer", valueSerializer = StringSerializer::class
     )
-    val rerunKafkaService = RerunKafkaService(databasePostgres, RerunKafkaProducer(KafkaProducer(producerConfigRerun), environment))
+    val rerunKafkaService =
+        RerunKafkaService(databasePostgres, RerunKafkaProducer(KafkaProducer(producerConfigRerun), environment))
 
     val consumerProperties = kafkaBaseConfig.toConsumerConfig(
         "macgyver-sykmeldingstatus-migrering",
@@ -256,15 +268,22 @@ fun main() {
     consumerPropertiesVedlegg.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1")
     consumerPropertiesVedlegg.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
 
-    val sykmeldingStorageCredentials: Credentials = GoogleCredentials.fromStream(FileInputStream("/var/run/secrets/nais.io/vault/sykmelding-google-creds.json"))
-    val sykmeldingStorage: Storage = StorageOptions.newBuilder().setCredentials(sykmeldingStorageCredentials).build().service
-    val sykmeldingBucketUploadService = BucketUploadService(environment.sykmeldingBucketName, sykmeldingStorage)
+    val sykmeldingStorageCredentials: Credentials =
+        GoogleCredentials.fromStream(FileInputStream("/var/run/secrets/nais.io/vault/sykmelding-google-creds.json"))
+    val sykmeldingStorage: Storage =
+        StorageOptions.newBuilder().setCredentials(sykmeldingStorageCredentials).build().service
+    val sykmeldingBucketService = BucketService(environment.sykmeldingBucketName, sykmeldingStorage)
 
-    val paleStorageCredentials: Credentials = GoogleCredentials.fromStream(FileInputStream("/var/run/secrets/nais.io/vault/pale2-google-creds.json"))
+    val paleStorageCredentials: Credentials =
+        GoogleCredentials.fromStream(FileInputStream("/var/run/secrets/nais.io/vault/pale2-google-creds.json"))
     val paleStorage: Storage = StorageOptions.newBuilder().setCredentials(paleStorageCredentials).build().service
-    val paleBucketUploadService = BucketUploadService(environment.paleBucketName, paleStorage)
+    val paleBucketService = BucketService(environment.paleBucketName, paleStorage)
 
-    val kafkaVedleggConsumer = KafkaConsumer<String, VedleggMessage>(consumerPropertiesVedlegg, StringDeserializer(), JacksonKafkaDeserializer(VedleggMessage::class))
+    val kafkaVedleggConsumer = KafkaConsumer<String, VedleggMessage>(
+        consumerPropertiesVedlegg,
+        StringDeserializer(),
+        JacksonKafkaDeserializer(VedleggMessage::class)
+    )
     /*val vedleggMigreringService = VedleggMigreringService(
         vedleggOnPremConsumer = kafkaVedleggConsumer,
         topic = environment.vedleggTopic,
@@ -290,7 +309,7 @@ fun main() {
             }
     )
 
-    val historiskMigreringService = HistoriskMigreringService(
+    /*val historiskMigreringService = HistoriskMigreringService(
         onPremConsumer = KafkaConsumer<String, String?>(consumerPropertiesHistorisk, StringDeserializer(), StringDeserializer()),
         aivenProducer = kafkaAivenHistoriskProducer,
         topics = listOf(
@@ -304,7 +323,7 @@ fun main() {
         historiskTopic = environment.historiskTopic,
         applicationState = applicationState,
         environment = environment
-    )
+    )*/
 
     val applicationEngine = createApplicationEngine(
         env = environment,
@@ -330,18 +349,38 @@ fun main() {
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
 
     startBackgroundJob(applicationState) {
-        historiskMigreringService.start()
+        // historiskMigreringService.start()
     }
 
-    // startLegeerkleringKafkaConsumer(kafkaBaseConfig, environment, applicationState)
+    startLegeerkleringKafkaConsumer(kafkaBaseConfig, environment, applicationState, paleBucketService)
 }
 
-fun startLegeerkleringKafkaConsumer(config: Properties, environment: Environment, applicationState: ApplicationState) {
-    val kafkaConsumerProperties = config.toConsumerConfig("macgyver-legeerklaring-consumer-2", ByteArrayDeserializer::class, StringDeserializer::class).apply {
+fun startLegeerkleringKafkaConsumer(
+    config: Properties,
+    environment: Environment,
+    applicationState: ApplicationState,
+    bucketService: BucketService
+) {
+    val kafkaConsumerProperties = config.toConsumerConfig(
+        "macgyver-legeerklaring-consumer-3",
+        ByteArrayDeserializer::class,
+        StringDeserializer::class
+    ).apply {
         this[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = 100
     }
     val kafkaConsumer = KafkaConsumer<String, ByteArray>(kafkaConsumerProperties)
-    val legeerkleringKafkaService = LegeerkleringKafkaService(kafkaConsumer, environment.pale2okTopic, applicationState)
+    val kafkaProducerConfig = KafkaUtils.getAivenKafkaConfig()
+        .toProducerConfig("macgyver-legeerklaring-producer", BytesSerializer::class, StringSerializer::class)
+    val kafkaProducer = KafkaProducer<String, ByteArray>(kafkaProducerConfig)
+    val legeerkleringKafkaService = LegeerkleringKafkaService(
+        kafkaConsumer,
+        environment.pale2SakTopic,
+        applicationState,
+        bucketService,
+        kafkaProducer,
+        environment.legeerklaringTopic,
+        environment.pale2Bucket
+    )
     startBackgroundJob(applicationState) {
         legeerkleringKafkaService.start()
     }
@@ -369,17 +408,26 @@ fun patchManuellValidationResult(applicationState: ApplicationState, environment
     service.run()
 }
 
-fun hentNarmesteLedereOgPubliserTilTopic(databaseOracle: DatabaseOracle, applicationState: ApplicationState, environment: Environment) {
+fun hentNarmesteLedereOgPubliserTilTopic(
+    databaseOracle: DatabaseOracle,
+    applicationState: ApplicationState,
+    environment: Environment
+) {
     val kafkaProducer = KafkaProducer<String, SyfoServiceNarmesteLeder>(
         KafkaUtils
             .getAivenKafkaConfig()
-            .toProducerConfig("syfoservice-data-syfosmregister-producer", JacksonKafkaSerializer::class, StringSerializer::class).apply {
+            .toProducerConfig(
+                "syfoservice-data-syfosmregister-producer",
+                JacksonKafkaSerializer::class,
+                StringSerializer::class
+            ).apply {
                 this[ProducerConfig.ACKS_CONFIG] = "1"
                 this[ProducerConfig.RETRIES_CONFIG] = 1000
                 this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
             }
     )
-    val syfoServiceNarmesteLederKafkaProducer = SyfoServiceNarmesteLederKafkaProducer(environment.nlMigreringTopic, kafkaProducer)
+    val syfoServiceNarmesteLederKafkaProducer =
+        SyfoServiceNarmesteLederKafkaProducer(environment.nlMigreringTopic, kafkaProducer)
 
     GlobalScope.launch {
         NarmesteLederFraSyfoServiceService(
@@ -447,8 +495,15 @@ fun updateGrad(applicationState: ApplicationState, environment: Environment) {
     gradService.addPeriode()
 }
 
-fun createSendTilSyfoservice(environment: Environment, databasePostgres: DatabasePostgres, producerProperties: Properties): SendTilSyfoserviceService {
-    val syfoserviceKafkaProducer = SykmeldingSyfoserviceKafkaProducer(KafkaProducer<String, SykmeldingSyfoserviceKafkaMessage>(producerProperties), environment.syfoserviceKafkaTopic)
+fun createSendTilSyfoservice(
+    environment: Environment,
+    databasePostgres: DatabasePostgres,
+    producerProperties: Properties
+): SendTilSyfoserviceService {
+    val syfoserviceKafkaProducer = SykmeldingSyfoserviceKafkaProducer(
+        KafkaProducer<String, SykmeldingSyfoserviceKafkaMessage>(producerProperties),
+        environment.syfoserviceKafkaTopic
+    )
     return SendTilSyfoserviceService(syfoserviceKafkaProducer, databasePostgres)
 }
 
@@ -467,11 +522,12 @@ fun oppdaterStatus(applicationState: ApplicationState, environment: Environment)
 
     val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
     val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
-    val aivenProducerProperties = KafkaUtils.getAivenKafkaConfig().toProducerConfig(environment.applicationName, JacksonKafkaSerializer::class, StringSerializer::class).apply {
-        this[ProducerConfig.ACKS_CONFIG] = "1"
-        this[ProducerConfig.RETRIES_CONFIG] = 1000
-        this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
-    }
+    val aivenProducerProperties = KafkaUtils.getAivenKafkaConfig()
+        .toProducerConfig(environment.applicationName, JacksonKafkaSerializer::class, StringSerializer::class).apply {
+            this[ProducerConfig.ACKS_CONFIG] = "1"
+            this[ProducerConfig.RETRIES_CONFIG] = 1000
+            this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
+        }
     val kafkaProducer = KafkaProducer<String, SykmeldingStatusKafkaMessageDTO>(aivenProducerProperties)
     val statusKafkaProducer = SykmeldingStatusKafkaProducer(kafkaProducer, environment.aivenSykmeldingStatusTopic)
     val oppdaterStatusService = OppdaterStatusService(databaseOracle, statusKafkaProducer, databasePostgres)
@@ -487,9 +543,10 @@ fun opprett4ukersmeldinger(applicationState: ApplicationState, environment: Envi
     val service = Arena4UkerService(
         applicationState,
         databasePostgres,
-        LocalDate.parse(environment.lastIndexSparenaproxy).atStartOfDay().atZone(ZoneId.systemDefault()).withZoneSameInstant(
-            ZoneOffset.UTC
-        ).toOffsetDateTime()
+        LocalDate.parse(environment.lastIndexSparenaproxy).atStartOfDay().atZone(ZoneId.systemDefault())
+            .withZoneSameInstant(
+                ZoneOffset.UTC
+            ).toOffsetDateTime()
     )
     service.run()
 }
@@ -527,7 +584,8 @@ suspend fun sendtMottattSykmeldinger(applicationState: ApplicationState, environ
     val kafkaAivenProducer = KafkaProducer<String, SykmeldingV2KafkaMessage?>(
         KafkaUtils
             .getAivenKafkaConfig()
-            .toProducerConfig("macgyver-producer", JacksonNullableKafkaSerializer::class, StringSerializer::class).apply {
+            .toProducerConfig("macgyver-producer", JacksonNullableKafkaSerializer::class, StringSerializer::class)
+            .apply {
                 this[ProducerConfig.ACKS_CONFIG] = "1"
                 this[ProducerConfig.RETRIES_CONFIG] = 1000
                 this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
@@ -587,7 +645,8 @@ fun sendBekreftetSykmeldinger(applicationState: ApplicationState, environment: E
     val kafkaAivenProducer = KafkaProducer<String, SykmeldingV2KafkaMessage?>(
         KafkaUtils
             .getAivenKafkaConfig()
-            .toProducerConfig("macgyver-producer", JacksonNullableKafkaSerializer::class, StringSerializer::class).apply {
+            .toProducerConfig("macgyver-producer", JacksonNullableKafkaSerializer::class, StringSerializer::class)
+            .apply {
                 this[ProducerConfig.ACKS_CONFIG] = "1"
                 this[ProducerConfig.RETRIES_CONFIG] = 1000
                 this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
@@ -614,7 +673,8 @@ fun sendSendtSykmeldinger(applicationState: ApplicationState, environment: Envir
     val kafkaAivenProducer = KafkaProducer<String, SykmeldingV2KafkaMessage?>(
         KafkaUtils
             .getAivenKafkaConfig()
-            .toProducerConfig("macgyver-producer", JacksonNullableKafkaSerializer::class, StringSerializer::class).apply {
+            .toProducerConfig("macgyver-producer", JacksonNullableKafkaSerializer::class, StringSerializer::class)
+            .apply {
                 this[ProducerConfig.ACKS_CONFIG] = "1"
                 this[ProducerConfig.RETRIES_CONFIG] = 1000
                 this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
@@ -661,7 +721,10 @@ fun opprettPdf(applicationState: ApplicationState, environment: Environment) {
     service.run()
 }
 
-fun hentSykmeldingerFraBackupUtenBehandlingsutfallOgPubliserTilTopic(applicationState: ApplicationState, environment: Environment) {
+fun hentSykmeldingerFraBackupUtenBehandlingsutfallOgPubliserTilTopic(
+    applicationState: ApplicationState,
+    environment: Environment
+) {
     val vaultServiceuser = getVaultServiceUser()
 
     val databaseVaultSecrets = VaultCredentials(
@@ -676,7 +739,8 @@ fun hentSykmeldingerFraBackupUtenBehandlingsutfallOgPubliserTilTopic(application
         kafkaBaseConfig.toProducerConfig(environment.applicationName, valueSerializer = JacksonKafkaSerializer::class)
 
     val kafkaProducer = KafkaProducer<String, String>(producerProperties)
-    val sykmeldingIdKafkaProducer = SykmeldingIdKafkaProducer(environment.idUtenBehandlingsutfallFraBackupTopic, kafkaProducer)
+    val sykmeldingIdKafkaProducer =
+        SykmeldingIdKafkaProducer(environment.idUtenBehandlingsutfallFraBackupTopic, kafkaProducer)
 
     val databasePostgresUtenVault = DatabasePostgresUtenVault(environment, databaseVaultSecrets)
 

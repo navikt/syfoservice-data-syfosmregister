@@ -1,5 +1,6 @@
 package no.nav.syfo.identendring
 
+import io.kotest.core.spec.style.FunSpec
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -39,8 +40,6 @@ import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.sm.Diagnosekoder
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
 import org.amshove.kluent.shouldBeEqualTo
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
@@ -48,7 +47,7 @@ import java.time.ZoneOffset
 import java.util.UUID
 import kotlin.test.assertFailsWith
 
-class UpdateFnrServiceTest : Spek({
+class UpdateFnrServiceTest : FunSpec({
     val pdlPersonService = mockk<PdlPersonService>(relaxed = true)
     mockkStatic("no.nav.syfo.identendring.db.SyfoSmRegisterKt")
     val db = mockk<DatabaseInterfacePostgres>(relaxed = true)
@@ -58,12 +57,12 @@ class UpdateFnrServiceTest : Spek({
 
     val updateFnrService = UpdateFnrService(pdlPersonService, db, sendtSykmeldingKafkaProducer, narmesteLederResponseKafkaProducer, narmestelederClient, "topic")
 
-    beforeEachTest {
+    beforeAny {
         clearMocks(sendtSykmeldingKafkaProducer, narmesteLederResponseKafkaProducer)
     }
 
-    describe("Test at UpdateFnrService fungerer som forventet") {
-        it("Skal oppdatere OK hvis nytt og gammelt fnr er knyttet til samme person") {
+    context("Test at UpdateFnrService fungerer som forventet") {
+        test("Skal oppdatere OK hvis nytt og gammelt fnr er knyttet til samme person") {
             coEvery { pdlPersonService.getPdlPerson(any()) } returns PdlPerson(
                 listOf(
                     IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
@@ -83,7 +82,7 @@ class UpdateFnrServiceTest : Spek({
             }
         }
 
-        it("Skal kaste feil hvis nytt og gammelt fnr ikke er knyttet til samme person") {
+        test("Skal kaste feil hvis nytt og gammelt fnr ikke er knyttet til samme person") {
             coEvery { pdlPersonService.getPdlPerson(any()) } returns PdlPerson(
                 listOf(
                     IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
@@ -105,7 +104,7 @@ class UpdateFnrServiceTest : Spek({
             }
         }
 
-        it("Skal kaste feil hvis fnr ikke er registrert som historisk for person") {
+        test("Skal kaste feil hvis fnr ikke er registrert som historisk for person") {
             coEvery { pdlPersonService.getPdlPerson(any()) } returns PdlPerson(
                 listOf(
                     IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
@@ -127,7 +126,7 @@ class UpdateFnrServiceTest : Spek({
             }
         }
 
-        it("Oppdaterer sendte sykmeldinger og aktiv NL-relasjon") {
+        test("Oppdaterer sendte sykmeldinger og aktiv NL-relasjon") {
             coEvery { pdlPersonService.getPdlPerson(any()) } returns PdlPerson(
                 listOf(
                     IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
@@ -168,7 +167,7 @@ class UpdateFnrServiceTest : Spek({
             }
         }
 
-        it("Oppdaterer kun sendte sykmeldinger fra de siste fire måneder og kun aktiv NL-relasjon") {
+        test("Oppdaterer kun sendte sykmeldinger fra de siste fire måneder og kun aktiv NL-relasjon") {
             coEvery { pdlPersonService.getPdlPerson(any()) } returns PdlPerson(
                 listOf(
                     IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
@@ -229,8 +228,8 @@ class UpdateFnrServiceTest : Spek({
         }
     }
 
-    describe("Test at UpdateFnrService fungerer som forventet for leder") {
-        it("Skal kaste feil hvis nytt og gammelt fnr ikke er knyttet til samme person") {
+    context("Test at UpdateFnrService fungerer som forventet for leder") {
+        test("Skal kaste feil hvis nytt og gammelt fnr ikke er knyttet til samme person") {
             coEvery { pdlPersonService.getPdlPerson(any()) } returns PdlPerson(
                 listOf(
                     IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
@@ -249,7 +248,7 @@ class UpdateFnrServiceTest : Spek({
                 assertFailsWith.message shouldBeEqualTo "Oppdatering av leders fnr feilet, nyttFnr står ikke som aktivt fnr for aktøren i PDL"
             }
         }
-        it("Skal kaste feil hvis fnr ikke er registrert som historisk for person") {
+        test("Skal kaste feil hvis fnr ikke er registrert som historisk for person") {
             coEvery { pdlPersonService.getPdlPerson(any()) } returns PdlPerson(
                 listOf(
                     IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
@@ -268,7 +267,7 @@ class UpdateFnrServiceTest : Spek({
                 assertFailsWith.message shouldBeEqualTo "Oppdatering av leders fnr feilet, fnr er ikke historisk for aktør"
             }
         }
-        it("Oppdaterer aktiv NL-relasjon") {
+        test("Oppdaterer aktiv NL-relasjon") {
             coEvery { pdlPersonService.getPdlPerson(any()) } returns PdlPerson(
                 listOf(
                     IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),

@@ -4,6 +4,7 @@ import com.auth0.jwk.JwkProviderBuilder
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import io.kotest.core.spec.style.FunSpec
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.features.ContentNegotiation
@@ -36,12 +37,10 @@ import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
 import no.nav.syfo.sykmelding.api.model.EndreFnr
 import no.nav.syfo.testutil.generateJWT
 import org.amshove.kluent.shouldBeEqualTo
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
 import java.nio.file.Paths
 
-class EndreFnrApiTest : Spek({
-    describe("Test endre fnr") {
+class EndreFnrApiTest : FunSpec({
+    test("Test endre fnr") {
 
         with(TestApplicationEngine()) {
 
