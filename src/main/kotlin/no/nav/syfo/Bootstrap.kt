@@ -274,7 +274,7 @@ fun main() {
     )*/
 
     val consumerPropertiesHistorisk = kafkaBaseConfig.toConsumerConfig(
-        "macgyver-historisk-migrering",
+        "macgyver-historisk-migrering-2",
         StringDeserializer::class,
         StringDeserializer::class
     )
