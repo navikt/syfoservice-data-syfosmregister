@@ -58,12 +58,11 @@ class HistoriskMigreringService(
                 )
                 producerRecord.headers().add("topic", it.topic().toByteArray())
 
-                try {
-                    aivenProducer.send(producerRecord).get()
-                } catch (e: Exception) {
-                    log.error("Error producing to kafka: key ${it.key()}, fra topic ${it.topic()}", e)
-                    throw e
+                aivenProducer.send(producerRecord) { _, error ->
+                    log.error("Error producing to kafka: key ${it.key()}, fra topic ${it.topic()}", error)
+                    applicationState.ready = false
                 }
+
                 when (it.topic()) {
                     environment.avvistBehandlingTopic -> {
                         counterAvvist++
