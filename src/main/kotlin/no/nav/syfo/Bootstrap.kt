@@ -39,7 +39,6 @@ import no.nav.syfo.kafka.aiven.KafkaUtils
 import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
-import no.nav.syfo.legeerklaring.kafka.LegeerkleringKafkaService
 import no.nav.syfo.manuell.ValidationResultService
 import no.nav.syfo.model.Eia
 import no.nav.syfo.model.ReceivedSykmelding
@@ -100,9 +99,6 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
-import org.apache.kafka.common.serialization.ByteArrayDeserializer
-import org.apache.kafka.common.serialization.ByteArraySerializer
-import org.apache.kafka.common.serialization.BytesSerializer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.Logger
@@ -259,8 +255,6 @@ fun main() {
     val topicsSykmeldingService = mapOf(
         environment.sykmeldingStatusTopic to environment.aivenSykmeldingStatusTopic
     )
-    // val aivenSykmeldingstatusMigrationService = AivenMigreringService(kafkaSykmeldingStatusConsumer, kafkaAivenSykmeldingStatusProducer, topicsSykmeldingService, applicationState)
-
     val consumerPropertiesVedlegg = kafkaBaseConfig.toConsumerConfig(
         "macgyver-vedlegg-migrering",
         JacksonKafkaDeserializer::class,
@@ -285,14 +279,6 @@ fun main() {
         StringDeserializer(),
         JacksonKafkaDeserializer(VedleggMessage::class)
     )
-    /*val vedleggMigreringService = VedleggMigreringService(
-        vedleggOnPremConsumer = kafkaVedleggConsumer,
-        topic = environment.vedleggTopic,
-        applicationState = applicationState,
-        sykmeldingBucketUploadService = sykmeldingBucketUploadService,
-        paleBucketUploadService = paleBucketUploadService
-    )*/
-
     val consumerPropertiesHistorisk = kafkaBaseConfig.toConsumerConfig(
         "macgyver-historisk-migrering-2",
         StringDeserializer::class,
@@ -309,22 +295,6 @@ fun main() {
                 this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
             }
     )
-
-    /*val historiskMigreringService = HistoriskMigreringService(
-        onPremConsumer = KafkaConsumer<String, String?>(consumerPropertiesHistorisk, StringDeserializer(), StringDeserializer()),
-        aivenProducer = kafkaAivenHistoriskProducer,
-        topics = listOf(
-            environment.avvistBehandlingTopic,
-            environment.automatiskBehandlingTopic,
-            environment.manuellBehandlingTopic,
-            environment.behandlingsutfallTopic,
-            environment.manuellTopic,
-            environment.smRegistreringTopic
-        ),
-        historiskTopic = environment.historiskTopic,
-        applicationState = applicationState,
-        environment = environment
-    )*/
 
     val applicationEngine = createApplicationEngine(
         env = environment,
@@ -348,43 +318,6 @@ fun main() {
     applicationState.ready = true
 
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
-
-    startBackgroundJob(applicationState) {
-        // historiskMigreringService.start()
-    }
-
-    startLegeerkleringKafkaConsumer(kafkaBaseConfig, environment, applicationState, paleBucketService)
-}
-
-fun startLegeerkleringKafkaConsumer(
-    config: Properties,
-    environment: Environment,
-    applicationState: ApplicationState,
-    bucketService: BucketService
-) {
-    val kafkaConsumerProperties = config.toConsumerConfig(
-        "macgyver-legeerklaring-consumer-3",
-        ByteArrayDeserializer::class,
-        StringDeserializer::class
-    ).apply {
-        this[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = 100
-    }
-    val kafkaConsumer = KafkaConsumer<String, ByteArray>(kafkaConsumerProperties)
-    val kafkaProducerConfig = KafkaUtils.getAivenKafkaConfig()
-        .toProducerConfig("macgyver-legeerklaring-producer", BytesSerializer::class, StringSerializer::class)
-    val kafkaProducer = KafkaProducer(kafkaProducerConfig, StringSerializer(), ByteArraySerializer())
-    val legeerkleringKafkaService = LegeerkleringKafkaService(
-        kafkaConsumer,
-        environment.pale2SakTopic,
-        applicationState,
-        bucketService,
-        kafkaProducer,
-        environment.legeerklaringTopic,
-        environment.pale2Bucket
-    )
-    startBackgroundJob(applicationState) {
-        legeerkleringKafkaService.run()
-    }
 }
 
 @DelicateCoroutinesApi
