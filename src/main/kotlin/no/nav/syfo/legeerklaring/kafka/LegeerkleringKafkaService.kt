@@ -63,7 +63,6 @@ class LegeerkleringKafkaService(
 
         while (applicationState.ready) {
             kafkaConsumer.poll(Duration.ofSeconds(10)).forEach {
-                counter++
 
                 val legeerklaringmessage = objectMapper.readValue<OnPremLegeerklaringKafkaMessage>(it.value())
                 val legeerklaring = objectMapper.treeToValue<ReceivedLegeerklaring>(legeerklaringmessage.receivedLegeerklaering)
@@ -78,8 +77,12 @@ class LegeerkleringKafkaService(
                 )
                 val byteArray = objectMapper.writeValueAsBytes(legeerklaringmessage.receivedLegeerklaering)
                 val key = legeerklaring.legeerklaering.id
+                val producerRecord = ProducerRecord(aivenTopic, key, objectMapper.writeValueAsBytes(aivenMessage))
+                producerRecord.headers().add("source", "macgyver".toByteArray())
                 bucketService.create(legeerklaring.msgId, byteArray, pale2Bucket)
-                kafkaProducer.send(ProducerRecord(aivenTopic, key, objectMapper.writeValueAsBytes(aivenMessage))).get()
+                kafkaProducer.send(producerRecord).get()
+
+                counter++
             }
         }
     }
