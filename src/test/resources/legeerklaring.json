@@ -1,0 +1,124 @@
+{
+  "legeerklaering": {
+    "id": "32c98b36-68a8-411a-8cbd-193ad9b234dd",
+    "arbeidsvurderingVedSykefravaer": false,
+    "arbeidsavklaringspenger": true,
+    "yrkesrettetAttforing": false,
+    "uforepensjon": false,
+    "pasient": {
+      "fornavn": "Kari",
+      "mellomnavn": "Setesdal",
+      "etternavn": "Nordmann",
+      "fnr": "12349812345",
+      "navKontor": "NAV Sagene",
+      "adresse": "Hjemmeaddresse 2",
+      "postnummer": 1234,
+      "poststed": "Ukjentby",
+      "yrke": "Dokumentforfalsker",
+      "arbeidsgiver": {
+        "navn": "NAV IKT",
+        "adresse": "Oppdiktet gate 32",
+        "postnummer": 1234,
+        "poststed": "Ukjentby"
+      }
+    },
+    "sykdomsopplysninger": {
+      "hoveddiagnose": {
+        "tekst": "82-01-Le",
+        "kode": "K74"
+      },
+      "bidiagnose": [
+        {
+          "tekst": "Nyresvikt kronisk",
+          "kode": "U99"
+        }
+      ],
+      "arbeidsuforFra": "2017-11-05T00:00:00",
+      "sykdomshistorie": "vethellerikkehvasomskalhit",
+      "statusPresens": "vetikkehvasomskalhit",
+      "borNavKontoretVurdereOmDetErEnYrkesskade": false,
+      "yrkesSkadeDato": "2017-10-14T00:00:00"
+    },
+    "plan": {
+      "utredning": {
+        "tekst": "Dra p� fisketur med en guide",
+        "dato": "2017-11-05T00:00:00",
+        "antattVentetIUker": 3
+      },
+      "behandling": null,
+      "utredningsplan": "Burde dra ut p� fisketur for � slappe av",
+      "behandlingsplan": "Trenger � slappe av med litt fisking",
+      "vurderingAvTidligerePlan": "Trenger ikke ny vurdering",
+      "narSporreOmNyeLegeopplysninger": "Den gamle planen fungerte ikke",
+      "videreBehandlingIkkeAktueltGrunn": null
+    },
+    "forslagTilTiltak": {
+      "behov": true,
+      "kjopAvHelsetjenester": true,
+      "reisetilskudd": false,
+      "aktivSykmelding": false,
+      "hjelpemidlerArbeidsplassen": false,
+      "arbeidsavklaringspenger": false,
+      "friskmeldingTilArbeidsformidling": false,
+      "andreTiltak": null,
+      "naermereOpplysninger": "",
+      "tekst": "Trenger lettere arbeid"
+    },
+    "funksjonsOgArbeidsevne": {
+      "vurderingFunksjonsevne": "Kan ikke lengre danse",
+      "inntektsgivendeArbeid": false,
+      "hjemmearbeidende": false,
+      "student": false,
+      "annetArbeid": "",
+      "kravTilArbeid": "Ingen dans",
+      "kanGjenopptaTidligereArbeid": false,
+      "kanGjenopptaTidligereArbeidNa": true,
+      "kanGjenopptaTidligereArbeidEtterBehandling": false,
+      "kanIkkeGjenopptaNaverendeArbeid": "Ikke tunge l�ft",
+      "kanTaAnnetArbeid": true,
+      "kanTaAnnetArbeidNa": true,
+      "kanTaAnnetArbeidEtterBehandling": false,
+      "kanIkkeTaAnnetArbeid": "Ingen dans"
+    },
+    "prognose": {
+      "vilForbedreArbeidsevne": false,
+      "anslattVarighetSykdom": "Ikke varig.",
+      "anslattVarighetFunksjonsnedsetting": "Ikke varig.",
+      "anslattVarighetNedsattArbeidsevne": "Ikke varig."
+    },
+    "arsakssammenheng": "Sikker.",
+    "andreOpplysninger": "Andre opplysninger",
+    "kontakt": {
+      "skalKontakteBehandlendeLege": false,
+      "skalKontakteArbeidsgiver": false,
+      "skalKontakteBasisgruppe": false,
+      "kontakteAnnenInstans": null,
+      "onskesKopiAvVedtak": true
+    },
+    "pasientenBurdeIkkeVite": null,
+    "tilbakeholdInnhold": true,
+    "signatur": {
+      "dato": "2017-11-05T00:00:00",
+      "navn": "LEGESEN TEST LEGE",
+      "adresse": "Oppdiktet gate 203",
+      "postnummer": "1234",
+      "poststed": "Oslo",
+      "signatur": "",
+      "tlfNummer": "98765432"
+    },
+    "signaturDato": "2017-11-05T00:00:00"
+  },
+  "personNrPasient": "12349812345",
+  "pasientAktoerId": "1111111",
+  "personNrLege": "9876543210",
+  "legeAktoerId": "2222222",
+  "navLogId": "navlogid",
+  "msgId": "msgid",
+  "legekontorOrgNr": null,
+  "legekontorHerId": null,
+  "legekontorReshId": null,
+  "legekontorOrgName": "legekontoret",
+  "mottattDato": "2017-11-05T00:00:00",
+  "fellesformat": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<EI_fellesformat xmlns=\"http://www.trygdeetaten.no/xml/eiff/1/\" xmlns:ns2=\"http://www.kith.no/xmlstds/msghead/2006-05-24\" xmlns:ns4=\"http://www.kith.no/xmlstds/legeerklaring/2008-06-06\" xmlns:ns3=\"http://www.w3.org/2000/09/xmldsig#\">\n    <ns2:MsgHead>\n        <ns2:MsgInfo>\n            <ns2:Type V=\"Legerkl�ring ved arbeidsuf�rhet\" DN=\"LEGEERKL\"/>\n            <ns2:MIGversion>v1.2 2006-05-24</ns2:MIGversion>\n            <ns2:GenDate>2017-12-29T02:49:45</ns2:GenDate>\n            <ns2:MsgId>05565fb0-cd7e-410d-bc1f-e1e918df2eac</ns2:MsgId>\n            <ns2:Sender>\n                <ns2:Organisation>\n                    <ns2:OrganisationName>Kule helsetjenester AS</ns2:OrganisationName>\n                    <ns2:Ident>\n                        <ns2:Id>222222222</ns2:Id>\n                        <ns2:TypeId V=\"ENH\" S=\"1.16.578.1.12.3.1.1.9051\" DN=\"Organisasjonsnummeret i Enhetsregister (Br�nn�ysund)\"/>\n                    </ns2:Ident>\n                    <ns2:Ident>\n                        <ns2:Id>0123</ns2:Id>\n                        <ns2:TypeId V=\"HER\" S=\"1.23.456.7.89.1.2.3.4567.8912\" DN=\"Identifikator fra Helsetjenesteenhetsregisteret (HER-id)\"/>\n                    </ns2:Ident>\n                    <ns2:Address>\n                        <ns2:StreetAdr>Oppdiktet gate 203</ns2:StreetAdr>\n                        <ns2:PostalCode>1234</ns2:PostalCode>\n                        <ns2:City>Oslo</ns2:City>\n                    </ns2:Address>\n                    <ns2:Organisation/>\n                    <ns2:HealthcareProfessional>\n                        <ns2:FamilyName>Legesen</ns2:FamilyName>\n                        <ns2:MiddleName>Lege</ns2:MiddleName>\n                        <ns2:GivenName>Test</ns2:GivenName>\n                        <ns2:Ident>\n                            <ns2:Id>1234</ns2:Id>\n                            <ns2:TypeId V=\"HER\" S=\"1.16.578.1.12.4.3.1.8116\" DN=\"Identifikator fra Helsetjenesteenhetsregisteret\"/>\n                        </ns2:Ident>\n                        <ns2:Ident>\n                            <ns2:Id>1234567</ns2:Id>\n                            <ns2:TypeId V=\"HPR\" S=\"1.16.578.1.12.3.1.1.8116\" DN=\"HPR-nummer\"/>\n                        </ns2:Ident>\n                        <ns2:Ident>\n                            <ns2:Id>12345678910</ns2:Id>\n                            <ns2:TypeId V=\"FNR\" S=\"6.87.654.3.21.9.8.7.6543.2198\" DN=\"F�dselsnummer\"/>\n                        </ns2:Ident>\n                        <ns2:Ident>\n                            <ns2:Id>98765432100</ns2:Id>\n                            <ns2:TypeId V=\"DNR\" S=\"6.16.578.1.12.4.1.4.8116\" DN=\"D-nummer\"/>\n                        </ns2:Ident>\n                        <ns2:Address>\n                            <ns2:StreetAdr>Oppdiktet gate 9001</ns2:StreetAdr>\n                            <ns2:PostalCode>9998</ns2:PostalCode>\n                            <ns2:City>Oppdiktet</ns2:City>\n                        </ns2:Address>\n                        <ns2:TeleCom>\n                            <ns2:TypeTelecom DN=\"Hovedtelefon\"/>\n                            <ns2:TeleAddress V=\"98765432\"/>\n                        </ns2:TeleCom>\n                    </ns2:HealthcareProfessional>\n                </ns2:Organisation>\n            </ns2:Sender>\n            <ns2:Receiver>\n                <ns2:Organisation>\n                    <ns2:OrganisationName>NAV</ns2:OrganisationName>\n                    <ns2:Ident>\n                        <ns2:Id>12668</ns2:Id>\n                        <ns2:TypeId V=\"HER\" S=\"1.23.456.7.89.1.2.3.4567.8912\" DN=\"Identifikator fra Helsetjenesteenhetsregisteret (HER-id)\"/>\n                    </ns2:Ident>\n                    <ns2:Ident>\n                        <ns2:Id>123456789</ns2:Id>\n                        <ns2:TypeId V=\"ENH\" S=\"1.16.578.1.12.3.1.1.9051\" DN=\"Organisasjonsnummeret i Enhetsregister (Br�nn�ysund)\"/>\n                    </ns2:Ident>\n                    <ns2:Address>\n                        <ns2:StreetAdr></ns2:StreetAdr>\n                        <ns2:PostalCode></ns2:PostalCode>\n                        <ns2:City></ns2:City>\n                    </ns2:Address>\n                </ns2:Organisation>\n            </ns2:Receiver>\n            <ns2:Patient>\n                <ns2:FamilyName>Nordmann</ns2:FamilyName>\n                <ns2:GivenName>Kari</ns2:GivenName>\n                <ns2:Ident>\n                    <ns2:Id>12349812345</ns2:Id>\n                    <ns2:TypeId V=\"FNR\" S=\"2.16.578.1.12.4.1.1.8116\" DN=\"Fødselsnummer\"/>\n                </ns2:Ident>\n            </ns2:Patient>\n        </ns2:MsgInfo>\n        <ns2:Document>\n            <ns2:RefDoc>\n                <ns2:MsgType V=\"XML\" DN=\"XML-instans\"/>\n                <ns2:Content>\n                    <ns4:Legeerklaring>\n                        <ns4:LegeerklaringGjelder typeLegeerklaring=\"2\"/>\n                        <ns4:Pasientopplysninger flereArbeidsforhold=\"2\">\n                            <ns4:Pasient fodselsnummer=\"12349812345\" trygdekontor=\"NAV Sagene\">\n                                <ns4:Navn>\n                                    <ns4:Etternavn>Nordmann</ns4:Etternavn>\n                                    <ns4:Fornavn>Kari</ns4:Fornavn>\n                                    <ns4:Mellomnavn>Setesdal</ns4:Mellomnavn>\n                                </ns4:Navn>\n                                <ns4:Arbeidsforhold primartArbeidsforhold=\"1\">\n                                    <ns4:Virksomhet virksomhetsBetegnelse=\"NAV IKT\" organisasjonsnummer=\"123456789\">\n                                        <ns4:VirksomhetsAdr adressetype=\"RES\">\n                                            <ns4:PostalAddress>\n                                                <ns4:StreetAddress>Oppdiktet gate 32</ns4:StreetAddress>\n                                                <ns4:PostalCode>1234</ns4:PostalCode>\n                                                <ns4:City>Ukjentby</ns4:City>\n                                                <ns4:Country>Norge</ns4:Country>\n                                            </ns4:PostalAddress>\n                                            <ns4:Teleinformasjon typeTelekom=\"MC\">string</ns4:Teleinformasjon>\n                                        </ns4:VirksomhetsAdr>\n                                    </ns4:Virksomhet>\n                                    <ns4:Yrkesbetegnelse>Dokumentforfalsker</ns4:Yrkesbetegnelse>\n                                </ns4:Arbeidsforhold>\n                                <ns4:PersonAdr adressetype=\"H\">\n                                    <ns4:PostalAddress>\n                                        <ns4:StreetAddress>Hjemmeaddresse 2</ns4:StreetAddress>\n                                        <ns4:PostalCode>1234</ns4:PostalCode>\n                                        <ns4:City>Ukjentby</ns4:City>\n                                        <ns4:Country>Norge</ns4:Country>\n                                    </ns4:PostalAddress>\n                                </ns4:PersonAdr>\n                            </ns4:Pasient>\n                        </ns4:Pasientopplysninger>\n                        <ns4:PlanUtredBehandle>\n                            <ns4:HenvistUtredning henvistDato=\"2017-11-05+01:00\" antattVentetid=\"3\">\n                                <ns4:Spesifikasjon>Dra p� fisketur med en guide</ns4:Spesifikasjon>\n                            </ns4:HenvistUtredning>\n                            <ns4:NyeLegeopplysninger>Den gamle planen fungerte ikke</ns4:NyeLegeopplysninger>\n                            <ns4:NyVurdering>Trenger ikke ny vurdering</ns4:NyVurdering>\n                            <ns4:BehandlingsPlan>Trenger � slappe av med litt fisking</ns4:BehandlingsPlan>\n                            <ns4:UtredningsPlan>Burde dra ut p� fisketur for � slappe av</ns4:UtredningsPlan>\n                        </ns4:PlanUtredBehandle>\n                        <ns4:DiagnoseArbeidsuforhet arbeidsuforFra=\"2017-11-05+01:00\">\n                            <ns4:DiagnoseKodesystem kodesystem=\"1\">\n                                <ns4:Enkeltdiagnose diagnose=\"82-01-Le\" kodeverdi=\"K74\" sortering=\"0\"/>\n                                <ns4:Enkeltdiagnose diagnose=\"Nyresvikt kronisk\" kodeverdi=\"U99\" sortering=\"1\"/>\n                            </ns4:DiagnoseKodesystem>\n                            <ns4:VurderingYrkesskade borVurderes=\"2\" skadeDato=\"2017-10-14\"/>\n                            <ns4:StatusPresens>vetikkehvasomskalhit</ns4:StatusPresens>\n                            <ns4:SymptomerBehandling>vethellerikkehvasomskalhit</ns4:SymptomerBehandling>\n                        </ns4:DiagnoseArbeidsuforhet>\n                        <ns4:ForslagTiltak tiltak=\"2\">\n                            <ns4:AktueltTiltak typeTiltak=\"1\">\n                                <ns4:HvilkeAndreTiltak></ns4:HvilkeAndreTiltak>\n                            </ns4:AktueltTiltak>\n                            <ns4:Opplysninger></ns4:Opplysninger>\n                            <ns4:BegrensningerTiltak>Trenger lettere arbeid</ns4:BegrensningerTiltak>\n                        </ns4:ForslagTiltak>\n                        <ns4:VurderingFunksjonsevne>\n                            <ns4:Arbeidssituasjon arbeidssituasjon=\"4\" annenArbeidssituasjon=\"\"/>\n                            <ns4:VurderingArbeidsevne gjenopptaArbeid=\"2\" narGjenopptaArbeid=\"1\" taAnnetArbeid=\"1\" narTaAnnetArbeid=\"1\">\n                                <ns4:IkkeGjore>Ikke tunge l�ft</ns4:IkkeGjore>\n                                <ns4:HensynAnnetYrke>Ingen dans</ns4:HensynAnnetYrke>\n                            </ns4:VurderingArbeidsevne>\n                            <ns4:Funksjonsevne>Kan ikke lengre danse</ns4:Funksjonsevne>\n                            <ns4:KravArbeid>Ingen dans</ns4:KravArbeid>\n                        </ns4:VurderingFunksjonsevne>\n                        <ns4:Prognose bedreArbeidsevne=\"2\">\n                            <ns4:AntattVarighet>Ikke varig.</ns4:AntattVarighet>\n                            <ns4:VarighetFunksjonsnedsettelse>Ikke varig.</ns4:VarighetFunksjonsnedsettelse>\n                            <ns4:VarighetNedsattArbeidsevne>Ikke varig.</ns4:VarighetNedsattArbeidsevne>\n                        </ns4:Prognose>\n                        <ns4:ArsakssammenhengLegeerklaring>Sikker.</ns4:ArsakssammenhengLegeerklaring>\n                        <ns4:ForbeholdLegeerklaring tilbakeholdInnhold=\"2\"/>\n                        <ns4:AndreOpplysninger onskesKopi=\"1\">\n                            <ns4:Opplysning>Andre opplysninger</ns4:Opplysning>\n                        </ns4:AndreOpplysninger>\n                    </ns4:Legeerklaring>\n                </ns2:Content>\n            </ns2:RefDoc>\n        </ns2:Document>\n    </ns2:MsgHead>\n    <MottakenhetBlokk ediLoggId=\"FiktivTestdata0001\" avsender=\"12345678910\" ebXMLSamtaleId=\"1234\" avsenderRef=\"00123456789\" avsenderFnrFraDigSignatur=\"12345678910\" mottattDatotid=\"2017-12-29T12:21:35+02:00\" ebRole=\"Lege\" ebService=\"Legemelding\" ebAction=\"Legeerklaring\"/>\n</EI_fellesformat>\n",
+  "tssid": null
+}

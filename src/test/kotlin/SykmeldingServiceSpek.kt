@@ -1,20 +1,19 @@
+import io.kotest.core.spec.style.FunSpec
 import io.mockk.clearAllMocks
 import io.mockk.mockkClass
 import no.nav.syfo.db.DatabaseInterfaceOracle
 import no.nav.syfo.kafka.SykmeldingKafkaProducer
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.xdescribe
 
-object SykmeldingServiceSpek : Spek({
+object SykmeldingServiceSpek : FunSpec({
 
     val database = mockkClass(DatabaseInterfaceOracle::class)
     val sykmeldingKafkaProducer = mockkClass(SykmeldingKafkaProducer::class)
 
-    beforeEachTest {
+    beforeAny {
         clearAllMocks()
     }
 
-    xdescribe("Tester SykmeldingServiceSpek") {
+    xtest("Tester SykmeldingServiceSpek") {
 
 //        it("Skal hente ut alle sykmeldinger", timeout = 1000000000L) {
 //

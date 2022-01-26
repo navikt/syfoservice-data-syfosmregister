@@ -101,5 +101,7 @@ spec:
       value: api://dev-gcp.teamsykmelding.narmesteleder/.default
     - name: SYKMELDING_BUCKET_NAME
       value: teamsykmelding-sykmelding-vedlegg-bucket-dev
-    - name: PALE_BUCKET_NAME
+    - name: PALE_VEDLEGG_BUCKET_NAME
       value: teamsykmelding-pale2-vedlegg-bucket-dev
+    - name: PALE_BUCKET_NAME
+      value: teamsykmelding-pale2-legeerklaring-bucket-dev

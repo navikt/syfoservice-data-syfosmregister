@@ -1,18 +1,17 @@
 package no.nav.syfo.service
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.kotest.core.spec.style.FunSpec
 import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.model.Status
 import no.nav.syfo.model.ValidationResult
 import no.nav.syfo.objectMapper
 import no.nav.syfo.utils.getFileAsString
 import org.amshove.kluent.shouldBeEqualTo
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.xdescribe
 
-class OppgaveTilReglerTest : Spek({
-    xdescribe("Mapper oppgavebeskrivelse riktig") {
-        it("Mapper oppgavebeskrivelse riktig") {
+class OppgaveTilReglerTest : FunSpec({
+    xcontext("Mapper oppgavebeskrivelse riktig") {
+        test("Mapper oppgavebeskrivelse riktig") {
             val ruleMap =
                 objectMapper.readValue<Map<String, RuleInfo>>(getFileAsString("src/main/resources/ruleMap.json"))
 

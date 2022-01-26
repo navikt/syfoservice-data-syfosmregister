@@ -1,5 +1,6 @@
 package no.nav.syfo.service
 
+import io.kotest.core.spec.style.FunSpec
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockkClass
@@ -19,14 +20,12 @@ import no.nav.syfo.persistering.db.postgres.getStatusesForSykmelding
 import no.nav.syfo.persistering.db.postgres.lagreSporsmalOgSvarOgArbeidsgiver
 import no.nav.syfo.persistering.db.postgres.oppdaterSykmeldingStatus
 import no.nav.syfo.persistering.db.postgres.svarFinnesFraFor
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.xdescribe
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.UUID
 
-class UpdateStatusServiceTest : Spek({
+class UpdateStatusServiceTest : FunSpec({
 
     val database = mockkClass(DatabaseInterfacePostgres::class)
     mockkStatic("no.nav.syfo.persistering.db.postgres.SyfoSmRegisterQueriesKt")
@@ -34,16 +33,16 @@ class UpdateStatusServiceTest : Spek({
     val updateStatusService = UpdateStatusService(database)
     val sykmeldingId = UUID.randomUUID().toString()
 
-    beforeEachTest {
+    beforeAny {
         clearAllMocks()
         every { database.oppdaterSykmeldingStatus(any()) } returns Unit
         every { database.deleteSykmeldingStatus(any(), any()) } returns Unit
         every { database.lagreSporsmalOgSvarOgArbeidsgiver(any(), any()) } returns Unit
     }
 
-    xdescribe("Update SykmeldingStatus") {
+    xcontext("Update SykmeldingStatus") {
 
-        it("Test SLETTET status") {
+        test("Test SLETTET status") {
             every { database.getStatusesForSykmelding(any()) } returns emptyList()
             val createdDate = LocalDateTime.now()
             val sendtTilArbeidsgiverDate = createdDate.plusHours(1)
@@ -70,7 +69,7 @@ class UpdateStatusServiceTest : Spek({
             verify(exactly = 0) { database.svarFinnesFraFor(any()) }
         }
 
-        it("Test utgatt status ") {
+        test("Test utgatt status ") {
 
             every { database.getStatusesForSykmelding(any()) } returns emptyList()
             val createdDate = LocalDateTime.now()
@@ -96,7 +95,7 @@ class UpdateStatusServiceTest : Spek({
             verify(exactly = 1) { database.oppdaterSykmeldingStatus(listOfStatuses) }
         }
 
-        it("Skal slette status før og inserte på nytt UTGATT") {
+        test("Skal slette status før og inserte på nytt UTGATT") {
 
             every { database.getStatusesForSykmelding(any()) } returns emptyList()
             val createdDate = LocalDateTime.now().minusMonths(4)
@@ -128,7 +127,7 @@ class UpdateStatusServiceTest : Spek({
             verify(exactly = 1) { database.deleteSykmeldingStatus(sykmeldingId, kafkaTimestamp) }
         }
 
-        it("Ikke insert status om nyere finnes i syfosmregister") {
+        test("Ikke insert status om nyere finnes i syfosmregister") {
             val createdDate = LocalDateTime.now().minusMonths(3)
             val timestampUtgatt = createdDate.plusMonths(3)
             val kafkaTimestamp = timestampUtgatt.minusHours(1)
@@ -172,7 +171,7 @@ class UpdateStatusServiceTest : Spek({
             }
         }
 
-        it("Should insert sendt status when svar finnes fra før") {
+        test("Should insert sendt status when svar finnes fra før") {
 
             val createdDateTime = LocalDateTime.now().minusDays(10)
             val sendtTilArbeidsgiverDato = createdDateTime.plusDays(5)
@@ -206,7 +205,7 @@ class UpdateStatusServiceTest : Spek({
             }
         }
 
-        it("Skal inserte send, arbeidsgiver og sporsmalOgSvar om SporsmalOgSvar ikke finnes fra før") {
+        test("Skal inserte send, arbeidsgiver og sporsmalOgSvar om SporsmalOgSvar ikke finnes fra før") {
             val createdDate = LocalDateTime.of(2019, 10, 1, 1, 1)
             val sendtDateTime = createdDate.plusDays(5)
 
@@ -251,7 +250,7 @@ class UpdateStatusServiceTest : Spek({
             verify(exactly = 1) { database.svarFinnesFraFor(sykmeldingId) }
         }
 
-        it("Skal insert bekreftet med sporsmalOgSvar om det ikke finnes nyere i syfosmregister") {
+        test("Skal insert bekreftet med sporsmalOgSvar om det ikke finnes nyere i syfosmregister") {
             val createdDateTime = LocalDateTime.of(2019, 1, 1, 1, 0)
             val sendtTilArbeidsgiverDato = createdDateTime.plusHours(2)
             val kafkaTime = sendtTilArbeidsgiverDato.plusMinutes(2)
@@ -327,7 +326,7 @@ class UpdateStatusServiceTest : Spek({
             }
         }
 
-        it("Skal insert bekreftet uten svar om status ikke finnes men sporsmalOgSvar finnes") {
+        test("Skal insert bekreftet uten svar om status ikke finnes men sporsmalOgSvar finnes") {
             val createdDateTime = LocalDateTime.of(2019, 1, 1, 1, 0)
             val sendtTilArbeidsgiverDato = createdDateTime.plusHours(2)
             val kafkaTime = sendtTilArbeidsgiverDato.plusMinutes(2)
@@ -367,7 +366,7 @@ class UpdateStatusServiceTest : Spek({
             verify(exactly = 0) { database.lagreSporsmalOgSvarOgArbeidsgiver(any(), any()) }
         }
 
-        it("Skal bare insert APEN om bekreftet finnes i syfosmregister") {
+        test("Skal bare insert APEN om bekreftet finnes i syfosmregister") {
             val createdDateTime = LocalDateTime.of(2019, 1, 1, 1, 0)
             val sendtTilArbeidsgiverDato = createdDateTime.plusHours(2)
             val kafkaTime = sendtTilArbeidsgiverDato.plusMinutes(2)

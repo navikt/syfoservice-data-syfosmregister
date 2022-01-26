@@ -7,17 +7,19 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.log
-import no.nav.syfo.vedlegg.google.BucketUploadService
+import no.nav.syfo.objectMapper
+import no.nav.syfo.vedlegg.google.BucketService
 import no.nav.syfo.vedlegg.model.VedleggMessage
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import java.time.Duration
+import java.util.UUID
 
 class VedleggMigreringService(
     private val vedleggOnPremConsumer: KafkaConsumer<String, VedleggMessage>,
     private val topic: String,
     private val applicationState: ApplicationState,
-    private val sykmeldingBucketUploadService: BucketUploadService,
-    private val paleBucketUploadService: BucketUploadService
+    private val sykmeldingBucketService: BucketService,
+    private val paleBucketService: BucketService
 ) {
     @DelicateCoroutinesApi
     companion object {
@@ -45,10 +47,10 @@ class VedleggMigreringService(
                 val vedlegg = it.value()
                 when (vedlegg.source) {
                     "syfosmmottak" -> {
-                        sykmeldingBucketUploadService.create(it.key(), vedlegg)
+                        sykmeldingBucketService.create("${it.key()}/${UUID.randomUUID()}", objectMapper.writeValueAsBytes(vedlegg))
                     }
                     "pale-2" -> {
-                        paleBucketUploadService.create(it.key(), vedlegg)
+                        paleBucketService.create("${it.key()}/${UUID.randomUUID()}", objectMapper.writeValueAsBytes(vedlegg))
                     }
                     else -> {
                         log.error("Har mottatt vedlegg med ukjent source ${vedlegg.source}")
