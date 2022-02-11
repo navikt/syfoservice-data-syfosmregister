@@ -84,6 +84,24 @@ paths:
           description: Unauthorized
         '403':
           description: Forbidden
+  /api/sykmelding/{sykmeldingId}/gjenapne:
+    post:
+      operationId: gjenapne
+      tags:
+        - Sykmelding
+      security:
+        - bearerAuth: [ ]
+      summary: Gjenåpne sykmelding
+      description: Gjenåpne sykmelding med gitt sykmeldingId
+      parameters:
+        - $ref: '#/components/parameters/sykmeldingId'
+      responses:
+        '200':
+          description: Ok
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
   /api/sykmelding/{sykmeldingId}/diagnose:
     post:
       operationId: updateDiagnosis
