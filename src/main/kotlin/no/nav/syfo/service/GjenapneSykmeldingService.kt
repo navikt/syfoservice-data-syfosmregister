@@ -11,18 +11,15 @@ import no.nav.syfo.sykmelding.SykmeldingStatusKafkaProducer
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
-class OppdaterStatusService(
+class GjenapneSykmeldingService(
     private val databaseoracle: DatabaseOracle,
     private val sykmeldingStatusKafkaProducer: SykmeldingStatusKafkaProducer,
     private val databasePostgres: DatabasePostgres
 ) {
-
-    val sykmeldingId = ""
-
-    fun start() {
+    fun gjenapneSykmelding(sykmeldingId: String) {
         val sykmelding = databasePostgres.connection.hentSykmeldingMedId(sykmeldingId)
         if (sykmelding != null) {
-            log.info("oppdaterer status for sykmeldingid {}", sykmeldingId)
+            log.info("Gjenåpner sykmelding med sykmeldingid {}", sykmeldingId)
             val sykmeldingStatusKafkaEventDTO = SykmeldingStatusKafkaEventDTO(
                 sykmeldingId = sykmeldingId,
                 timestamp = OffsetDateTime.now(ZoneOffset.UTC),

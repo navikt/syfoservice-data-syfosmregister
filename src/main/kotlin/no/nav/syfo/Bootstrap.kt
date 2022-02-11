@@ -44,7 +44,6 @@ import no.nav.syfo.model.Eia
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.model.Sykmeldingsdokument
-import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.narmesteleder.NarmesteLederFraSyfoServiceService
 import no.nav.syfo.narmesteleder.NarmesteLederResponseKafkaProducer
 import no.nav.syfo.narmesteleder.SyfoServiceNarmesteLeder
@@ -65,12 +64,12 @@ import no.nav.syfo.sak.avro.RegisterTask
 import no.nav.syfo.service.BehandlingsutfallFraOppgaveTopicService
 import no.nav.syfo.service.CheckSendtSykmeldinger
 import no.nav.syfo.service.CheckTombstoneService
+import no.nav.syfo.service.GjenapneSykmeldingService
 import no.nav.syfo.service.HentSykmeldingerFraEiaService
 import no.nav.syfo.service.HentSykmeldingerFraSyfoServiceService
 import no.nav.syfo.service.HentSykmeldingsidFraBackupService
 import no.nav.syfo.service.InsertOKBehandlingsutfall
 import no.nav.syfo.service.MapSykmeldingStringToSykemldignJsonMap
-import no.nav.syfo.service.OppdaterStatusService
 import no.nav.syfo.service.OpprettPdfService
 import no.nav.syfo.service.RyddDuplikateSykmeldingerService
 import no.nav.syfo.service.SkrivBehandlingsutfallTilSyfosmRegisterService
@@ -88,13 +87,11 @@ import no.nav.syfo.sykmelding.SendtSykmeldingService
 import no.nav.syfo.sykmelding.SykmeldingStatusKafkaProducer
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaMessage
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
-import no.nav.syfo.utils.JacksonKafkaDeserializer
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.JacksonNullableKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
 import no.nav.syfo.vault.RenewVaultService
 import no.nav.syfo.vedlegg.google.BucketService
-import no.nav.syfo.vedlegg.model.VedleggMessage
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -232,36 +229,11 @@ fun main() {
     val rerunKafkaService =
         RerunKafkaService(databasePostgres, RerunKafkaProducer(KafkaProducer(producerConfigRerun), environment))
 
-    val consumerProperties = kafkaBaseConfig.toConsumerConfig(
-        "macgyver-sykmeldingstatus-migrering",
-        StringDeserializer::class,
-        StringDeserializer::class
+    val gjenapneSykmeldingService = GjenapneSykmeldingService(
+        databaseOracle,
+        statusKafkaProducer,
+        databasePostgres
     )
-    consumerProperties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1000")
-    consumerProperties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
-
-    val kafkaSykmeldingStatusConsumer = KafkaConsumer<String, String>(consumerProperties)
-
-    val kafkaAivenSykmeldingStatusProducer = KafkaProducer<String, String>(
-        KafkaUtils
-            .getAivenKafkaConfig()
-            .toProducerConfig("macgyver-producer", StringSerializer::class, StringSerializer::class).apply {
-                this[ProducerConfig.ACKS_CONFIG] = "1"
-                this[ProducerConfig.RETRIES_CONFIG] = 1000
-                this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
-            }
-    )
-
-    val topicsSykmeldingService = mapOf(
-        environment.sykmeldingStatusTopic to environment.aivenSykmeldingStatusTopic
-    )
-    val consumerPropertiesVedlegg = kafkaBaseConfig.toConsumerConfig(
-        "macgyver-vedlegg-migrering",
-        JacksonKafkaDeserializer::class,
-        StringDeserializer::class
-    )
-    consumerPropertiesVedlegg.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1")
-    consumerPropertiesVedlegg.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
 
     val sykmeldingStorageCredentials: Credentials =
         GoogleCredentials.fromStream(FileInputStream("/var/run/secrets/nais.io/vault/sykmelding-google-creds.json"))
@@ -273,28 +245,6 @@ fun main() {
         GoogleCredentials.fromStream(FileInputStream("/var/run/secrets/nais.io/vault/pale2-google-creds.json"))
     val paleStorage: Storage = StorageOptions.newBuilder().setCredentials(paleStorageCredentials).build().service
     val paleBucketService = BucketService(environment.paleBucketName, paleStorage)
-
-    val kafkaVedleggConsumer = KafkaConsumer<String, VedleggMessage>(
-        consumerPropertiesVedlegg,
-        StringDeserializer(),
-        JacksonKafkaDeserializer(VedleggMessage::class)
-    )
-    val consumerPropertiesHistorisk = kafkaBaseConfig.toConsumerConfig(
-        "macgyver-historisk-migrering-2",
-        StringDeserializer::class,
-        StringDeserializer::class
-    )
-    consumerPropertiesHistorisk.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100")
-    consumerPropertiesHistorisk.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
-    val kafkaAivenHistoriskProducer = KafkaProducer<String, String?>(
-        KafkaUtils
-            .getAivenKafkaConfig()
-            .toProducerConfig("macgyver-producer", StringSerializer::class, StringSerializer::class).apply {
-                this[ProducerConfig.ACKS_CONFIG] = "1"
-                this[ProducerConfig.RETRIES_CONFIG] = 1000
-                this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
-            }
-    )
 
     val applicationEngine = createApplicationEngine(
         env = environment,
@@ -310,7 +260,8 @@ fun main() {
         clientId = jwtVaultSecrets.clientId,
         appIds = listOf(jwtVaultSecrets.clientId),
         deleteSykmeldingService = deleteSykmeldingService,
-        rerunKafkaService = rerunKafkaService
+        rerunKafkaService = rerunKafkaService,
+        gjenapneSykmeldingService = gjenapneSykmeldingService
     )
     val applicationServer = ApplicationServer(applicationEngine, applicationState)
 
@@ -439,34 +390,6 @@ fun createSendTilSyfoservice(
         environment.syfoserviceKafkaTopic
     )
     return SendTilSyfoserviceService(syfoserviceKafkaProducer, databasePostgres)
-}
-
-fun oppdaterStatus(applicationState: ApplicationState, environment: Environment) {
-    val vaultServiceuser = getVaultServiceUser()
-    val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
-    val vaultConfig = VaultConfig(
-        jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
-    )
-    val syfoserviceVaultSecrets = VaultCredentials(
-        databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
-        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
-    )
-    val vaultCredentialService = VaultCredentialService()
-    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
-
-    val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
-    val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
-    val aivenProducerProperties = KafkaUtils.getAivenKafkaConfig()
-        .toProducerConfig(environment.applicationName, JacksonKafkaSerializer::class, StringSerializer::class).apply {
-            this[ProducerConfig.ACKS_CONFIG] = "1"
-            this[ProducerConfig.RETRIES_CONFIG] = 1000
-            this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
-        }
-    val kafkaProducer = KafkaProducer<String, SykmeldingStatusKafkaMessageDTO>(aivenProducerProperties)
-    val statusKafkaProducer = SykmeldingStatusKafkaProducer(kafkaProducer, environment.aivenSykmeldingStatusTopic)
-    val oppdaterStatusService = OppdaterStatusService(databaseOracle, statusKafkaProducer, databasePostgres)
-
-    oppdaterStatusService.start()
 }
 
 fun opprett4ukersmeldinger(applicationState: ApplicationState, environment: Environment) {
