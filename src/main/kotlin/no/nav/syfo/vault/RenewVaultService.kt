@@ -1,11 +1,13 @@
 package no.nav.syfo.vault
 
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.db.VaultCredentialService
 import org.slf4j.LoggerFactory
 
+@DelicateCoroutinesApi
 class RenewVaultService(private val vaultCredentialService: VaultCredentialService, private val applicationState: ApplicationState) {
 
     private val log = LoggerFactory.getLogger(RenewVaultService::class.java)

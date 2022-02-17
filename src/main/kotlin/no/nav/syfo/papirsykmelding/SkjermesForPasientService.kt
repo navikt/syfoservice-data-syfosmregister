@@ -1,5 +1,6 @@
 package no.nav.syfo.papirsykmelding
 
+import kotlinx.coroutines.DelicateCoroutinesApi
 import no.nav.syfo.Environment
 import no.nav.syfo.VaultConfig
 import no.nav.syfo.VaultCredentials
@@ -14,6 +15,7 @@ import no.nav.syfo.persistering.db.postgres.updateSkjermesForPasient
 import no.nav.syfo.utils.getFileAsString
 import no.nav.syfo.vault.RenewVaultService
 
+@DelicateCoroutinesApi
 class SkjermesForPasientService(private val environment: Environment, private val applicationState: ApplicationState) {
 
     private val databaseOracle: DatabaseOracle

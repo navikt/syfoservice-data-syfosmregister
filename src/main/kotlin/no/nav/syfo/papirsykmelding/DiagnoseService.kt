@@ -80,7 +80,7 @@ class DiagnoseService(private val syfoserviceDb: DatabaseOracle, private val syf
         return string.replace(".", "")
             .replace(" ", "")
             .replace("-", "")
-            .toUpperCase()
+            .uppercase()
     }
 
     private fun toDiagnoseType(

@@ -6,16 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import com.google.auth.Credentials
-import com.google.auth.oauth2.GoogleCredentials
-import com.google.cloud.storage.Storage
-import com.google.cloud.storage.StorageOptions
-import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
@@ -23,31 +17,14 @@ import no.nav.syfo.application.createApplicationEngine
 import no.nav.syfo.clients.HttpClients
 import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.db.DatabasePostgres
-import no.nav.syfo.db.DatabasePostgresManuell
-import no.nav.syfo.db.DatabasePostgresUtenVault
-import no.nav.syfo.db.DatabaseSparenaproxyPostgres
 import no.nav.syfo.db.VaultCredentialService
 import no.nav.syfo.identendring.UpdateFnrService
-import no.nav.syfo.kafka.EiaSykmeldingKafkaProducer
-import no.nav.syfo.kafka.ReceivedSykmeldingKafkaProducer
-import no.nav.syfo.kafka.RerunKafkaMessage
-import no.nav.syfo.kafka.RerunKafkaMessageKafkaProducer
 import no.nav.syfo.kafka.SykmeldingEndringsloggKafkaProducer
-import no.nav.syfo.kafka.SykmeldingIdKafkaProducer
-import no.nav.syfo.kafka.SykmeldingKafkaProducer
 import no.nav.syfo.kafka.aiven.KafkaUtils
 import no.nav.syfo.kafka.loadBaseConfig
-import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
-import no.nav.syfo.manuell.ValidationResultService
-import no.nav.syfo.model.Eia
-import no.nav.syfo.model.ReceivedSykmelding
-import no.nav.syfo.model.RuleInfo
 import no.nav.syfo.model.Sykmeldingsdokument
-import no.nav.syfo.narmesteleder.NarmesteLederFraSyfoServiceService
 import no.nav.syfo.narmesteleder.NarmesteLederResponseKafkaProducer
-import no.nav.syfo.narmesteleder.SyfoServiceNarmesteLeder
-import no.nav.syfo.narmesteleder.SyfoServiceNarmesteLederKafkaProducer
 import no.nav.syfo.narmesteleder.kafkamodel.NlResponseKafkaMessage
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.GradService
@@ -58,32 +35,8 @@ import no.nav.syfo.papirsykmelding.api.UpdatePeriodeService
 import no.nav.syfo.papirsykmelding.tilsyfoservice.SendTilSyfoserviceService
 import no.nav.syfo.papirsykmelding.tilsyfoservice.kafka.SykmeldingSyfoserviceKafkaProducer
 import no.nav.syfo.papirsykmelding.tilsyfoservice.kafka.model.SykmeldingSyfoserviceKafkaMessage
-import no.nav.syfo.pdf.rerun.kafka.RerunKafkaProducer
-import no.nav.syfo.pdf.rerun.service.RerunKafkaService
-import no.nav.syfo.sak.avro.RegisterTask
-import no.nav.syfo.service.BehandlingsutfallFraOppgaveTopicService
-import no.nav.syfo.service.CheckSendtSykmeldinger
-import no.nav.syfo.service.CheckTombstoneService
 import no.nav.syfo.service.GjenapneSykmeldingService
-import no.nav.syfo.service.HentSykmeldingerFraEiaService
-import no.nav.syfo.service.HentSykmeldingerFraSyfoServiceService
-import no.nav.syfo.service.HentSykmeldingsidFraBackupService
-import no.nav.syfo.service.InsertOKBehandlingsutfall
-import no.nav.syfo.service.MapSykmeldingStringToSykemldignJsonMap
-import no.nav.syfo.service.OpprettPdfService
-import no.nav.syfo.service.RyddDuplikateSykmeldingerService
-import no.nav.syfo.service.SkrivBehandlingsutfallTilSyfosmRegisterService
-import no.nav.syfo.service.SkrivManglendeSykmelidngTilTopic
-import no.nav.syfo.service.SkrivTilSyfosmRegisterServiceEia
-import no.nav.syfo.service.SkrivTilSyfosmRegisterSyfoService
-import no.nav.syfo.service.UpdateArbeidsgiverWhenSendtService
-import no.nav.syfo.service.UpdateStatusService
-import no.nav.syfo.service.WriteReceivedSykmeldingService
-import no.nav.syfo.sparenaproxy.Arena4UkerService
-import no.nav.syfo.sykmelding.BekreftSykmeldingService
 import no.nav.syfo.sykmelding.DeleteSykmeldingService
-import no.nav.syfo.sykmelding.MottattSykmeldingService
-import no.nav.syfo.sykmelding.SendtSykmeldingService
 import no.nav.syfo.sykmelding.SykmeldingStatusKafkaProducer
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaMessage
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
@@ -91,20 +44,12 @@ import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.JacksonNullableKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
 import no.nav.syfo.vault.RenewVaultService
-import no.nav.syfo.vedlegg.google.BucketService
-import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
-import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.io.FileInputStream
 import java.net.URL
-import java.time.LocalDate
-import java.time.ZoneId
-import java.time.ZoneOffset
 import java.util.Properties
 import java.util.concurrent.TimeUnit
 
@@ -223,28 +168,11 @@ fun main() {
         sykmeldingEndringsloggKafkaProducer
     )
 
-    val producerConfigRerun = kafkaBaseConfig.toProducerConfig(
-        "${environment.applicationName}-producer", valueSerializer = StringSerializer::class
-    )
-    val rerunKafkaService =
-        RerunKafkaService(databasePostgres, RerunKafkaProducer(KafkaProducer(producerConfigRerun), environment))
-
     val gjenapneSykmeldingService = GjenapneSykmeldingService(
         databaseOracle,
         statusKafkaProducer,
         databasePostgres
     )
-
-    val sykmeldingStorageCredentials: Credentials =
-        GoogleCredentials.fromStream(FileInputStream("/var/run/secrets/nais.io/vault/sykmelding-google-creds.json"))
-    val sykmeldingStorage: Storage =
-        StorageOptions.newBuilder().setCredentials(sykmeldingStorageCredentials).build().service
-    val sykmeldingBucketService = BucketService(environment.sykmeldingBucketName, sykmeldingStorage)
-
-    val paleStorageCredentials: Credentials =
-        GoogleCredentials.fromStream(FileInputStream("/var/run/secrets/nais.io/vault/pale2-google-creds.json"))
-    val paleStorage: Storage = StorageOptions.newBuilder().setCredentials(paleStorageCredentials).build().service
-    val paleBucketService = BucketService(environment.paleBucketName, paleStorage)
 
     val applicationEngine = createApplicationEngine(
         env = environment,
@@ -260,7 +188,6 @@ fun main() {
         clientId = jwtVaultSecrets.clientId,
         appIds = listOf(jwtVaultSecrets.clientId),
         deleteSykmeldingService = deleteSykmeldingService,
-        rerunKafkaService = rerunKafkaService,
         gjenapneSykmeldingService = gjenapneSykmeldingService
     )
     val applicationServer = ApplicationServer(applicationEngine, applicationState)
@@ -283,7 +210,6 @@ fun startBackgroundJob(applicationState: ApplicationState, block: suspend Corout
         }
     }
 }
-
 
 fun getDatabasePostgres(): DatabasePostgres {
     val environment = Environment()
@@ -355,7 +281,6 @@ fun createSendTilSyfoservice(
     )
     return SendTilSyfoserviceService(syfoserviceKafkaProducer, databasePostgres)
 }
-
 
 fun getVaultServiceUser(): VaultServiceUser {
     val vaultServiceuser = VaultServiceUser(

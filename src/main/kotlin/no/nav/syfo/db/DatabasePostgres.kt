@@ -8,7 +8,7 @@ import java.sql.Connection
 enum class Role {
     ADMIN, USER, READONLY;
 
-    override fun toString() = name.toLowerCase()
+    override fun toString() = name.lowercase()
 }
 
 class DatabasePostgres(

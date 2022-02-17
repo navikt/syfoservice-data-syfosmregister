@@ -5,8 +5,6 @@ import no.nav.helse.sm2013.ArsakType
 import no.nav.helse.sm2013.CS
 import no.nav.helse.sm2013.CV
 import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
-import no.nav.syfo.persistering.db.postgres.SykmeldingDbModel
-import no.nav.syfo.service.convertToMottakid
 import no.nav.syfo.utils.fellesformatUnmarshaller
 import java.io.StringReader
 import java.sql.Timestamp
@@ -14,60 +12,6 @@ import java.time.LocalDateTime
 
 fun unmarshallerToHealthInformation(healthInformation: String): HelseOpplysningerArbeidsuforhet =
     fellesformatUnmarshaller.unmarshal(StringReader(healthInformation)) as HelseOpplysningerArbeidsuforhet
-
-public fun toSykmeldingsdokument(receivedSykmelding: ReceivedSykmelding): Sykmeldingsdokument {
-    return Sykmeldingsdokument(
-        id = receivedSykmelding.sykmelding.id,
-        sykmelding = receivedSykmelding.sykmelding
-    )
-}
-
-fun toSykmeldingsopplysninger(
-    receivedSykmelding: ReceivedSykmelding
-): Sykmeldingsopplysninger {
-    return Sykmeldingsopplysninger(
-        id = receivedSykmelding.sykmelding.id,
-        pasientFnr = receivedSykmelding.personNrPasient,
-        pasientAktoerId = receivedSykmelding.sykmelding.pasientAktoerId,
-        legeFnr = receivedSykmelding.personNrLege,
-        legeAktoerId = receivedSykmelding.sykmelding.behandler.aktoerId,
-        mottakId = convertToMottakid(receivedSykmelding.navLogId),
-        legekontorOrgNr = receivedSykmelding.legekontorOrgNr,
-        legekontorHerId = receivedSykmelding.legekontorHerId,
-        legekontorReshId = receivedSykmelding.legekontorReshId,
-        epjSystemNavn = "SYFOSERVICE",
-        epjSystemVersjon = "1",
-        mottattTidspunkt = receivedSykmelding.mottattDato,
-        tssid = receivedSykmelding.tssid
-    )
-}
-
-fun toReceivedSykmelding(sykmeldingDbModel: SykmeldingDbModel): ReceivedSykmelding {
-
-    val sykmelding = sykmeldingDbModel.sykmeldingsdokument!!.sykmelding
-    val sykmeldingsopplysninger = sykmeldingDbModel.sykmeldingsopplysninger
-
-    return ReceivedSykmelding(
-        sykmelding = sykmelding,
-        tssid = sykmeldingsopplysninger.tssid,
-        legekontorReshId = sykmeldingsopplysninger.legekontorReshId,
-        legekontorHerId = sykmeldingsopplysninger.legekontorHerId,
-        legekontorOrgNr = sykmeldingsopplysninger.legekontorOrgNr,
-        legekontorOrgName = "",
-        fellesformat = "",
-        mottattDato = sykmeldingsopplysninger.mottattTidspunkt,
-        msgId = sykmelding.msgId,
-        navLogId = sykmeldingsopplysninger.mottakId,
-        personNrLege = sykmeldingsopplysninger.legeFnr,
-        personNrPasient = sykmeldingsopplysninger.pasientFnr,
-        rulesetVersion = null,
-        tlfPasient = null,
-        merknader = null,
-        partnerreferanse = null,
-        legeHprNr = null,
-        legeHelsepersonellkategori = null
-    )
-}
 
 fun toReceivedSykmelding(jsonMap: Map<String, Any?>): ReceivedSykmelding {
 

@@ -41,7 +41,7 @@ class NarmesteLederResponseKafkaProducer(
                 nlResponse.orgnummer,
                 kafkaMessage
             )
-        ) { metadata: RecordMetadata?, exception: Exception? ->
+        ) { _: RecordMetadata?, exception: Exception? ->
             if (exception != null) {
                 log.error("Noe gikk galt ved skriving av nlResponse for id $nlId: ${exception.message}")
             }

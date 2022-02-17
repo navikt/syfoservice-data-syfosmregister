@@ -22,7 +22,6 @@ class SendTilSyfoserviceService(
         if (sykmelding != null) {
             log.info("sender sykmelding med sykmeldingId {} til syfoservice", sykmeldingId)
 
-            val sykmeldingId = sykmelding.sykmeldingsopplysninger.id
             val fellesformat = mapSykmeldingDbModelTilFellesformat(sykmelding)
             val healthInformation = extractHelseOpplysningerArbeidsuforhet(fellesformat)
 
