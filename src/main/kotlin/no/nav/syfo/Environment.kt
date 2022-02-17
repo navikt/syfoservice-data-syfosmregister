@@ -32,6 +32,7 @@ data class Environment(
     val mottattSykmeldingV2Topic: String = "teamsykmelding.syfo-mottatt-sykmelding",
     val syfoserviceKafkaTopic: String = "teamsykmelding.syfoservice-mq",
     val endringsloggTopic: String = "privat-sykmelding-endringslogg",
+    val aivenEndringsloggTopic: String = "teamsykmelding.macgyver-sykmelding-endringslogg",
     val securityTokenUrl: String = getEnvVar("SECURITY_TOKEN_SERVICE_URL", "http://security-token-service/rest/v1/sts/token"),
     val pdlGraphqlPath: String = getEnvVar("PDL_GRAPHQL_PATH"),
     override val truststore: String? = getEnvVar("NAV_TRUSTSTORE_PATH"),

@@ -7,14 +7,16 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.log
+import no.nav.syfo.model.Sykmeldingsdokument
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import java.time.Duration
 
+@DelicateCoroutinesApi
 class AivenMigreringService(
-    private val sykmeldingStatusOnPremConsumer: KafkaConsumer<String, String>,
-    private val sykmeldingStatusAivenProducer: KafkaProducer<String, String>,
+    private val onPremConsumer: KafkaConsumer<String, Sykmeldingsdokument>,
+    private val aivenProducer: KafkaProducer<String, Sykmeldingsdokument>,
     private val topics: Map<String, String>,
     private val applicationState: ApplicationState
 ) {
@@ -37,16 +39,16 @@ class AivenMigreringService(
     }
 
     fun start() {
-        sykmeldingStatusOnPremConsumer.subscribe(topics.keys)
+        onPremConsumer.subscribe(topics.keys)
         log.info("Started consuming topics")
         while (applicationState.ready) {
-            sykmeldingStatusOnPremConsumer.poll(Duration.ofSeconds(1)).forEach {
+            onPremConsumer.poll(Duration.ofSeconds(1)).forEach {
                 val producerRecord = ProducerRecord(
                     topics[it.topic()]!!, it.key(), it.value()
                 )
                 producerRecord.headers().add("source", "on-prem".toByteArray())
                 try {
-                    sykmeldingStatusAivenProducer.send(producerRecord).get()
+                    aivenProducer.send(producerRecord).get()
                 } catch (e: Exception) {
                     log.error("Error sending message to kafka", e)
                     throw e

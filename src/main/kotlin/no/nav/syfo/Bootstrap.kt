@@ -22,6 +22,7 @@ import no.nav.syfo.identendring.UpdateFnrService
 import no.nav.syfo.kafka.SykmeldingEndringsloggKafkaProducer
 import no.nav.syfo.kafka.aiven.KafkaUtils
 import no.nav.syfo.kafka.loadBaseConfig
+import no.nav.syfo.kafka.toConsumerConfig
 import no.nav.syfo.kafka.toProducerConfig
 import no.nav.syfo.model.Sykmeldingsdokument
 import no.nav.syfo.narmesteleder.NarmesteLederResponseKafkaProducer
@@ -38,14 +39,18 @@ import no.nav.syfo.papirsykmelding.tilsyfoservice.kafka.model.SykmeldingSyfoserv
 import no.nav.syfo.service.GjenapneSykmeldingService
 import no.nav.syfo.sykmelding.DeleteSykmeldingService
 import no.nav.syfo.sykmelding.SykmeldingStatusKafkaProducer
+import no.nav.syfo.sykmelding.aivenmigrering.AivenMigreringService
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaMessage
 import no.nav.syfo.sykmelding.aivenmigrering.SykmeldingV2KafkaProducer
+import no.nav.syfo.utils.JacksonKafkaDeserializer
 import no.nav.syfo.utils.JacksonKafkaSerializer
 import no.nav.syfo.utils.JacksonNullableKafkaSerializer
 import no.nav.syfo.utils.getFileAsString
 import no.nav.syfo.vault.RenewVaultService
+import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -99,11 +104,7 @@ fun main() {
     val httpClients = HttpClients(environment, vaultServiceuser)
 
     val kafkaBaseConfig = loadBaseConfig(environment, vaultServiceuser)
-    val producerProperties =
-        kafkaBaseConfig.toProducerConfig(
-            environment.applicationName,
-            valueSerializer = JacksonKafkaSerializer::class
-        )
+
     val kafkaAivenProducer = KafkaProducer<String, SykmeldingV2KafkaMessage?>(
         KafkaUtils
             .getAivenKafkaConfig()
@@ -115,15 +116,27 @@ fun main() {
             }
     )
     val aivenProducerProperties = KafkaUtils.getAivenKafkaConfig()
-        .toProducerConfig(environment.applicationName, JacksonKafkaSerializer::class, StringSerializer::class).apply {
-            this[ProducerConfig.ACKS_CONFIG] = "1"
-            this[ProducerConfig.RETRIES_CONFIG] = 1000
-            this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
-        }
+        .toProducerConfig(environment.applicationName, JacksonKafkaSerializer::class, StringSerializer::class)
+    val kafkaproducerEndringsloggSykmelding = KafkaProducer<String, Sykmeldingsdokument>(aivenProducerProperties)
     val sykmeldingEndringsloggKafkaProducer = SykmeldingEndringsloggKafkaProducer(
-        environment.endringsloggTopic,
-        KafkaProducer<String, Sykmeldingsdokument>(producerProperties)
+        environment.aivenEndringsloggTopic,
+        kafkaproducerEndringsloggSykmelding
     )
+
+    val onpremConsumer = KafkaConsumer(
+        kafkaBaseConfig.toConsumerConfig(
+            "${environment.applicationName}-migration-consumer", JacksonKafkaDeserializer::class, StringDeserializer::class
+        ),
+        StringDeserializer(), JacksonKafkaDeserializer(Sykmeldingsdokument::class)
+    )
+
+    val aivenMigrationService = AivenMigreringService(
+        onPremConsumer = onpremConsumer,
+        aivenProducer = kafkaproducerEndringsloggSykmelding,
+        topics = mapOf(environment.endringsloggTopic to environment.aivenEndringsloggTopic),
+        applicationState = applicationState
+    )
+
     val statusKafkaProducer =
         SykmeldingStatusKafkaProducer(KafkaProducer(aivenProducerProperties), environment.aivenSykmeldingStatusTopic)
     val updatePeriodeService = UpdatePeriodeService(
@@ -196,6 +209,10 @@ fun main() {
     applicationState.ready = true
 
     RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
+
+    startBackgroundJob(applicationState) {
+        aivenMigrationService.start()
+    }
 }
 
 @DelicateCoroutinesApi
