@@ -12,7 +12,7 @@ import java.time.ZoneOffset
 
 fun DatabaseInterfacePostgres.updateFnr(fnr: String, nyttFnr: String): Int {
     connection.use { connection ->
-        var updated = 0
+        var updated: Int
         connection.prepareStatement(
             """
             UPDATE sykmeldingsopplysninger set pasient_fnr = ? where pasient_fnr = ?;

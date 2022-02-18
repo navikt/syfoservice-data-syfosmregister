@@ -184,20 +184,6 @@ paths:
           description: Unauthorized
         '403':
           description: Forbidden
-  /api/sykmelding/pdf/rerun:
-    post:
-      operationId: rerunPdfCreation
-      tags:
-        - PDF
-      security:
-        - bearerAuth: [ ]
-      summary: Opprett PDF på nytt for sykmeldinger
-      description: Oppretter PDF på nytt for sykmelding
-      requestBody:
-        $ref: '#/components/requestBodies/RerunPDFRequest'
-      responses:
-        '202':
-          $ref: '#/components/responses/pdfRerunResponse'
   /api/oppgave/list:
     post:
       operationId: getOppgave
@@ -218,13 +204,6 @@ paths:
           description: Forbidden
 
 components:
-  responses:
-    pdfRerunResponse:
-      description: "Response for rekjøring av pdf"
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/pdfRerun"
   requestBodies:
     EndreFnrRequest:
       description: "Endre fnr for bruker"
@@ -256,12 +235,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EndreBiDiagnose'
-    RerunPDFRequest:
-      description: "Liste med sykmeldinger som det skal lages pdfFor"
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/RerunPDF'
     HentOppgaverRequest:
       description: "Liste av oppgaveider som skal hentes"
       content:
@@ -398,50 +371,6 @@ components:
       properties:
         diagnoser:
           $ref: '#/components/schemas/EndreBiDiagnoser'
-    RerunPDF:
-      type: object
-      properties:
-        ids:
-          description: Liste med sykmeldings ider
-          type: array
-          items:
-            type: string
-        behandlingsutfall:
-          description: Behandlingsutfall som skal brukes
-          type: object
-          properties:
-            status:
-              type: string
-              enum: [ OK, MANUAL_PROCESSING ]
-            ruleHits:
-              example: []
-              type: array
-              items:
-                type: object
-                properties:
-                  messageForSender:
-                    type: string
-                  messageForUser:
-                    type: string
-                  ruleName:
-                    type: string
-                  ruleStatus:
-                    type: string
-                    enum: [OK, MANUAL_PROCESSING]
-
-    pdfRerun:
-      type: object
-      properties:
-        accepted:
-          description: Liste med ider som ble oppdatert
-          type: array
-          items:
-            type: string
-        notFound:
-          description: Liste med ider som ikke eksisterer i registeret
-          type: array
-          items:
-            type: string
     HentOppgaver:
       type: array
       items:

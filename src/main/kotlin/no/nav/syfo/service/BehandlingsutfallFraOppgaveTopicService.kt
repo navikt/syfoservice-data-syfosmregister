@@ -1,5 +1,6 @@
 package no.nav.syfo.service
 
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -21,6 +22,7 @@ import java.time.LocalDateTime
 import java.time.Month
 import java.time.ZoneId
 
+@DelicateCoroutinesApi
 class BehandlingsutfallFraOppgaveTopicService(
     private val kafkaConsumer: KafkaConsumer<String, RegisterTask>,
     private val databasePostgres: DatabaseInterfacePostgres,

@@ -16,7 +16,7 @@ import no.nav.syfo.sykmelding.api.model.EndreDiagnose
 fun Route.registerSendToSyfoserviceApi(sendTilSyfoserviceService: SendTilSyfoserviceService) {
     post("/api/sykmelding/{sykmeldingId}/syfoservice") {
         val sykmeldingId = call.parameters["sykmeldingId"]!!
-        if (sykmeldingId.isNullOrEmpty()) {
+        if (sykmeldingId.isEmpty()) {
             call.respond(HttpStatusCode.BadRequest, "Sykmeldingid må være satt")
         }
 
@@ -33,7 +33,7 @@ fun Route.registerSendToSyfoserviceApi(sendTilSyfoserviceService: SendTilSyfoser
 fun Route.registerUpdateDiagnosisApi(diagnoseService: DiagnoseService) {
     post("/api/sykmelding/{sykmeldingId}/diagnose") {
         val sykmeldingId = call.parameters["sykmeldingId"]!!
-        if (sykmeldingId.isNullOrEmpty()) {
+        if (sykmeldingId.isEmpty()) {
             call.respond(HttpStatusCode.BadRequest, "Sykmeldingid må være satt")
         }
 
@@ -52,7 +52,7 @@ fun Route.registerUpdateDiagnosisApi(diagnoseService: DiagnoseService) {
 fun Route.registerUpdateBiDiagnosisApi(diagnoseService: DiagnoseService) {
     post("/api/sykmelding/{sykmeldingId}/bidiagnose") {
         val sykmeldingId = call.parameters["sykmeldingId"]!!
-        if (sykmeldingId.isNullOrEmpty()) {
+        if (sykmeldingId.isEmpty()) {
             call.respond(HttpStatusCode.BadRequest, "Sykmeldingid må være satt")
         }
 
