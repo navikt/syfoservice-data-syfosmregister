@@ -1,6 +1,5 @@
 package no.nav.syfo
 
-import no.nav.syfo.kafka.KafkaConfig
 import no.nav.syfo.kafka.KafkaCredentials
 import no.nav.syfo.utils.getFileAsString
 
@@ -16,7 +15,6 @@ data class Environment(
     val pale2DBURL: String = getEnvVar("PALE_2_REGISTER_DB_URL"),
     val sparenaproxyDBURL: String = getEnvVar("SPARENAPROXY_DB_URL"),
     val mountPathVault: String = getEnvVar("MOUNT_PATH_VAULT"),
-    override val cluster: String = getEnvVar("NAIS_CLUSTER_NAME"),
     val databaseName: String = getEnvVar("DATABASE_NAME", "syfosmregister"),
     val databasePaleName: String = getEnvVar("DATABASE_PALE_NAME", "pale-2-register"),
     val databaseSparenaproxyName: String = getEnvVar("DATABASE_SPARENAPROXY_NAME", "sparenaproxy"),
@@ -25,7 +23,6 @@ data class Environment(
     val lastIndexEia: Int = getEnvVar("LAST_INDEX_EIA").toInt(),
     val lastIndexSparenaproxy: String = getEnvVar("LAST_INDEX_SPARENAPROXY"),
     val oppgaveTopic: String = getEnvVar("OPPGAVE_TOPIC", "privat-syfo-oppgave-registrerOppgave"),
-    override val kafkaBootstrapServers: String = getEnvVar("KAFKA_BOOTSTRAP_SERVERS_URL"),
     val lastIndexBackup: String = getEnvVar("LAST_INDEX_BACKUP"),
     val sendSykmeldingV2Topic: String = "teamsykmelding.syfo-sendt-sykmelding",
     val bekreftSykmeldingV2KafkaTopic: String = "teamsykmelding.syfo-bekreftet-sykmelding",
@@ -35,8 +32,6 @@ data class Environment(
     val aivenEndringsloggTopic: String = "teamsykmelding.macgyver-sykmelding-endringslogg",
     val securityTokenUrl: String = getEnvVar("SECURITY_TOKEN_SERVICE_URL", "http://security-token-service/rest/v1/sts/token"),
     val pdlGraphqlPath: String = getEnvVar("PDL_GRAPHQL_PATH"),
-    override val truststore: String? = getEnvVar("NAV_TRUSTSTORE_PATH"),
-    override val truststorePassword: String? = getEnvVar("NAV_TRUSTSTORE_PASSWORD"),
     val lastIndexNlSyfoservice: Int = getEnvVar("LAST_INDEX_NL_SYFOSERVICE").toInt(),
     val nlResponseTopic: String = "teamsykmelding.syfo-narmesteleder",
     val oppgavebehandlingUrl: String = getEnvVar("OPPGAVEBEHANDLING_URL"),
@@ -54,7 +49,7 @@ data class Environment(
     val historiskTopic: String = "teamsykmelding.sykmelding-historisk",
     val legeerklaringTopic: String = "teamsykmelding.legeerklaering",
     val pale2Bucket: String = getEnvVar("PALE_BUCKET_NAME")
-) : KafkaConfig
+)
 
 data class VaultCredentials(
     val databaseUsername: String,

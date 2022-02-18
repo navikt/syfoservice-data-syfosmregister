@@ -61,8 +61,6 @@ spec:
     - "https://syfoservice-data-syfosmregister.nais.preprod.local"
     - "https://macgyver.dev.intern.nav.no"
   env:
-    - name: KAFKA_BOOTSTRAP_SERVERS_URL
-      value: SSL://b27apvl00045.preprod.local:8443,SSL://b27apvl00046.preprod.local:8443,SSL://b27apvl00047.preprod.local:8443
     - name: SYFOSMREGISTER_DB_URL
       value: jdbc:postgresql://B27DBVL003.preprod.local:5432/syfosmregister
     - name: PALE_2_REGISTER_DB_URL
