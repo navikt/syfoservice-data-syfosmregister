@@ -24,6 +24,8 @@ import no.nav.syfo.kafka.aiven.KafkaUtils
 import no.nav.syfo.kafka.toProducerConfig
 import no.nav.syfo.model.Sykmeldingsdokument
 import no.nav.syfo.narmesteleder.NarmesteLederResponseKafkaProducer
+import no.nav.syfo.narmesteleder.NarmestelederService
+import no.nav.syfo.narmesteleder.kafkamodel.NlRequestKafkaMessage
 import no.nav.syfo.narmesteleder.kafkamodel.NlResponseKafkaMessage
 import no.nav.syfo.papirsykmelding.DiagnoseService
 import no.nav.syfo.papirsykmelding.GradService
@@ -107,6 +109,10 @@ fun main() {
                 this[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = "false"
             }
     )
+    val kafkaAivenNarmestelederRequestProducer = KafkaProducer<String, NlRequestKafkaMessage>(
+        KafkaUtils.getAivenKafkaConfig()
+            .toProducerConfig("macgyver-producer", JacksonKafkaSerializer::class, StringSerializer::class)
+    )
     val aivenProducerProperties = KafkaUtils.getAivenKafkaConfig()
         .toProducerConfig(environment.applicationName, JacksonKafkaSerializer::class, StringSerializer::class)
     val kafkaproducerEndringsloggSykmelding = KafkaProducer<String, Sykmeldingsdokument>(aivenProducerProperties)
@@ -164,7 +170,11 @@ fun main() {
         statusKafkaProducer,
         databasePostgres
     )
-
+    val narmestelederService = NarmestelederService(
+        pdlService = httpClients.pdlService,
+        kafkaAivenNarmestelederRequestProducer,
+        environment.narmestelederRequestTopic
+    )
     val applicationEngine = createApplicationEngine(
         env = environment,
         applicationState = applicationState,
@@ -179,7 +189,8 @@ fun main() {
         clientId = jwtVaultSecrets.clientId,
         appIds = listOf(jwtVaultSecrets.clientId),
         deleteSykmeldingService = deleteSykmeldingService,
-        gjenapneSykmeldingService = gjenapneSykmeldingService
+        gjenapneSykmeldingService = gjenapneSykmeldingService,
+        narmestelederService = narmestelederService
     )
     val applicationServer = ApplicationServer(applicationEngine, applicationState)
 

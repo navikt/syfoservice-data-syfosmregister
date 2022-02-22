@@ -24,7 +24,12 @@ class PdlPersonService(
             log.error("Fant ikke aktørid i PDL {}")
             throw AktoerNotFoundException("Fant ikke aktørId i PDL")
         }
-        return PdlPerson(pdlResponse.data.hentIdenter.identer)
+        val pdlNavn = pdlResponse.data.person?.navn?.first()
+        if (pdlNavn == null) {
+            throw AktoerNotFoundException("Fant ikke aktørId i PDL")
+        }
+
+        return PdlPerson(identer = pdlResponse.data.hentIdenter.identer, navn = toFormattedNameString(pdlNavn.fornavn, pdlNavn.mellomnavn, pdlNavn.etternavn))
     }
 
     suspend fun getFnrs(identer: List<String>, narmesteLederId: String): Map<String, String?> {
@@ -49,4 +54,19 @@ class PdlPersonService(
             it.ident to it.identer?.firstOrNull { ident -> ident.gruppe == "FOLKEREGISTERIDENT" }?.ident
         }.toMap()
     }
+}
+
+private fun toFormattedNameString(fornavn: String, mellomnavn: String?, etternavn: String): String {
+    return if (mellomnavn.isNullOrEmpty()) {
+        capitalizeFirstLetter("$fornavn $etternavn")
+    } else {
+        capitalizeFirstLetter("$fornavn $mellomnavn $etternavn")
+    }
+}
+
+private fun capitalizeFirstLetter(string: String): String {
+    return string.lowercase()
+        .split(" ").joinToString(" ") { it.replaceFirstChar { char -> char.titlecaseChar() } }
+        .split("-").joinToString("-") { it.replaceFirstChar { char -> char.titlecaseChar() } }
+        .trimEnd()
 }
