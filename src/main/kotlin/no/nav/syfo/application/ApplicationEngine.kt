@@ -18,6 +18,8 @@ import no.nav.syfo.application.api.registerNaisApi
 import no.nav.syfo.application.api.setupSwaggerDocApi
 import no.nav.syfo.identendring.UpdateFnrService
 import no.nav.syfo.identendring.api.registerFnrApi
+import no.nav.syfo.narmesteleder.NarmestelederService
+import no.nav.syfo.narmesteleder.api.registrerNarmestelederRequestApi
 import no.nav.syfo.oppgave.api.registerHentOppgaverApi
 import no.nav.syfo.oppgave.client.OppgaveClient
 import no.nav.syfo.papirsykmelding.DiagnoseService
@@ -48,7 +50,8 @@ fun createApplicationEngine(
     clientId: String,
     appIds: List<String>,
     deleteSykmeldingService: DeleteSykmeldingService,
-    gjenapneSykmeldingService: GjenapneSykmeldingService
+    gjenapneSykmeldingService: GjenapneSykmeldingService,
+    narmestelederService: NarmestelederService
 ): ApplicationEngine =
     embeddedServer(Netty, env.applicationPort) {
         install(ContentNegotiation) {
@@ -80,6 +83,7 @@ fun createApplicationEngine(
                 registerDeleteSykmeldingApi(deleteSykmeldingService)
                 registerUpdateBiDiagnosisApi(diagnoseService)
                 registerHentOppgaverApi(oppgaveClient)
+                registrerNarmestelederRequestApi(narmestelederService)
             }
         }
     }

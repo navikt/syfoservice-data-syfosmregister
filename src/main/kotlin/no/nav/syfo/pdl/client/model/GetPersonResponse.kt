@@ -1,7 +1,17 @@
 package no.nav.syfo.pdl.client.model
 
 data class PdlResponse(
-    val hentIdenter: Identliste?
+    val hentIdenter: Identliste?,
+    val person: PersonResponse?,
+)
+data class PersonResponse(
+    val navn: List<Navn>?
+)
+
+data class Navn(
+    val fornavn: String,
+    val mellomnavn: String?,
+    val etternavn: String
 )
 
 data class Identliste(

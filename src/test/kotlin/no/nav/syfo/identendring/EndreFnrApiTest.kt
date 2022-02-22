@@ -88,7 +88,8 @@ class EndreFnrApiTest : FunSpec({
                     IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345678912", true, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345", false, "AKTORID")
-                )
+                ),
+                "navn navn"
             )
             coEvery { narmestelederClient.getNarmesteledere(any()) } returns emptyList()
 

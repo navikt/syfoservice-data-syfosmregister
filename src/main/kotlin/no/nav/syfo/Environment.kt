@@ -41,7 +41,8 @@ data class Environment(
     val paleBucketName: String = getEnvVar("PALE_VEDLEGG_BUCKET_NAME"),
     val historiskTopic: String = "teamsykmelding.sykmelding-historisk",
     val legeerklaringTopic: String = "teamsykmelding.legeerklaering",
-    val pale2Bucket: String = getEnvVar("PALE_BUCKET_NAME")
+    val pale2Bucket: String = getEnvVar("PALE_BUCKET_NAME"),
+    val narmestelederRequestTopic: String = "teamsykmelding.syfo-nl-request"
 )
 
 data class VaultCredentials(

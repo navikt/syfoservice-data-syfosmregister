@@ -68,7 +68,8 @@ class UpdateFnrServiceTest : FunSpec({
                     IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345678912", true, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345", false, "AKTORID")
-                )
+                ),
+                "navn navn"
             )
             coEvery { narmestelederClient.getNarmesteledere(any()) } returns emptyList()
 
@@ -88,7 +89,8 @@ class UpdateFnrServiceTest : FunSpec({
                     IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345678912", true, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345", false, "AKTORID")
-                )
+                ),
+                "navn navn"
             )
 
             every { db.updateFnr(any(), any()) } returns 1
@@ -110,7 +112,8 @@ class UpdateFnrServiceTest : FunSpec({
                     IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("123", true, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345", false, "AKTORID")
-                )
+                ),
+                "navn navn"
             )
 
             every { db.updateFnr(any(), any()) } returns 1
@@ -132,7 +135,8 @@ class UpdateFnrServiceTest : FunSpec({
                     IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345678912", true, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345", false, "AKTORID")
-                )
+                ),
+                "navn navn"
             )
             every { db.getSykmeldingerMedFnrUtenBehandlingsutfall("12345678912") } returns listOf(getSendtSykmelding())
             coEvery { narmestelederClient.getNarmesteledere(any()) } returns listOf(getNarmesteLeder())
@@ -173,7 +177,8 @@ class UpdateFnrServiceTest : FunSpec({
                     IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345678912", true, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345", false, "AKTORID")
-                )
+                ),
+                "navn navn"
             )
             every { db.getSykmeldingerMedFnrUtenBehandlingsutfall("12345678912") } returns listOf(
                 getSendtSykmelding(),
@@ -235,7 +240,8 @@ class UpdateFnrServiceTest : FunSpec({
                     IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345678912", true, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345", false, "AKTORID")
-                )
+                ),
+                "navn navn"
             )
 
             runBlocking {
@@ -254,7 +260,8 @@ class UpdateFnrServiceTest : FunSpec({
                     IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("123", true, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345", false, "AKTORID")
-                )
+                ),
+                "navn navn"
             )
 
             runBlocking {
@@ -273,7 +280,8 @@ class UpdateFnrServiceTest : FunSpec({
                     IdentInformasjon("12345678913", false, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345678912", true, "FOLKEREGISTERIDENT"),
                     IdentInformasjon("12345", false, "AKTORID")
-                )
+                ),
+                "navn navn"
             )
             coEvery { narmestelederClient.getNarmestelederKoblingerForLeder("12345678912") } returns listOf(getNarmesteLeder().copy(fnr = "10987654321", narmesteLederFnr = "12345678912"))
 
