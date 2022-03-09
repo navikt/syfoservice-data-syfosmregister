@@ -2,6 +2,7 @@ package no.nav.syfo.narmesteleder
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import no.nav.syfo.log
 import no.nav.syfo.narmesteleder.api.NlRequestDTO
 import no.nav.syfo.narmesteleder.kafkamodel.NlKafkaMetadata
 import no.nav.syfo.narmesteleder.kafkamodel.NlRequest
@@ -37,5 +38,6 @@ class NarmestelederService(
         )
 
         narmestelederRequestProducer.send(ProducerRecord(topic, nlRequest.nlRequest.orgnr, nlRequest)).get()
+        log.info("Sendt nl-request to ${nlRequest.nlRequest.orgnr}")
     }
 }
