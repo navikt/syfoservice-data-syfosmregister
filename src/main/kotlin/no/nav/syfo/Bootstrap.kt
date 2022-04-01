@@ -157,12 +157,20 @@ fun main() {
         sendtSykmeldingTopic = environment.sendSykmeldingV2Topic
     )
 
+    val tombstoneProducer = KafkaProducer<String, Any?>(
+        KafkaUtils
+            .getAivenKafkaConfig()
+            .toProducerConfig("macgyver-tobstone-producer", JacksonNullableKafkaSerializer::class)
+    )
+
     val deleteSykmeldingService = DeleteSykmeldingService(
         environment,
         databasePostgres,
         databaseOracle,
         statusKafkaProducer,
-        sykmeldingEndringsloggKafkaProducer
+        sykmeldingEndringsloggKafkaProducer,
+        tombstoneProducer,
+        listOf(environment.manuellTopic, environment.papirSmRegistreringTopic)
     )
 
     val gjenapneSykmeldingService = GjenapneSykmeldingService(
