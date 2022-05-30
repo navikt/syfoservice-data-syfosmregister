@@ -3,16 +3,14 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 group = "no.nav.syfo"
 version = "1.0.0"
 
-val coroutinesVersion = "1.6.0"
-val jacksonVersion = "2.13.2"
-val jacksonPatchVersion = "2.13.2.1"
-val jacksonBomVersion = "2.13.2.20220324"
+val coroutinesVersion = "1.6.1"
+val jacksonVersion = "2.13.3"
 val kluentVersion = "1.68"
-val ktorVersion = "1.6.8"
+val ktorVersion = "2.0.1"
 val logbackVersion = "1.2.11"
-val logstashEncoderVersion = "7.0.1"
+val logstashEncoderVersion = "7.1.1"
 val prometheusVersion = "0.15.0"
-val nimbusjosejwtVersion = "9.21"
+val nimbusjosejwtVersion = "9.22"
 val hikariVersion = "5.0.1"
 val jaxbBasicAntVersion = "1.11.1"
 val javaxAnnotationApiVersion = "1.3.2"
@@ -22,13 +20,13 @@ val javaxJaxwsApiVersion = "2.2.1"
 val jaxbApiVersion = "2.4.0-b180830.0359"
 val javaxActivationVersion = "1.1.1"
 val ojdbc8Version = "19.3.0.0"
-val mockkVersion = "1.12.3"
-val smCommonVersion = "1.a92720c"
+val mockkVersion = "1.12.4"
+val smCommonVersion = "1.f132f2b"
 val sykmeldingVersion = "2019.07.29-02-53-86b22e73f7843e422ee500b486dac387a582f2d1"
 val fellesformatVersion = "2019.07.30-12-26-5c924ef4f04022bbb850aaf299eb8e4464c1ca6a"
 val kithHodemeldingVersion = "2019.07.30-12-26-5c924ef4f04022bbb850aaf299eb8e4464c1ca6a"
 val javaTimeAdapterVersion = "1.1.3"
-val postgresVersion = "42.3.2"
+val postgresVersion = "42.3.4"
 val vaultJavaDriveVersion = "3.1.0"
 val kontrollsystemblokk = "2019.07.29-02-53-86b22e73f7843e422ee500b486dac387a582f2d1"
 val infotrygdForespVersion = "2019.07.29-02-53-86b22e73f7843e422ee500b486dac387a582f2d1"
@@ -36,17 +34,17 @@ val avroVersion = "1.8.2"
 val confluentVersion = "6.2.2"
 val syfoAvroSchemasVersion = "c8be932543e7356a34690ce7979d494c5d8516d8"
 val legeerklaering = "2019.07.29-02-53-86b22e73f7843e422ee500b486dac387a582f2d1"
-val swaggerUiVersion = "4.1.3"
-val kotlinVersion = "1.6.0"
-val googleCloudStorageVersion = "2.3.0"
-val pale2CommonVersion = "1.a40bf1a"
-val kotestVersion = "5.1.0"
+val swaggerUiVersion = "4.10.3"
+val kotlinVersion = "1.6.21"
+val googleCloudStorageVersion = "2.6.1"
+val pale2CommonVersion = "1.19e8b45"
+val kotestVersion = "5.3.0"
 
 plugins {
-    kotlin("jvm") version "1.6.0"
-    id("org.jmailen.kotlinter") version "3.6.0"
-    id("com.diffplug.spotless") version "5.16.0"
-    id("com.github.johnrengelman.shadow") version "7.0.0"
+    kotlin("jvm") version "1.6.21"
+    id("org.jmailen.kotlinter") version "3.10.0"
+    id("com.diffplug.spotless") version "6.5.0"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
     id("org.hidetake.swagger.generator") version "2.18.2" apply true
 }
 
@@ -72,12 +70,15 @@ dependencies {
     implementation("io.prometheus:simpleclient_hotspot:$prometheusVersion")
     implementation("io.prometheus:simpleclient_common:$prometheusVersion")
 
+    implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-server-auth:$ktorVersion")
+    implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-apache:$ktorVersion")
-    implementation("io.ktor:ktor-client-jackson:$ktorVersion")
-    implementation("io.ktor:ktor-jackson:$ktorVersion")
-    implementation("io.ktor:ktor-auth:$ktorVersion")
-    implementation("io.ktor:ktor-auth-jwt:$ktorVersion")
 
     implementation("no.nav.helse:syfosm-common-rest-sts:$smCommonVersion")
 
@@ -88,8 +89,6 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
-    implementation("com.fasterxml.jackson:jackson-bom:$jacksonBomVersion")
-    implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonPatchVersion")
 
     implementation("no.nav.helse:syfosm-common-models:$smCommonVersion")
     implementation("no.nav.helse.xml:sm2013:$sykmeldingVersion")

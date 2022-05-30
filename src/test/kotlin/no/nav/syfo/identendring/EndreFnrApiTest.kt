@@ -5,16 +5,13 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.kotest.core.spec.style.FunSpec
-import io.ktor.application.call
-import io.ktor.application.install
-import io.ktor.features.ContentNegotiation
-import io.ktor.features.StatusPages
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.jackson.jackson
-import io.ktor.response.respond
-import io.ktor.routing.routing
+import io.ktor.serialization.jackson.jackson
+import io.ktor.server.application.install
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.routing.routing
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
@@ -27,7 +24,6 @@ import no.nav.syfo.db.DatabaseInterfacePostgres
 import no.nav.syfo.identendring.api.registerFnrApi
 import no.nav.syfo.identendring.client.NarmestelederClient
 import no.nav.syfo.identendring.db.updateFnr
-import no.nav.syfo.log
 import no.nav.syfo.narmesteleder.NarmesteLederResponseKafkaProducer
 import no.nav.syfo.objectMapper
 import no.nav.syfo.pdl.client.model.IdentInformasjon
@@ -73,13 +69,6 @@ class EndreFnrApiTest : FunSpec({
                     registerKotlinModule()
                     registerModule(JavaTimeModule())
                     configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-                }
-            }
-            application.install(StatusPages) {
-                exception<Throwable> { cause ->
-                    call.respond(HttpStatusCode.InternalServerError, cause.message ?: "Unknown error")
-                    log.error("Caught exception", cause)
-                    throw cause
                 }
             }
 

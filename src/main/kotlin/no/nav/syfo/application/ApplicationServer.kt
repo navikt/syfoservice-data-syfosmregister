@@ -6,13 +6,13 @@ class ApplicationServer(private val applicationServer: ApplicationEngine, privat
     init {
         Runtime.getRuntime().addShutdownHook(
             Thread {
+                applicationState.ready = false
                 this.applicationServer.stop(10_000, 10_000)
             }
         )
     }
 
     fun start() {
-        applicationServer.start(false)
-        applicationState.alive = true
+        applicationServer.start(true)
     }
 }
