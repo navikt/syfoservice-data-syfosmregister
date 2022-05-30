@@ -1,10 +1,9 @@
 package no.nav.syfo.oppgave.client
 
 import io.ktor.client.HttpClient
-import io.ktor.client.call.receive
+import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.header
-import io.ktor.client.statement.HttpStatement
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
@@ -19,19 +18,19 @@ class OppgaveClient(
 
     suspend fun hentOppgave(oppgaveId: Int, msgId: String): Oppgave {
 
-        val httpResponse = httpClient.get<HttpStatement>("$url/$oppgaveId") {
+        val httpResponse = httpClient.get("$url/$oppgaveId") {
             contentType(ContentType.Application.Json)
             val oidcToken = oidcClient.oidcToken()
             header("Authorization", "Bearer ${oidcToken.access_token}")
             header("X-Correlation-ID", msgId)
-        }.execute()
+        }
 
         return when (httpResponse.status) {
             HttpStatusCode.OK -> {
-                httpResponse.call.response.receive()
+                httpResponse.body<Oppgave>()
             }
             else -> {
-                val msg = "OppgaveClient hentOppgave kastet feil ${httpResponse.status} ved hentOppgave av oppgave, response: ${httpResponse.call.response.receive<String>()}"
+                val msg = "OppgaveClient hentOppgave kastet feil ${httpResponse.status} ved hentOppgave av oppgave, response: ${httpResponse.body<String>()}"
                 throw RuntimeException(msg)
             }
         }

@@ -1,10 +1,10 @@
 package no.nav.syfo.sykmelding.api
 
-import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.response.respond
-import io.ktor.routing.Route
-import io.ktor.routing.delete
+import io.ktor.server.application.call
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.delete
 import no.nav.syfo.log
 import no.nav.syfo.sykmelding.DeleteSykmeldingService
 

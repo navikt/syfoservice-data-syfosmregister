@@ -41,7 +41,8 @@ fun toReceivedSykmelding(jsonMap: Map<String, Any?>): ReceivedSykmelding {
         merknader = null,
         partnerreferanse = null,
         legeHelsepersonellkategori = null,
-        legeHprNr = null
+        legeHprNr = null,
+        vedlegg = null
     )
 }
 
