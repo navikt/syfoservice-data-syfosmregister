@@ -27,12 +27,10 @@ import no.nav.syfo.papirsykmelding.api.UpdateBehandletDatoService
 import no.nav.syfo.papirsykmelding.api.UpdatePeriodeService
 import no.nav.syfo.papirsykmelding.api.registrerBehandletDatoApi
 import no.nav.syfo.papirsykmelding.api.registrerPeriodeApi
-import no.nav.syfo.papirsykmelding.tilsyfoservice.SendTilSyfoserviceService
 import no.nav.syfo.service.GjenapneSykmeldingService
 import no.nav.syfo.sykmelding.DeleteSykmeldingService
 import no.nav.syfo.sykmelding.api.registerDeleteSykmeldingApi
 import no.nav.syfo.sykmelding.api.registerGjenapneSykmeldingApi
-import no.nav.syfo.sykmelding.api.registerSendToSyfoserviceApi
 import no.nav.syfo.sykmelding.api.registerUpdateBiDiagnosisApi
 import no.nav.syfo.sykmelding.api.registerUpdateDiagnosisApi
 
@@ -42,7 +40,6 @@ fun createApplicationEngine(
     updatePeriodeService: UpdatePeriodeService,
     updateBehandletDatoService: UpdateBehandletDatoService,
     updateFnrService: UpdateFnrService,
-    sendTilSyfoserviceService: SendTilSyfoserviceService,
     diagnoseService: DiagnoseService,
     oppgaveClient: OppgaveClient,
     jwkProviderInternal: JwkProvider,
@@ -77,7 +74,6 @@ fun createApplicationEngine(
                 registrerPeriodeApi(updatePeriodeService)
                 registrerBehandletDatoApi(updateBehandletDatoService)
                 registerFnrApi(updateFnrService)
-                registerSendToSyfoserviceApi(sendTilSyfoserviceService)
                 registerGjenapneSykmeldingApi(gjenapneSykmeldingService)
                 registerUpdateDiagnosisApi(diagnoseService)
                 registerDeleteSykmeldingApi(deleteSykmeldingService)

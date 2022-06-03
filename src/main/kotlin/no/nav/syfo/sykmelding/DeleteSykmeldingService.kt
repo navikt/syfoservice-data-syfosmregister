@@ -1,8 +1,6 @@
 package no.nav.syfo.sykmelding
 
 import no.nav.syfo.Environment
-import no.nav.syfo.aksessering.db.oracle.settTilSlettet
-import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.kafka.SykmeldingEndringsloggKafkaProducer
 import no.nav.syfo.log
@@ -17,7 +15,6 @@ import java.time.ZoneOffset
 class DeleteSykmeldingService(
     val environment: Environment,
     val databasePostgres: DatabasePostgres,
-    val databaseOracle: DatabaseOracle,
     val kafkaProducer: SykmeldingStatusKafkaProducer,
     val endringsloggKafkaProducer: SykmeldingEndringsloggKafkaProducer,
     val tombstoneProducer: KafkaProducer<String, Any?>,
@@ -29,7 +26,6 @@ class DeleteSykmeldingService(
         val sykmelding = databasePostgres.connection.hentSykmeldingMedId(sykmeldingID)
         if (sykmelding != null) {
             endringsloggKafkaProducer.publishToKafka(sykmelding.sykmeldingsdokument!!)
-            databaseOracle.settTilSlettet(sykmeldingID)
             kafkaProducer.send(
                 SykmeldingStatusKafkaEventDTO(
                     sykmeldingID,
