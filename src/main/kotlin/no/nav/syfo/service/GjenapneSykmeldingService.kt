@@ -1,7 +1,5 @@
 package no.nav.syfo.service
 
-import no.nav.syfo.aksessering.db.oracle.settTilNy
-import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.log
 import no.nav.syfo.model.sykmeldingstatus.STATUS_APEN
@@ -12,7 +10,6 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
 class GjenapneSykmeldingService(
-    private val databaseoracle: DatabaseOracle,
     private val sykmeldingStatusKafkaProducer: SykmeldingStatusKafkaProducer,
     private val databasePostgres: DatabasePostgres
 ) {
@@ -29,7 +26,6 @@ class GjenapneSykmeldingService(
             )
             sykmeldingStatusKafkaProducer.send(sykmeldingStatusKafkaEventDTO, "migrering", sykmelding.sykmeldingsopplysninger.pasientFnr)
             log.info("Sendt statusendring")
-            databaseoracle.settTilNy(sykmeldingId)
         } else {
             log.info("fant ikke sykmelding med id {}", sykmeldingId)
         }

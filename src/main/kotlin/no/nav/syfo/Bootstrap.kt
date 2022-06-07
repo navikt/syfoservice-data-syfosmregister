@@ -33,9 +33,6 @@ import no.nav.syfo.papirsykmelding.PeriodeService
 import no.nav.syfo.papirsykmelding.SlettInformasjonService
 import no.nav.syfo.papirsykmelding.api.UpdateBehandletDatoService
 import no.nav.syfo.papirsykmelding.api.UpdatePeriodeService
-import no.nav.syfo.papirsykmelding.tilsyfoservice.SendTilSyfoserviceService
-import no.nav.syfo.papirsykmelding.tilsyfoservice.kafka.SykmeldingSyfoserviceKafkaProducer
-import no.nav.syfo.papirsykmelding.tilsyfoservice.kafka.model.SykmeldingSyfoserviceKafkaMessage
 import no.nav.syfo.service.GjenapneSykmeldingService
 import no.nav.syfo.sykmelding.DeleteSykmeldingService
 import no.nav.syfo.sykmelding.SykmeldingStatusKafkaProducer
@@ -51,7 +48,6 @@ import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.URL
-import java.util.Properties
 import java.util.concurrent.TimeUnit
 
 val objectMapper: ObjectMapper = ObjectMapper().apply {
@@ -83,19 +79,10 @@ fun main() {
         .rateLimited(10, 1, TimeUnit.MINUTES)
         .build()
 
-    val vaultConfig = VaultConfig(
-        jdbcUrl = getFileAsString("/secrets/syfoservice/config/jdbc_url")
-    )
-
-    val syfoserviceVaultSecrets = VaultCredentials(
-        databasePassword = getFileAsString("/secrets/syfoservice/credentials/password"),
-        databaseUsername = getFileAsString("/secrets/syfoservice/credentials/username")
-    )
     val vaultCredentialService = VaultCredentialService()
     val vaultServiceuser = getVaultServiceUser()
 
     val databasePostgres = DatabasePostgres(environment, vaultCredentialService)
-    val databaseOracle = DatabaseOracle(vaultConfig, syfoserviceVaultSecrets)
 
     val httpClients = HttpClients(environment, vaultServiceuser)
 
@@ -124,7 +111,6 @@ fun main() {
     val statusKafkaProducer =
         SykmeldingStatusKafkaProducer(KafkaProducer(aivenProducerProperties), environment.aivenSykmeldingStatusTopic)
     val updatePeriodeService = UpdatePeriodeService(
-        databaseoracle = databaseOracle,
         databasePostgres = databasePostgres,
         sykmeldingEndringsloggKafkaProducer = sykmeldingEndringsloggKafkaProducer,
         sykmeldingProducer = SykmeldingV2KafkaProducer(kafkaAivenProducer),
@@ -133,7 +119,6 @@ fun main() {
         bekreftetSykmeldingTopic = environment.bekreftSykmeldingV2KafkaTopic
     )
     val updateBehandletDatoService = UpdateBehandletDatoService(
-        databaseoracle = databaseOracle,
         databasePostgres = databasePostgres,
         sykmeldingEndringsloggKafkaProducer = sykmeldingEndringsloggKafkaProducer
     )
@@ -166,7 +151,6 @@ fun main() {
     val deleteSykmeldingService = DeleteSykmeldingService(
         environment,
         databasePostgres,
-        databaseOracle,
         statusKafkaProducer,
         sykmeldingEndringsloggKafkaProducer,
         tombstoneProducer,
@@ -174,7 +158,6 @@ fun main() {
     )
 
     val gjenapneSykmeldingService = GjenapneSykmeldingService(
-        databaseOracle,
         statusKafkaProducer,
         databasePostgres
     )
@@ -189,8 +172,7 @@ fun main() {
         updatePeriodeService = updatePeriodeService,
         updateBehandletDatoService = updateBehandletDatoService,
         updateFnrService = updateFnrService,
-        sendTilSyfoserviceService = createSendTilSyfoservice(environment, databasePostgres, aivenProducerProperties),
-        diagnoseService = DiagnoseService(databaseOracle, databasePostgres, sykmeldingEndringsloggKafkaProducer),
+        diagnoseService = DiagnoseService(databasePostgres, sykmeldingEndringsloggKafkaProducer),
         oppgaveClient = httpClients.oppgaveClient,
         jwkProviderInternal = jwkProviderInternal,
         issuerServiceuser = jwtVaultSecrets.jwtIssuer,
@@ -277,18 +259,6 @@ fun updateGrad(applicationState: ApplicationState, environment: Environment) {
     val gradService = GradService(databaseOracle, databasePostgres)
     // gradService.start()
     gradService.addPeriode()
-}
-
-fun createSendTilSyfoservice(
-    environment: Environment,
-    databasePostgres: DatabasePostgres,
-    producerProperties: Properties
-): SendTilSyfoserviceService {
-    val syfoserviceKafkaProducer = SykmeldingSyfoserviceKafkaProducer(
-        KafkaProducer<String, SykmeldingSyfoserviceKafkaMessage>(producerProperties),
-        environment.syfoserviceKafkaTopic
-    )
-    return SendTilSyfoserviceService(syfoserviceKafkaProducer, databasePostgres)
 }
 
 fun getVaultServiceUser(): VaultServiceUser {

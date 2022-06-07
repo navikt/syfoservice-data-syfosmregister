@@ -1,11 +1,5 @@
 package no.nav.syfo.papirsykmelding.api
 
-import no.nav.helse.sm2013.ArsakType
-import no.nav.helse.sm2013.CS
-import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
-import no.nav.syfo.aksessering.db.oracle.getSykmeldingsDokument
-import no.nav.syfo.aksessering.db.oracle.updateDocument
-import no.nav.syfo.db.DatabaseOracle
 import no.nav.syfo.db.DatabasePostgres
 import no.nav.syfo.kafka.SykmeldingEndringsloggKafkaProducer
 import no.nav.syfo.log
@@ -36,7 +30,6 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 
 class UpdatePeriodeService(
-    private val databaseoracle: DatabaseOracle,
     private val databasePostgres: DatabasePostgres,
     private val sykmeldingEndringsloggKafkaProducer: SykmeldingEndringsloggKafkaProducer,
     private val sykmeldingProducer: SykmeldingV2KafkaProducer,
@@ -45,57 +38,48 @@ class UpdatePeriodeService(
     private val bekreftetSykmeldingTopic: String
 ) {
     fun updatePeriode(sykmeldingId: String, periodeliste: List<Periode>) {
-        val result = databaseoracle.getSykmeldingsDokument(sykmeldingId)
         val sykmeldingsdokument = databasePostgres.connection.hentSykmeldingsdokument(sykmeldingId)
 
-        if (result.rows.isNotEmpty() && sykmeldingsdokument != null) {
-            log.info("Oppdaterer sykmeldingsperioder for id {}", sykmeldingId)
-            val document = result.rows.first()
-            if (document != null) {
-                log.info(
-                    "Endrer perioder fra ${objectMapper.writeValueAsString(sykmeldingsdokument.sykmelding.perioder)}" +
-                        " til ${objectMapper.writeValueAsString(periodeliste)} for id $sykmeldingId"
-                )
-                sykmeldingEndringsloggKafkaProducer.publishToKafka(sykmeldingsdokument)
+        if (sykmeldingsdokument != null) {
+            log.info(
+                "Endrer perioder fra ${objectMapper.writeValueAsString(sykmeldingsdokument.sykmelding.perioder)}" +
+                    " til ${objectMapper.writeValueAsString(periodeliste)} for id $sykmeldingId"
+            )
+            sykmeldingEndringsloggKafkaProducer.publishToKafka(sykmeldingsdokument)
 
-                document.aktivitet.periode.clear()
-                document.aktivitet.periode.addAll(periodeliste.map { tilSyfoservicePeriode(it) })
+            databasePostgres.updatePeriode(periodeliste, sykmeldingId)
 
-                databaseoracle.updateDocument(document, sykmeldingId)
-                databasePostgres.updatePeriode(periodeliste, sykmeldingId)
+            val sykmelding = databasePostgres.connection.getEnkelSykmelding(sykmeldingId)
+            if (sykmelding == null) {
+                log.error("Fant ikke sykmeldingen vi nettopp endret..")
+                throw RuntimeException("Fant ikke sykmeldingen vi nettopp endret")
+            }
 
-                val sykmelding = databasePostgres.connection.getEnkelSykmelding(sykmeldingId)
-                if (sykmelding == null) {
-                    log.error("Fant ikke sykmeldingen vi nettopp endret..")
-                    throw RuntimeException("Fant ikke sykmeldingen vi nettopp endret")
-                }
+            sykmeldingProducer.sendSykmelding(
+                sykmeldingKafkaMessage = mapTilMottattSykmelding(sykmelding),
+                sykmeldingId = sykmeldingId,
+                topic = mottattSykmeldingTopic
+            )
 
+            if (sykmelding.status.statusEvent == "SENDT") {
+                log.info("Sykmelding er sendt")
+                val sendtSykmelding = databasePostgres.connection.getSendtSykmeldingMedSisteStatus(sykmeldingId).firstOrNull()
                 sykmeldingProducer.sendSykmelding(
-                    sykmeldingKafkaMessage = mapTilMottattSykmelding(sykmelding),
+                    sykmeldingKafkaMessage = mapTilSendtSykmelding(sendtSykmelding!!),
                     sykmeldingId = sykmeldingId,
-                    topic = mottattSykmeldingTopic
+                    topic = sendtSykmeldingTopic
                 )
-
-                if (sykmelding.status.statusEvent == "SENDT") {
-                    log.info("Sykmelding er sendt")
-                    val sendtSykmelding = databasePostgres.connection.getSendtSykmeldingMedSisteStatus(sykmeldingId).firstOrNull()
-                    sykmeldingProducer.sendSykmelding(
-                        sykmeldingKafkaMessage = mapTilSendtSykmelding(sendtSykmelding!!),
-                        sykmeldingId = sykmeldingId,
-                        topic = sendtSykmeldingTopic
-                    )
-                    log.info("Sendt sykmelding til SENDT-topic")
-                } else if (sykmelding.status.statusEvent == "BEKREFTET") {
-                    log.info("Sykmelding er bekreftet")
-                    val bekreftetSykmelding = databasePostgres.connection.getSykmeldingMedSisteStatusBekreftet(sykmeldingId)
-                    val sporsmals = databasePostgres.connection.hentSporsmalOgSvar(sykmeldingId)
-                    sykmeldingProducer.sendSykmelding(
-                        sykmeldingKafkaMessage = mapTilBekreftetSykmelding(bekreftetSykmelding!!, sporsmals),
-                        sykmeldingId = sykmeldingId,
-                        topic = bekreftetSykmeldingTopic
-                    )
-                    log.info("Sendt sykmelding til BEKREFTET-topic")
-                }
+                log.info("Sendt sykmelding til SENDT-topic")
+            } else if (sykmelding.status.statusEvent == "BEKREFTET") {
+                log.info("Sykmelding er bekreftet")
+                val bekreftetSykmelding = databasePostgres.connection.getSykmeldingMedSisteStatusBekreftet(sykmeldingId)
+                val sporsmals = databasePostgres.connection.hentSporsmalOgSvar(sykmeldingId)
+                sykmeldingProducer.sendSykmelding(
+                    sykmeldingKafkaMessage = mapTilBekreftetSykmelding(bekreftetSykmelding!!, sporsmals),
+                    sykmeldingId = sykmeldingId,
+                    topic = bekreftetSykmeldingTopic
+                )
+                log.info("Sendt sykmelding til BEKREFTET-topic")
             }
         } else {
             log.info("Fant ikke sykmelding med id {}", sykmeldingId)
@@ -197,103 +181,5 @@ class UpdatePeriodeService(
             ShortName.PERIODE -> ShortNameDTO.PERIODE
             ShortName.FORSIKRING -> ShortNameDTO.FORSIKRING
         }
-    }
-
-    private fun tilSyfoservicePeriode(periode: Periode): HelseOpplysningerArbeidsuforhet.Aktivitet.Periode {
-        if (periode.aktivitetIkkeMulig != null) {
-            return HelseOpplysningerArbeidsuforhet.Aktivitet.Periode().apply {
-                periodeFOMDato = periode.fom
-                periodeTOMDato = periode.tom
-                aktivitetIkkeMulig = HelseOpplysningerArbeidsuforhet.Aktivitet.Periode.AktivitetIkkeMulig().apply {
-                    medisinskeArsaker = if (periode.aktivitetIkkeMulig.medisinskArsak != null) {
-                        ArsakType().apply {
-                            beskriv = periode.aktivitetIkkeMulig.medisinskArsak.beskrivelse
-                            arsakskode.addAll(
-                                periode.aktivitetIkkeMulig.medisinskArsak.arsak.map {
-                                    CS().apply {
-                                        v = it.codeValue
-                                        dn = it.name
-                                    }
-                                }
-                            )
-                        }
-                    } else {
-                        null
-                    }
-                    arbeidsplassen = if (periode.aktivitetIkkeMulig.arbeidsrelatertArsak != null) {
-                        ArsakType().apply {
-                            beskriv = periode.aktivitetIkkeMulig.arbeidsrelatertArsak.beskrivelse
-                            arsakskode.addAll(
-                                periode.aktivitetIkkeMulig.arbeidsrelatertArsak.arsak.map {
-                                    CS().apply {
-                                        v = it.codeValue
-                                        dn = it.name
-                                    }
-                                }
-                            )
-                        }
-                    } else {
-                        null
-                    }
-                }
-                avventendeSykmelding = null
-                gradertSykmelding = null
-                behandlingsdager = null
-                isReisetilskudd = null
-            }
-        }
-
-        if (periode.gradert != null) {
-            return HelseOpplysningerArbeidsuforhet.Aktivitet.Periode().apply {
-                periodeFOMDato = periode.fom
-                periodeTOMDato = periode.tom
-                aktivitetIkkeMulig = null
-                avventendeSykmelding = null
-                gradertSykmelding = HelseOpplysningerArbeidsuforhet.Aktivitet.Periode.GradertSykmelding().apply {
-                    isReisetilskudd = periode.gradert.reisetilskudd
-                    sykmeldingsgrad = Integer.valueOf(periode.gradert.grad)
-                }
-                behandlingsdager = null
-                isReisetilskudd = null
-            }
-        }
-        if (!periode.avventendeInnspillTilArbeidsgiver.isNullOrEmpty()) {
-            return HelseOpplysningerArbeidsuforhet.Aktivitet.Periode().apply {
-                periodeFOMDato = periode.fom
-                periodeTOMDato = periode.tom
-                aktivitetIkkeMulig = null
-                avventendeSykmelding = HelseOpplysningerArbeidsuforhet.Aktivitet.Periode.AvventendeSykmelding().apply {
-                    innspillTilArbeidsgiver = periode.avventendeInnspillTilArbeidsgiver
-                }
-                gradertSykmelding = null
-                behandlingsdager = null
-                isReisetilskudd = null
-            }
-        }
-        if (periode.behandlingsdager != null) {
-            return HelseOpplysningerArbeidsuforhet.Aktivitet.Periode().apply {
-                periodeFOMDato = periode.fom
-                periodeTOMDato = periode.tom
-                aktivitetIkkeMulig = null
-                avventendeSykmelding = null
-                gradertSykmelding = null
-                behandlingsdager = HelseOpplysningerArbeidsuforhet.Aktivitet.Periode.Behandlingsdager().apply {
-                    antallBehandlingsdagerUke = periode.behandlingsdager
-                }
-                isReisetilskudd = null
-            }
-        }
-        if (periode.reisetilskudd) {
-            return HelseOpplysningerArbeidsuforhet.Aktivitet.Periode().apply {
-                periodeFOMDato = periode.fom
-                periodeTOMDato = periode.tom
-                aktivitetIkkeMulig = null
-                avventendeSykmelding = null
-                gradertSykmelding = null
-                behandlingsdager = null
-                isReisetilskudd = true
-            }
-        }
-        throw IllegalStateException("Har mottatt periode som ikke er av kjent type")
     }
 }
